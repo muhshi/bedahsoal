@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
+import { seedAllMultiExams } from './seeds';
 
 const prisma = new PrismaClient();
 
@@ -137,6 +138,9 @@ async function main() {
   }
 
   console.log(`🎉 Successfully seeded ${count} questions and all options into cat_skd_db!`);
+
+  // 5. Run aggregated multi-exam seeds
+  await seedAllMultiExams(prisma);
 }
 
 main()

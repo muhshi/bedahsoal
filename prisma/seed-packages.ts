@@ -1,8 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+let prisma = new PrismaClient();
 
-async function seedMultiExamPackages() {
+export async function seedMultiExamPackages(prismaClient?: PrismaClient) {
+  if (prismaClient) {
+    prisma = prismaClient;
+  }
   console.log('🚀 Memulai Seeding Paket Multi-Exam BedahSoal...');
 
   // ========================================================
@@ -507,11 +510,13 @@ Hubungan analogi: Suatu **Hipotesis** dibuktikan kebenarannya melalui **Eksperim
   console.log('🎉 SELURUH SEEDING PAKET SELESAI DENGAN SUKSES!');
 }
 
-seedMultiExamPackages()
-  .catch((e) => {
-    console.error('❌ Seeding error:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+if (require.main === module) {
+  seedMultiExamPackages()
+    .catch((e) => {
+      console.error('❌ Seeding error:', e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}
