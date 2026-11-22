@@ -20,7 +20,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     try {
       setLoading(true);
       setError(null);
-      await signIn('google', { callbackUrl: window.location.href });
+      await signIn('google', { callbackUrl: '/dashboard' });
     } catch (err: any) {
       console.error('Google sign in error:', err);
       setError('Gagal menghubungkan Google Auth. Silakan coba masuk sebagai tamu.');
@@ -33,18 +33,12 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     try {
       setLoading(true);
       setError(null);
-      const res = await signIn('guest-login', {
+      await signIn('guest-login', {
         name: guestName.trim() || 'Peserta BedahSoal',
-        redirect: false,
+        redirect: true,
+        callbackUrl: '/dashboard',
       });
-
-      if (res?.error) {
-        setError('Gagal masuk sebagai tamu. Silakan coba kembali.');
-        setLoading(false);
-      } else {
-        onClose();
-        window.location.reload();
-      }
+      onClose();
     } catch (err: any) {
       console.error('Guest sign in error:', err);
       setError('Terjadi kendala jaringan saat masuk.');

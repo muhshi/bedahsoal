@@ -229,6 +229,20 @@ export function UserNav({
 
         {/* Action Buttons & Auth */}
         <div className="flex items-center gap-2.5">
+          {session?.user && (
+            <Link
+              href="/dashboard"
+              className={`inline-flex items-center justify-center gap-1.5 h-9 px-3 sm:px-3.5 border border-[#191713] font-mono text-[10.5px] font-semibold tracking-[0.1em] uppercase transition-all shadow-[2px_2px_0px_#d2c8b2] hover:translate-x-[-1px] hover:translate-y-[-1px] ${
+                activeTab === 'dashboard'
+                  ? 'bg-[#c4402a] text-[#f3efe3] border-[#c4402a]'
+                  : 'bg-[#fbf8f0] text-[#191713] hover:bg-[#eae3d2]'
+              }`}
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span>Meja Kerja / Rapor</span>
+            </Link>
+          )}
+
           <StartExamButton
             tryoutId="tryout-tiu-60"
             label="Mulai"
