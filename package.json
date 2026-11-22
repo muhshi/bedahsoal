@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
@@ -29,7 +30,7 @@
     "@prisma/client": "^6.19.3",
     "@tailwindcss/turbopack": "4.3.3",
     "@types/katex": "^0.16.8",
-    "@types/node": "^20",
+    "@types/node": "^22.20.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "csv-parse": "^7.0.3",
@@ -38,6 +39,8 @@
     "prisma": "^6.19.3",
     "tailwindcss": "4.3.3",
     "tsx": "^4.23.15",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
   }
 }
