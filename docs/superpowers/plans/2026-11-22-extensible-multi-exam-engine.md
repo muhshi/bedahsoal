@@ -1,6 +1,6 @@
 # Extensible Multi-Exam CBT Engine Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Transform the CBT engine from a rigid SKD-only test runner into a polymorphic, extensible exam simulation platform supporting multiple test formats (SKD CPNS/Kedinasan, LPDP Tes Bakat Skolastik, Olimpiade Matematika dengan KaTeX & skor minus, serta UTBK SNBT) without code rigidity.
 
@@ -54,7 +54,7 @@ latihan_soal/
 - Test: `tests/scoring-engine.test.ts`
 - Modify: `src/lib/scoring.ts`
 
-- [ ] **Step 1: Write the failing test for scoring strategies**
+- [x] **Step 1: Write the failing test for scoring strategies**
 
 Create `tests/scoring-engine.test.ts`:
 
@@ -127,7 +127,7 @@ describe('Scoring Engine Strategies', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 ```bash
@@ -135,7 +135,7 @@ npm test tests/scoring-engine.test.ts
 ```
 Expected: FAIL with "Cannot find module '../src/lib/scoring-engine'"
 
-- [ ] **Step 3: Create types and implement scoring strategies**
+- [x] **Step 3: Create types and implement scoring strategies**
 
 Create `src/types/scoring.ts`:
 
@@ -310,7 +310,7 @@ export function calculateExamScore(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 ```bash
@@ -318,7 +318,7 @@ npm test tests/scoring-engine.test.ts
 ```
 Expected: PASS (3 tests passed)
 
-- [ ] **Step 5: Commit Task 1**
+- [x] **Step 5: Commit Task 1**
 
 ```bash
 git add src/types/scoring.ts src/lib/scoring-engine.ts tests/scoring-engine.test.ts
@@ -333,7 +333,7 @@ git commit -m "feat(scoring): add polymorphic scoring engine with strategy patte
 - Modify: `prisma/schema.prisma`
 - Modify: `prisma/seed.ts`
 
-- [ ] **Step 1: Update Prisma schema to be fully polymorphic**
+- [x] **Step 1: Update Prisma schema to be fully polymorphic**
 
 Edit `prisma/schema.prisma` to make `QuestionCategory` flexible, add `examType` to `Package` & `Tryout`, add `scoringScheme` Json, and replace rigid subtest columns with `subtestScores Json`:
 
@@ -633,7 +633,7 @@ model AuditLog {
 }
 ```
 
-- [ ] **Step 2: Push changes to PostgreSQL server**
+- [x] **Step 2: Push changes to PostgreSQL server**
 
 Run:
 ```bash
@@ -641,11 +641,11 @@ npm run db:push
 ```
 Expected: "🚀 Your database is now in sync with your Prisma schema."
 
-- [ ] **Step 3: Update `prisma/seed.ts` for flexible categories**
+- [x] **Step 3: Update `prisma/seed.ts` for flexible categories**
 
 Update `prisma/seed.ts` to use string category `"TIU"` instead of `QuestionCategory.TIU`.
 
-- [ ] **Step 4: Run seed to verify compatibility**
+- [x] **Step 4: Run seed to verify compatibility**
 
 Run:
 ```bash
@@ -653,7 +653,7 @@ npm run db:seed
 ```
 Expected: "🎉 Successfully seeded 60 questions and all options into cat_skd_db!"
 
-- [ ] **Step 5: Commit Task 2**
+- [x] **Step 5: Commit Task 2**
 
 ```bash
 git add prisma/schema.prisma prisma/seed.ts
@@ -669,7 +669,7 @@ git commit -m "feat(database): make schema polymorphic for multi-exam support"
 - Modify: `src/stores/use-exam-store.ts`
 - Test: `tests/exam-store.test.ts`
 
-- [ ] **Step 1: Write test for Zustand exam store**
+- [x] **Step 1: Write test for Zustand exam store**
 
 Create `tests/exam-store.test.ts`:
 
@@ -728,7 +728,7 @@ describe('useExamStore', () => {
 });
 ```
 
-- [ ] **Step 2: Update `src/types/exam.ts`**
+- [x] **Step 2: Update `src/types/exam.ts`**
 
 Edit `src/types/exam.ts`:
 
@@ -777,11 +777,11 @@ export interface AnswerSyncItem {
 }
 ```
 
-- [ ] **Step 3: Update `src/stores/use-exam-store.ts`**
+- [x] **Step 3: Update `src/stores/use-exam-store.ts`**
 
 Update `src/stores/use-exam-store.ts` to include `setNumericAnswer` and `getSubtests()`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run:
 ```bash
@@ -789,7 +789,7 @@ npm test tests/exam-store.test.ts
 ```
 Expected: PASS (3 tests passed)
 
-- [ ] **Step 5: Commit Task 3**
+- [x] **Step 5: Commit Task 3**
 
 ```bash
 git add src/types/exam.ts src/stores/use-exam-store.ts tests/exam-store.test.ts
@@ -804,7 +804,7 @@ git commit -m "feat(store): expand exam store for numeric inputs and dynamic sub
 - Create: `src/components/exam/MathRenderer.tsx`
 - Test: `tests/math-renderer.test.ts`
 
-- [ ] **Step 1: Write test for KaTeX formula parsing**
+- [x] **Step 1: Write test for KaTeX formula parsing**
 
 Create `tests/math-renderer.test.ts`:
 
@@ -828,7 +828,7 @@ describe('KaTeX Math Rendering', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify KaTeX works**
+- [x] **Step 2: Run test to verify KaTeX works**
 
 Run:
 ```bash
@@ -836,7 +836,7 @@ npm test tests/math-renderer.test.ts
 ```
 Expected: PASS
 
-- [ ] **Step 3: Implement `src/components/exam/MathRenderer.tsx`**
+- [x] **Step 3: Implement `src/components/exam/MathRenderer.tsx`**
 
 Create `src/components/exam/MathRenderer.tsx` (supports mixed text + KaTeX expressions delimiter `$...$` and `$$...$$`):
 
@@ -886,7 +886,7 @@ export function MathRenderer({ content, className = '' }: MathRendererProps) {
 }
 ```
 
-- [ ] **Step 4: Verify build with KaTeX component**
+- [x] **Step 4: Verify build with KaTeX component**
 
 Run:
 ```bash
@@ -894,7 +894,7 @@ npm run build
 ```
 Expected: ✓ Compiled successfully
 
-- [ ] **Step 5: Commit Task 4**
+- [x] **Step 5: Commit Task 4**
 
 ```bash
 git add src/components/exam/MathRenderer.tsx tests/math-renderer.test.ts
@@ -909,7 +909,7 @@ git commit -m "feat(ui): add KaTeX MathRenderer component for mathematical expre
 - Create: `src/components/exam/QuestionPalette.tsx`
 - Create: `src/components/exam/ExamHeader.tsx`
 
-- [ ] **Step 1: Implement `src/components/exam/QuestionPalette.tsx`**
+- [x] **Step 1: Implement `src/components/exam/QuestionPalette.tsx`**
 
 Create `src/components/exam/QuestionPalette.tsx`:
 - Group by Category/Subtest tabs if multiple categories exist.
@@ -917,14 +917,14 @@ Create `src/components/exam/QuestionPalette.tsx`:
 - Touch target $\ge 44 \times 44$ px for mobile ergonomics.
 - Shows total statistics (answered count, doubt count, remaining count).
 
-- [ ] **Step 2: Implement `src/components/exam/ExamHeader.tsx`**
+- [x] **Step 2: Implement `src/components/exam/ExamHeader.tsx`**
 
 Create `src/components/exam/ExamHeader.tsx`:
 - Real-time countdown timer bound to `deadline` and `serverTimeOffsetMs`.
 - Subtest badge of current active question.
 - Submit button with confirmation dialog.
 
-- [ ] **Step 3: Test build**
+- [x] **Step 3: Test build**
 
 Run:
 ```bash
@@ -932,7 +932,7 @@ npm run build
 ```
 Expected: ✓ Compiled successfully
 
-- [ ] **Step 4: Commit Task 5**
+- [x] **Step 4: Commit Task 5**
 
 ```bash
 git add src/components/exam/QuestionPalette.tsx src/components/exam/ExamHeader.tsx
@@ -948,7 +948,7 @@ git commit -m "feat(ui): add section-aware question palette and exam header with
 - Create: `src/app/(exam)/exam/[sessionId]/page.tsx`
 - Create: `src/app/api/sessions/[sessionId]/submit/route.ts`
 
-- [ ] **Step 1: Implement `src/components/exam/QuestionViewer.tsx`**
+- [x] **Step 1: Implement `src/components/exam/QuestionViewer.tsx`**
 
 Handles:
 - Question text rendering with `MathRenderer`.
@@ -959,19 +959,19 @@ Handles:
 - "Tandai Ragu-Ragu" checkbox button.
 - "Sebelumnya" & "Selanjutnya" navigation buttons (< 16ms instant switch).
 
-- [ ] **Step 2: Assemble Fullscreen Exam Player in `src/app/(exam)/exam/[sessionId]/page.tsx`**
+- [x] **Step 2: Assemble Fullscreen Exam Player in `src/app/(exam)/exam/[sessionId]/page.tsx`**
 
 - Responsive layout: Drawer on mobile for question palette, sticky side panel on desktop.
 - Keyboard navigation (Arrow keys, keys A-E for instant answer).
 - Offline banner notification if network drops.
 
-- [ ] **Step 3: Implement Submission Route in `src/app/api/sessions/[sessionId]/submit/route.ts`**
+- [x] **Step 3: Implement Submission Route in `src/app/api/sessions/[sessionId]/submit/route.ts`**
 
 - Evaluates answers using `calculateExamScore()` based on `tryout.examType`.
 - Saves `totalScore`, `subtestScores`, and `isPassed`.
 - Returns final score and activates review access.
 
-- [ ] **Step 4: Run full test suite & production build**
+- [x] **Step 4: Run full test suite & production build**
 
 Run:
 ```bash
@@ -979,7 +979,7 @@ npm test && npm run build
 ```
 Expected: All tests pass, build completes with 0 errors.
 
-- [ ] **Step 5: Commit Task 6**
+- [x] **Step 5: Commit Task 6**
 
 ```bash
 git add src/components/exam/QuestionViewer.tsx src/app/\(exam\)/exam/\[sessionId\]/page.tsx src/app/api/sessions/\[sessionId\]/submit/route.ts
