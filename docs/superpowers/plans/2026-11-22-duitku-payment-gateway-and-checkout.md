@@ -88,7 +88,7 @@
 
 ### Task 6: Remote Deployment & Live Verification
 
-- [ ] **Step 1: Run complete test suite and production build**
-- [ ] **Step 2: Commit and push changes to GitHub `main`**
-- [ ] **Step 3: Deploy to production server via Tailscale (`bpsdemak@100.106.152.115`)**
-- [ ] **Step 4: Verify live endpoints on `https://bedahsoal.muhshi.my.id`**
+- [x] **Step 1: Run complete test suite and production build**
+- [x] **Step 2: Commit and push changes to GitHub `main`**
+- [x] **Step 3: Deploy to production server via Tailscale (`bpsdemak@100.106.152.115`)**
+- [x] **Step 4: Verify live endpoints on `https://bedahsoal.muhshi.my.id`**
