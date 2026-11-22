@@ -3,8 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: cat-skd-cbt:latest
-    container_name: cat-skd-cbt
+    image: bedahsoal-cbt:latest
+    container_name: bedahsoal-cbt
     restart: unless-stopped
     ports:
       - "${APP_PORT:-3000}:3000"
@@ -13,7 +13,9 @@ services:
       - PORT=3000
       - DATABASE_URL=${DATABASE_URL:-postgresql://bpsdemak:demak3321@10.133.21.24:5433/cat_skd_db?schema=public}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-cat_skd_super_secret_jwt_key_2026_production_ready}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-bedahsoal_super_secret_jwt_key_2026_production_ready}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
       - DUITKU_MERCHANT_CODE=${DUITKU_MERCHANT_CODE:-}
       - DUITKU_API_KEY=${DUITKU_API_KEY:-}
       - DUITKU_ENV=${DUITKU_ENV:-sandbox}

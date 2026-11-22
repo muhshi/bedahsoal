@@ -1,8 +1,7 @@
 #!/bin/bash
 # ==============================================================================
-# CAT SKD & Multi-Exam CBT Platform - Smart Deployment Script
+# BEDAHSOAL - Multi-Exam CBT Platform - Smart Deployment Script
 # Karakteristik: "Hanya Build Saat Dibutuhkan" (Zero-Waste Rebuild)
-# Adaptasi Cerdas dari arsitektur saham/deploy.sh
 # ==============================================================================
 
 set -e
@@ -28,13 +27,13 @@ if [ -f .env ]; then
 fi
 
 echo -e "${CYAN}========================================================================${NC}"
-echo -e "${CYAN}  ____    _  _____   ____  _  ______     ____ ____ _____ ${NC}"
-echo -e "${CYAN} / ___|  / \|_   _| / ___|| |/ /  _ \   / ___| __ )_   _|${NC}"
-echo -e "${CYAN}| |     / _ \ | |   \___ \| ' /| | | | | |   |  _ \ | |  ${NC}"
-echo -e "${CYAN}| |___ / ___ \| |    ___) | . \| |_| | | |___| |_) || |  ${NC}"
-echo -e "${CYAN} \____/_/   \_\_|   |____/|_|\_\____/   \____|____/ |_|  ${NC}"
+echo -e "${CYAN}  ____  _____ ____    _    _   _   ____   ___    _    _     ${NC}"
+echo -e "${CYAN} | __ )| ____|  _ \  / \  | | | | / ___| / _ \  / \  | |    ${NC}"
+echo -e "${CYAN} |  _ \|  _| | | | |/ _ \ | |_| | \___ \| | | |/ _ \ | |    ${NC}"
+echo -e "${CYAN} | |_) | |___| |_| / ___ \|  _  |  ___) | |_| / ___ \| |___ ${NC}"
+echo -e "${CYAN} |____/|_____|____/_/   \_\_| |_| |____/ \___/_/   \_\_____|${NC}"
 echo -e "${CYAN}                                                         ${NC}"
-echo -e "${BOLD}${CYAN}🎯 CAT SKD & MULTI-EXAM CBT PLATFORM - SMART DEPLOYMENT${NC}"
+echo -e "${BOLD}${CYAN}🎯 BEDAHSOAL CBT PLATFORM - SMART DEPLOYMENT${NC}"
 echo -e "${CYAN}   Zero-Waste Rebuild & Intelligent Change Detection${NC}"
 echo -e "${CYAN}========================================================================${NC}"
 
@@ -201,7 +200,7 @@ CUR_COMPOSITE_HASH=$(echo "${CUR_DEPS_HASH}:${CUR_APP_HASH}" | hash_string)
 # Cek keberadaan Image Docker di lokal
 IMAGE_EXISTS=false
 if command -v docker >/dev/null 2>&1; then
-    if docker image inspect cat-skd-cbt:latest >/dev/null 2>&1; then
+    if docker image inspect bedahsoal-cbt:latest >/dev/null 2>&1; then
         IMAGE_EXISTS=true
     fi
 elif [ -n "$DOCKER_COMPOSE" ]; then
@@ -246,7 +245,7 @@ else
     # Mode AUTO DETECT
     if [ "$IMAGE_EXISTS" = false ]; then
         DECIDED_BUILD="TOTAL"
-        BUILD_REASON="Image Docker (cat-skd-cbt:latest) belum tersedia di host"
+        BUILD_REASON="Image Docker (bedahsoal-cbt:latest) belum tersedia di host"
     elif [ ! -f "$STATE_FILE" ] && [ ! -f "$LEGACY_HASH_FILE" ]; then
         DECIDED_BUILD="TOTAL"
         BUILD_REASON="Belum ada riwayat build sebelumnya (.last_docker_build_state)"
@@ -302,9 +301,9 @@ echo ""
 
 # Status Image Docker
 if [ "$IMAGE_EXISTS" = true ]; then
-    echo -e "  • ${GREEN}[✓ DITEMUKAN]${NC}  ${BOLD}Docker Image${NC}     (cat-skd-cbt:latest tersedia di host)"
+    echo -e "  • ${GREEN}[✓ DITEMUKAN]${NC}  ${BOLD}Docker Image${NC}     (bedahsoal-cbt:latest tersedia di host)"
 else
-    echo -e "  • ${YELLOW}[! TIDAK ADA]${NC}  ${BOLD}Docker Image${NC}     (cat-skd-cbt:latest belum dibuild di host)"
+    echo -e "  • ${YELLOW}[! TIDAK ADA]${NC}  ${BOLD}Docker Image${NC}     (bedahsoal-cbt:latest belum dibuild di host)"
 fi
 
 echo -e "${CYAN}------------------------------------------------------------------------${NC}"

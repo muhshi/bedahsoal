@@ -41,7 +41,9 @@ model User {
   id            String         @id @default(cuid())
   email         String         @unique
   name          String?
+  image         String?
   avatarUrl     String?
+  emailVerified DateTime?
   role          Role           @default(USER)
   isNamePublic  Boolean        @default(false)
   createdAt     DateTime       @default(now())

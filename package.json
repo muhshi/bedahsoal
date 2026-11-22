@@ -1,7 +1,7 @@
 {
-  "name": "cat-skd-platform",
+  "name": "bedahsoal-platform",
   "version": "1.0.0",
-  "description": "Platform CBT Tryout SKD CPNS & Kedinasan (SaaS PWA)",
+  "description": "Platform CBT Tryout Multi-Ujian (SKD, LPDP, Olimpiade, UTBK)",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -18,10 +18,12 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.11.3",
     "idb-keyval": "^6.3.0",
     "katex": "^0.19.1",
     "lucide-react": "^1.77.0",
     "next": "16.4.6",
+    "next-auth": "^5.0.0-beta.32",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zustand": "^5.1.0"
