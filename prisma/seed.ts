@@ -1,4 +1,4 @@
-import { PrismaClient, QuestionCategory } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
@@ -65,7 +65,7 @@ async function main() {
     columns: true,
     skip_empty_lines: true,
     trim: true,
-  });
+  }) as Array<Record<string, string>>;
 
   console.log(`📖 Found ${records.length} questions in CSV. Importing to database...`);
 
@@ -86,7 +86,7 @@ async function main() {
         },
       },
       update: {
-        category: QuestionCategory.TIU,
+        category: 'TIU',
         subTopic,
         text: questionText,
         explanation,
@@ -94,7 +94,7 @@ async function main() {
       create: {
         tryoutId: tryout.id,
         orderNumber,
-        category: QuestionCategory.TIU,
+        category: 'TIU',
         subTopic,
         text: questionText,
         explanation,

@@ -37,12 +37,6 @@ enum ExamStatus {
   EXPIRED
 }
 
-enum QuestionCategory {
-  TWK
-  TIU
-  TKP
-}
-
 model User {
   id            String         @id @default(cuid())
   email         String         @unique
@@ -108,6 +102,7 @@ model Package {
   title        String
   slug         String        @unique
   description  String?       @db.Text
+  examType     String        @default("SKD_CPNS") // SKD_CPNS, LPDP_TBS, MATH_OLYMPIAD, UTBK_SNBT
   price        Int           @default(0)
   promoPrice   Int?
   isFree       Boolean       @default(false)
@@ -163,6 +158,7 @@ model PassingGradeProfile {
   minTWK    Int      @default(65)
   minTIU    Int      @default(80)
   minTKP    Int      @default(166)
+  rules     Json?    // Optional flexible thresholds for non-SKD exams
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -172,20 +168,23 @@ model PassingGradeProfile {
 }
 
 model Tryout {
-  id                   String               @id @default(cuid())
-  packageId            String
+  id                    String               @id @default(cuid())
+  packageId             String
   passingGradeProfileId String?
-  title                String
-  durationMinutes      Int                  @default(100)
-  totalQuestions       Int                  @default(110)
-  isActive             Boolean              @default(true)
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
+  title                 String
+  examType              String               @default("SKD_CPNS")
+  durationMinutes       Int                  @default(100)
+  totalQuestions        Int                  @default(110)
+  scoringScheme         Json?                // Custom scoring config (negative marks, IRT, etc.)
+  subtestConfig         Json?                // Subtest breakdown metadata
+  isActive              Boolean              @default(true)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
 
-  package              Package              @relation(fields: [packageId], references: [id], onDelete: Cascade)
-  passingGradeProfile  PassingGradeProfile? @relation(fields: [passingGradeProfileId], references: [id], onDelete: SetNull)
-  questions            Question[]
-  examSessions         ExamSession[]
+  package               Package              @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  passingGradeProfile   PassingGradeProfile? @relation(fields: [passingGradeProfileId], references: [id], onDelete: SetNull)
+  questions             Question[]
+  examSessions          ExamSession[]
 
   @@map("tryouts")
 }
@@ -194,8 +193,9 @@ model Question {
   id                  String           @id @default(cuid())
   tryoutId            String
   orderNumber         Int
-  category            QuestionCategory
+  category            String           // Decoupled string: "TWK", "TIU", "TKP", "Aljabar", "Penalaran Verbal", etc.
   subTopic            String?
+  questionType        String           @default("MULTIPLE_CHOICE") // "MULTIPLE_CHOICE" | "NUMERIC_INPUT"
   text                String           @db.Text
   imageUrl            String?
   explanation         String?          @db.Text
@@ -209,16 +209,17 @@ model Question {
   bookmarks           Bookmark[]
 
   @@unique([tryoutId, orderNumber])
+  @@index([category])
   @@map("questions")
 }
 
 model Option {
   id         String   @id @default(cuid())
   questionId String
-  key        String   // "A", "B", "C", "D", "E"
+  key        String   // "A", "B", "C", "D", "E" or custom key
   text       String   @db.Text
   imageUrl   String?
-  score      Int      @default(0) // TWK/TIU: 0 or 5. TKP: 1 to 5. (Server only!)
+  score      Int      @default(0) // Server-authoritative score
 
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
@@ -237,10 +238,8 @@ model ExamSession {
   startedAt             DateTime    @default(now())
   deadline              DateTime
   submittedAt           DateTime?
-  scoreTWK              Int         @default(0)
-  scoreTIU              Int         @default(0)
-  scoreTKP              Int         @default(0)
   totalScore            Int         @default(0)
+  subtestScores         Json?       // Dynamic breakdown: { "TWK": 100, "TIU": 150, "TKP": 190 } or { "Aljabar": 16 }
   isPassed              Boolean     @default(false)
   passingGradeSnapshot  Json?
 
@@ -256,6 +255,7 @@ model ExamAnswer {
   examSessionId    String
   questionId       String
   selectedOptionId String?
+  numericAnswer    String?     // For math olympiad numeric short answers
   scoreAwarded     Int         @default(0)
   isDoubt          Boolean     @default(false)
   answeredAt       DateTime    @default(now())
