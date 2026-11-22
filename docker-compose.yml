@@ -1,21 +1,21 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: cat_skd_postgres
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: cat_skd_db
+  cbt-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cat-skd-cbt:latest
+    container_name: cat-skd-cbt
+    restart: unless-stopped
     ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  postgres_data:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=${DATABASE_URL:-postgresql://bpsdemak:demak3321@10.133.21.24:5433/cat_skd_db?schema=public}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-cat_skd_super_secret_jwt_key_2026_production_ready}
+      - DUITKU_MERCHANT_CODE=${DUITKU_MERCHANT_CODE:-}
+      - DUITKU_API_KEY=${DUITKU_API_KEY:-}
+      - DUITKU_ENV=${DUITKU_ENV:-sandbox}
+      - DUITKU_CALLBACK_URL=${DUITKU_CALLBACK_URL:-http://localhost:3000/api/duitku/callback}
+      - DUITKU_RETURN_URL=${DUITKU_RETURN_URL:-http://localhost:3000/dashboard}
