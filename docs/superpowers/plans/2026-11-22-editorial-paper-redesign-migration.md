@@ -246,6 +246,6 @@ git commit -m "feat(catalog): transform tryout cards into editorial exam paper i
 ### Task 5: Production Deployment & Visual Regression Verification
 
 - [x] **Step 1: Run full test suite (`npx vitest run`) and build (`npm run build`)**
-- [ ] **Step 2: Push changes to GitHub `main`**
-- [ ] **Step 3: Deploy to production server via Tailscale (`bpsdemak@100.106.152.115`)**
-- [ ] **Step 4: Verify live UI on `https://bedahsoal.muhshi.my.id`**
+- [x] **Step 2: Push changes to GitHub `main`**
+- [x] **Step 3: Deploy to production server via Tailscale (`bpsdemak@100.106.152.115`)**
+- [x] **Step 4: Verify live UI on `https://bedahsoal.muhshi.my.id`**
