@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { db } from "@/lib/db";
 import { StartExamButton } from "@/components/exam/StartExamButton";
+import { UserNav } from "@/components/auth/UserNav";
 import {
   GraduationCap,
   Sparkles,
@@ -248,6 +249,9 @@ export default function HomePage() {
             <a href="#katalog" className="hover:text-blue-600 transition-colors">
               Katalog Tryout
             </a>
+            <Link href="/dashboard" className="hover:text-blue-600 transition-colors">
+              Riwayat &amp; Statistik
+            </Link>
             <a href="#keunggulan" className="hover:text-blue-600 transition-colors">
               Keunggulan
             </a>
@@ -259,10 +263,11 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <StartExamButton
               tryoutId="tryout-tiu-60"
-              label="Coba Demo Gratis"
-              className="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow-sm hover:bg-blue-700 active:scale-95"
-              icon={<Sparkles className="w-4 h-4 text-amber-300" />}
+              label="Coba Demo"
+              className="hidden sm:inline-flex px-3.5 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 active:scale-95 shadow-xs transition"
+              icon={<Sparkles className="w-3.5 h-3.5 text-amber-500" />}
             />
+            <UserNav />
           </div>
         </div>
       </header>

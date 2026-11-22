@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { auth } from '@/auth';
 import { ExamMode } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
@@ -35,19 +36,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Resolve guest / demo user
-    const user = await db.user.upsert({
-      where: { id: 'user-demo-1' },
-      update: {
-        name: userName || 'Peserta Mandiri',
-      },
-      create: {
-        id: 'user-demo-1',
-        email: 'demo@bedahsoal.id',
-        name: userName || 'Peserta Mandiri',
-        role: 'USER',
-      },
-    });
+    // 2. Resolve authenticated user or fallback to guest / demo user
+    let userId: string | undefined;
+    try {
+      const authSession = await auth();
+      userId = authSession?.user?.id;
+    } catch {
+      // In testing environments or unmounted headers context
+      userId = undefined;
+    }
+
+    if (!userId) {
+      const user = await db.user.upsert({
+        where: { id: 'user-demo-1' },
+        update: {
+          name: userName || 'Peserta Mandiri',
+        },
+        create: {
+          id: 'user-demo-1',
+          email: 'demo@bedahsoal.id',
+          name: userName || 'Peserta Mandiri',
+          role: 'USER',
+        },
+      });
+      userId = user.id;
+    }
 
     // 3. Create fresh ExamSession with server-authoritative timer
     const startedAt = new Date();
@@ -57,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     const session = await db.examSession.create({
       data: {
-        userId: user.id,
+        userId,
         tryoutId: tryout.id,
         mode: examMode,
         status: 'IN_PROGRESS',
