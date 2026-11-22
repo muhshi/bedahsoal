@@ -5,7 +5,8 @@ import { useExamStore } from '@/stores/use-exam-store';
 import { ExamHeader } from '@/components/exam/ExamHeader';
 import { QuestionViewer } from '@/components/exam/QuestionViewer';
 import { QuestionPalette } from '@/components/exam/QuestionPalette';
-import { ExamSessionInitDTO } from '@/types/exam';
+import { ExamSessionInitDTO, ExamReviewDTO } from '@/types/exam';
+import { ExamReviewViewer } from '@/components/exam/ExamReviewViewer';
 import { get, set as idbSet } from 'idb-keyval';
 import {
   Wifi,
@@ -17,6 +18,9 @@ import {
   CheckCircle2,
   Award,
   ArrowRight,
+  BookOpen,
+  RotateCcw,
+  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -49,6 +53,10 @@ function ExamPlayer({ params }: ExamPageProps) {
   const [isOnline, setIsOnline] = useState(true);
   const [isSavedLocally, setIsSavedLocally] = useState(true);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isReviewMode, setIsReviewMode] = useState(false);
+  const [reviewData, setReviewData] = useState<ExamReviewDTO | null>(null);
+  const [isLoadingReview, setIsLoadingReview] = useState(false);
+  const [sessionTryoutId, setSessionTryoutId] = useState<string | null>(null);
   const [submitResult, setSubmitResult] = useState<{
     totalScore: number;
     subtestScores?: Record<string, number>;
@@ -86,11 +94,29 @@ function ExamPlayer({ params }: ExamPageProps) {
         const res = await fetch(`/api/sessions/${sessionId}`);
         const data = await res.json();
 
+        // If session has already been completed, gracefully display completion & review options
+        if (data.isCompleted) {
+          if (isMounted) {
+            setSessionTryoutId(data.tryoutId || null);
+            setSubmitResult({
+              totalScore: data.totalScore ?? 0,
+              subtestScores: data.subtestScores,
+              isPassed: data.isPassed,
+            });
+            setIsSubmitted(true);
+            setIsLoading(false);
+          }
+          return;
+        }
+
         if (!res.ok) {
           throw new Error(data.error || 'Gagal memuat sesi ujian');
         }
 
         const initDTO = data as ExamSessionInitDTO;
+        if (isMounted) {
+          setSessionTryoutId(initDTO.tryoutId);
+        }
 
         // Check if there are local offline answers cached in IndexedDB
         let mergedAnswers = initDTO.initialAnswers || {};
@@ -213,6 +239,45 @@ function ExamPlayer({ params }: ExamPageProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Load review data and switch to review mode
+  const handleOpenReview = useCallback(async () => {
+    try {
+      setIsLoadingReview(true);
+      const res = await fetch(`/api/sessions/${sessionId}/review`);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal memuat pembahasan ujian');
+      }
+      setReviewData(data as ExamReviewDTO);
+      setIsReviewMode(true);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan memuat pembahasan';
+      alert(msg);
+    } finally {
+      setIsLoadingReview(false);
+    }
+  }, [sessionId]);
+
+  // Retake exam: create fresh session for this tryout
+  const handleRetakeExam = useCallback(async () => {
+    try {
+      const tryoutId = sessionTryoutId || 'tryout-tiu-60';
+      const res = await fetch('/api/sessions/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tryoutId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.sessionId) {
+        throw new Error(data.error || 'Gagal membuat sesi baru');
+      }
+      window.location.href = data.examUrl || `/exam/${data.sessionId}`;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan sistem';
+      alert(msg);
+    }
+  }, [sessionTryoutId]);
+
   // Submit Handler
   const handleSubmitExam = useCallback(async () => {
     try {
@@ -237,6 +302,11 @@ function ExamPlayer({ params }: ExamPageProps) {
     }
   }, [sessionId]);
 
+  // If in Review Mode, render the full review viewer
+  if (isReviewMode && reviewData) {
+    return <ExamReviewViewer review={reviewData} onRetakeExam={handleRetakeExam} />;
+  }
+
   // Loading Screen
   if (isLoading) {
     return <ExamLoadingScreen />;
@@ -254,12 +324,20 @@ function ExamPlayer({ params }: ExamPageProps) {
           <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">
             {loadError}
           </p>
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors"
-          >
-            Kembali ke Beranda
-          </Link>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={handleRetakeExam}
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors"
+            >
+              Mulai Sesi Ujian Baru
+            </button>
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center px-5 py-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 text-xs font-medium transition-colors"
+            >
+              Kembali ke Beranda
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -275,7 +353,7 @@ function ExamPlayer({ params }: ExamPageProps) {
           </div>
 
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
-            Ujian Berhasil Diserahkan!
+            Ujian Telah Selesai!
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
             Seluruh jawaban Anda telah dinilai oleh server secara otomatis.
@@ -321,13 +399,35 @@ function ExamPlayer({ params }: ExamPageProps) {
             )}
           </div>
 
-          <Link
-            href="/"
-            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors shadow-xs"
-          >
-            Selesai & Kembali ke Beranda
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          <div className="space-y-3">
+            <button
+              onClick={handleOpenReview}
+              disabled={isLoadingReview}
+              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all shadow-md shadow-blue-500/25 active:scale-95 disabled:opacity-50"
+            >
+              {isLoadingReview ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4 text-amber-300" />
+              )}
+              <span>Lihat Pembahasan &amp; Kunci Jawaban</span>
+            </button>
+
+            <button
+              onClick={handleRetakeExam}
+              className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-xs transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Ulangi Ujian Ini (Sesi Baru)</span>
+            </button>
+
+            <Link
+              href="/"
+              className="w-full inline-flex items-center justify-center gap-2 px-5 py-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 text-xs font-medium transition-colors"
+            >
+              <span>Kembali ke Katalog Beranda</span>
+            </Link>
+          </div>
         </div>
       </div>
     );

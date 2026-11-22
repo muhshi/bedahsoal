@@ -75,6 +75,11 @@ export async function GET(
           error: 'Sesi ujian ini telah selesai dikerjakan',
           status: session.status,
           isCompleted: true,
+          totalScore: session.totalScore,
+          subtestScores: session.subtestScores,
+          isPassed: session.isPassed,
+          tryoutId: session.tryoutId,
+          title: session.tryout?.title,
         },
         { status: 403 }
       );

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { db } from "@/lib/db";
+import { StartExamButton } from "@/components/exam/StartExamButton";
 import {
   GraduationCap,
   Sparkles,
@@ -94,13 +95,11 @@ async function PackageList() {
                 </span>
               </div>
 
-              <Link
-                href="/exam/session-demo-tiu"
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 active:scale-95 transition-all"
-              >
-                <span>Mulai Kerjakan</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
+              <StartExamButton
+                tryoutId={pkg.tryouts[0]?.id || "tryout-tiu-60"}
+                label="Mulai Kerjakan"
+                className="px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 active:scale-95 shadow-xs"
+              />
             </div>
           </div>
         ))
@@ -258,13 +257,12 @@ export default function HomePage() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/exam/session-demo-tiu"
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow-sm hover:bg-blue-700 active:scale-95 transition-all"
-            >
-              <Sparkles className="w-4 h-4 text-amber-300" />
-              <span>Coba Demo Gratis</span>
-            </Link>
+            <StartExamButton
+              tryoutId="tryout-tiu-60"
+              label="Coba Demo Gratis"
+              className="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow-sm hover:bg-blue-700 active:scale-95"
+              icon={<Sparkles className="w-4 h-4 text-amber-300" />}
+            />
           </div>
         </div>
       </header>
@@ -292,13 +290,12 @@ export default function HomePage() {
             </p>
 
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link
-                href="/exam/session-demo-tiu"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 text-base font-bold rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/25 hover:bg-blue-700 active:scale-95 transition-all"
-              >
-                <span>Mulai Simulasi Demo (60 Soal TIU)</span>
-                <ArrowRight className="w-5 h-5" />
-              </Link>
+              <StartExamButton
+                tryoutId="tryout-skd-110"
+                label="Mulai Simulasi SKD (110 Soal BKN)"
+                className="w-full sm:w-auto px-6 py-3.5 text-base font-bold rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/25 hover:bg-blue-700 active:scale-95"
+                icon={<Sparkles className="w-5 h-5 text-amber-300" />}
+              />
               <a
                 href="#katalog"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-base font-semibold rounded-xl bg-white text-slate-700 border border-slate-300/80 shadow-xs hover:bg-slate-50 transition-all"
@@ -442,13 +439,11 @@ export default function HomePage() {
             real-time tanpa biaya.
           </p>
           <div className="pt-2">
-            <Link
-              href="/exam/session-demo-tiu"
-              className="inline-flex items-center gap-2 px-8 py-3.5 text-base font-bold rounded-xl bg-white text-blue-700 shadow-xl hover:bg-blue-50 active:scale-95 transition-all"
-            >
-              <span>Buka CBT Player Sekarang</span>
-              <ArrowRight className="w-5 h-5" />
-            </Link>
+            <StartExamButton
+              tryoutId="tryout-skd-110"
+              label="Buka CBT Player Sekarang"
+              className="px-8 py-3.5 text-base font-bold rounded-xl bg-white text-blue-700 shadow-xl hover:bg-blue-50 active:scale-95"
+            />
           </div>
         </div>
       </section>
