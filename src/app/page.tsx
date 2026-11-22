@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { db } from "@/lib/db";
 import { StartExamButton } from "@/components/exam/StartExamButton";
 import { UserNav } from "@/components/auth/UserNav";
+import { CategorizedCatalog, PackageData } from "@/components/catalog/CategorizedCatalog";
 import {
   GraduationCap,
   Sparkles,
@@ -18,17 +19,7 @@ import {
 } from "lucide-react";
 
 async function PackageList() {
-  let packages: Array<{
-    id: string;
-    title: string;
-    slug: string;
-    description: string | null;
-    examType: string;
-    price: number;
-    promoPrice: number | null;
-    isFree: boolean;
-    tryouts: Array<{ id: string; title: string; durationMinutes: number; totalQuestions: number }>;
-  }> = [];
+  let packages: Array<PackageData> = [];
 
   try {
     packages = await db.package.findMany({
@@ -43,183 +34,40 @@ async function PackageList() {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { examType: "asc" },
+        { createdAt: "desc" },
+      ],
     });
   } catch (err) {
     console.error("Failed to fetch packages from DB:", err);
   }
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {packages.length > 0 ? (
-        packages.map((pkg) => (
-          <div
-            key={pkg.id}
-            className="relative rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-blue-400 transition-all flex flex-col justify-between"
-          >
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-                  {pkg.isFree ? "Gratis / Trial" : "Paket Penuh"}
-                </span>
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                  {pkg.examType.replace("_", " ")}
-                </span>
-              </div>
-
-              <h3 className="text-lg font-bold text-slate-900 leading-snug">{pkg.title}</h3>
-
-              <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
-                {pkg.description || "Paket simulasi komprehensif lengkap dengan pembahasan mendalam dan ranking."}
-              </p>
-
-              <div className="pt-2 border-t border-slate-100 space-y-2 text-xs text-slate-600">
-                {pkg.tryouts.map((t) => (
-                  <div key={t.id} className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <BookOpen className="w-3.5 h-3.5 text-blue-600" />
-                      {t.title}
-                    </span>
-                    <span className="font-semibold text-slate-700">
-                      {t.totalQuestions} Soal ({t.durationMinutes} m)
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="pt-6 mt-6 border-t border-slate-100 flex items-center justify-between">
-              <div>
-                <span className="text-[11px] text-slate-500 block">Biaya Akses</span>
-                <span className="text-lg font-extrabold text-slate-900">
-                  {pkg.isFree ? "Gratis" : `Rp ${pkg.price.toLocaleString("id-ID")}`}
-                </span>
-              </div>
-
-              <StartExamButton
-                tryoutId={pkg.tryouts[0]?.id || "tryout-tiu-60"}
-                label="Mulai Kerjakan"
-                className="px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 active:scale-95 shadow-xs"
-              />
-            </div>
-          </div>
-        ))
-      ) : (
-        <div className="relative rounded-2xl border border-blue-200 bg-blue-50/30 p-6 shadow-sm flex flex-col justify-between">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-                Gratis / Trial
-              </span>
-              <span className="text-xs font-medium text-slate-500">TIU SKD CPNS</span>
-            </div>
-            <h3 className="text-lg font-bold text-slate-900">
-              Simulasi Mandiri TIU 60 Soal (Verbal, Numerik, Figural)
-            </h3>
-            <p className="text-xs text-slate-600">
-              Latihan intensif 60 butir soal TIU mencakup Analogi, Silogisme, Analitis, Deret Angka, dan Berhitung
-              beserta pembahasan tuntas.
-            </p>
-          </div>
-          <div className="pt-6 mt-6 border-t border-slate-200/80 flex items-center justify-between">
-            <div>
-              <span className="text-[11px] text-slate-500 block">Biaya Akses</span>
-              <span className="text-lg font-extrabold text-emerald-600">Gratis</span>
-            </div>
-            <Link
-              href="/exam/session-demo-tiu"
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all"
-            >
-              <span>Mulai Ujian</span>
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Upcoming Package: SKD Penuh */}
-      <div className="relative rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col justify-between opacity-95">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-              Paket Lengkap
-            </span>
-            <span className="text-xs font-medium text-slate-500">SKD CPNS UMUM</span>
-          </div>
-          <h3 className="text-lg font-bold text-slate-900">Mastery Simulasi SKD 110 Soal (TWK, TIU, TKP)</h3>
-          <p className="text-xs text-slate-600">
-            Simulasi 100% mengikuti format resmi KepmenPANRB: TWK 30, TIU 35, TKP 45 dengan aturan kelulusan passing
-            grade simultan.
-          </p>
-          <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
-            <div className="flex justify-between">
-              <span>Komposisi Soal</span>
-              <span className="font-semibold text-slate-800">110 Butir (TWK, TIU, TKP)</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Durasi Ujian</span>
-              <span className="font-semibold text-slate-800">100 Menit Ketat</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-6 mt-6 border-t border-slate-100 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] text-slate-500 block">Harga Normal</span>
-            <span className="text-lg font-extrabold text-slate-900">Rp 19.000</span>
-          </div>
-          <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md">Segera Hadir</span>
-        </div>
-      </div>
-
-      {/* Upcoming Package: Olimpiade Matematika */}
-      <div className="relative rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col justify-between opacity-95">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
-              Olimpiade
-            </span>
-            <span className="text-xs font-medium text-slate-500">MATEMATIKA &amp; SAINS</span>
-          </div>
-          <h3 className="text-lg font-bold text-slate-900">Simulasi Olimpiade Sains &amp; Matematika</h3>
-          <p className="text-xs text-slate-600">
-            Mendukung formula KaTeX kompleks, isian singkat angka (numeric input), dan sistem penilaian penalti minus
-            (Benar +4, Salah -1).
-          </p>
-          <div className="pt-2 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
-            <div className="flex justify-between">
-              <span>Tipe Soal</span>
-              <span className="font-semibold text-slate-800">Pilihan Ganda &amp; Isian Numerik</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Sistem Skor</span>
-              <span className="font-semibold text-slate-800">Negative Marking (+4 / -1)</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-6 mt-6 border-t border-slate-100 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] text-slate-500 block">Harga Normal</span>
-            <span className="text-lg font-extrabold text-slate-900">Rp 25.000</span>
-          </div>
-          <span className="text-xs font-medium text-purple-600 bg-purple-50 px-2.5 py-1 rounded-md">Segera Hadir</span>
-        </div>
-      </div>
-    </div>
-  );
+  return <CategorizedCatalog packages={packages} />;
 }
 
 function PackageListSkeleton() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="animate-pulse rounded-2xl border border-slate-200 bg-white p-6 h-64 space-y-4">
-          <div className="h-4 bg-slate-200 rounded w-1/4" />
-          <div className="h-6 bg-slate-200 rounded w-3/4" />
-          <div className="h-16 bg-slate-100 rounded w-full" />
-        </div>
-      ))}
+    <div className="space-y-8 animate-pulse">
+      {/* Pills skeleton */}
+      <div className="flex justify-center gap-2">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="h-10 w-28 bg-slate-200 rounded-2xl" />
+        ))}
+      </div>
+      {/* Banner skeleton */}
+      <div className="h-24 bg-slate-200 rounded-3xl" />
+      {/* Grid skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="rounded-3xl border border-slate-200 bg-white p-6 h-72 space-y-4">
+            <div className="h-4 bg-slate-200 rounded w-1/4" />
+            <div className="h-6 bg-slate-200 rounded w-3/4" />
+            <div className="h-16 bg-slate-100 rounded w-full" />
+            <div className="h-8 bg-slate-200 rounded w-1/3 mt-6" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -333,14 +181,14 @@ export default function HomePage() {
       </section>
 
       {/* 3. Katalog Paket Tryout */}
-      <section id="katalog" className="py-16 bg-white border-y border-slate-200/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="katalog" className="py-16 bg-white border-y border-slate-200/80 scroll-mt-16">
+        <div id="paket-ujian" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
             <div>
-              <span className="text-xs font-bold text-blue-600 tracking-wider uppercase">Pilihan Pembelajaran</span>
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">Katalog Paket Soal &amp; Simulasi</h2>
+              <span className="text-xs font-bold text-blue-600 tracking-wider uppercase">Pilihan Pembelajaran Multi-Ujian</span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Katalog Paket Soal Terkategori</h2>
               <p className="text-sm text-slate-600 mt-1">
-                Sistem sekali bayar per paket (pay-per-package) tanpa langganan berulang.
+                Pilih jalur ujian target Anda: SKD CPNS, Beasiswa LPDP, UTBK-SNBT, atau Olimpiade Sains.
               </p>
             </div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-xs font-medium text-slate-600 self-start md:self-auto">

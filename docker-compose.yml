@@ -12,12 +12,16 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - DATABASE_URL=${DATABASE_URL:-postgresql://bpsdemak:demak3321@10.133.21.24:5433/cat_skd_db?schema=public}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://bedahsoal.muhshi.my.id}
+      - AUTH_URL=${AUTH_URL:-https://bedahsoal.muhshi.my.id}
+      - AUTH_SECRET=${AUTH_SECRET:-bedahsoal_super_secret_jwt_key_2026_production_ready}
+      - AUTH_TRUST_HOST=true
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://bedahsoal.muhshi.my.id}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-bedahsoal_super_secret_jwt_key_2026_production_ready}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
       - DUITKU_MERCHANT_CODE=${DUITKU_MERCHANT_CODE:-}
       - DUITKU_API_KEY=${DUITKU_API_KEY:-}
       - DUITKU_ENV=${DUITKU_ENV:-sandbox}
-      - DUITKU_CALLBACK_URL=${DUITKU_CALLBACK_URL:-http://localhost:3000/api/duitku/callback}
-      - DUITKU_RETURN_URL=${DUITKU_RETURN_URL:-http://localhost:3000/dashboard}
+      - DUITKU_CALLBACK_URL=${DUITKU_CALLBACK_URL:-https://bedahsoal.muhshi.my.id/api/duitku/callback}
+      - DUITKU_RETURN_URL=${DUITKU_RETURN_URL:-https://bedahsoal.muhshi.my.id/dashboard}
