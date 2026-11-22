@@ -1,6 +1,10 @@
 // ============================================================
 // Official CAT BKN Scoring Engine & Tie-Breaker Logic
+// (Legacy bridge to polymorphic scoring-engine)
 // ============================================================
+
+export * from '@/types/scoring';
+export * from './scoring-engine';
 
 export interface SubtestScores {
   scoreTWK: number;
