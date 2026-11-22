@@ -310,30 +310,30 @@ export function CheckoutModal({
         }}
       >
         <div
-          className="relative w-full max-w-lg my-8 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]"
+          className="relative w-full max-w-lg my-auto bg-[#f3efe3] border border-[#191713] shadow-[12px_12px_0px_rgba(25,23,19,0.32)] overflow-hidden flex flex-col max-h-[90vh]"
           onClick={(e) => e.stopPropagation()}
         >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className="px-6 py-5 border-b border-[#d2c8b2] flex items-center justify-between bg-[#eae3d2]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm">
-              <Lock className="w-4 h-4" />
+            <div className="w-8 h-8 border border-[#191713] bg-[#191713] text-[#f3efe3] flex items-center justify-center font-mono text-xs">
+              <Lock className="w-3.5 h-3.5" />
             </div>
             <div>
-              <h3 id="checkout-modal-title" className="text-base font-extrabold text-slate-900 leading-none">
-                Checkout Pembelian Paket
+              <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#c4402a] font-bold">
+                GERBANG PEMBAYARAN DUITKU
+              </div>
+              <h3 id="checkout-modal-title" className="font-serif text-lg font-bold text-[#191713] leading-none mt-0.5">
+                Checkout Paket Ujian
               </h3>
-              <p className="text-[11px] text-slate-500 mt-1 font-medium">
-                Pembayaran Resmi Terverifikasi Duitku Gateway
-              </p>
             </div>
           </div>
           <button
             onClick={onClose}
             aria-label="Tutup Modal"
-            className="w-8 h-8 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 border border-transparent hover:border-[#b9ac91] text-[#4b463d] hover:text-[#191713] hover:bg-[#fbf8f0] flex items-center justify-center font-mono text-lg transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            &times;
           </button>
         </div>
 
@@ -341,57 +341,57 @@ export function CheckoutModal({
         <div className="p-6 overflow-y-auto space-y-6">
           {/* 1. Unauthorized Warning Banner */}
           {isUnauthorized && (
-            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 space-y-3">
+            <div className="p-4 border-l-2 border-[#b67a18] bg-[#f5e8cf] text-[#4b463d] space-y-3 font-mono text-xs">
               <div className="flex items-start gap-2.5">
-                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                <div className="text-xs">
-                  <p className="font-bold">Akses Memerlukan Akun</p>
-                  <p className="mt-0.5 text-amber-700">{errorMessage}</p>
+                <AlertCircle className="w-4 h-4 text-[#b67a18] shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-[#191713]">Akses Memerlukan Akun</p>
+                  <p className="mt-0.5 text-[#4b463d]">{errorMessage}</p>
                 </div>
               </div>
               <Link
                 href="/api/auth/signin"
-                className="block w-full py-2 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition shadow-xs cursor-pointer text-center"
+                className="block w-full py-2.5 px-4 border border-[#191713] bg-[#191713] text-[#f3efe3] text-xs font-semibold tracking-wider uppercase hover:bg-[#c4402a] transition cursor-pointer text-center"
               >
-                Masuk / Daftar Akun Sekarang
+                Masuk / Daftar Akun Sekarang &rarr;
               </Link>
             </div>
           )}
 
           {/* 2. Package Summary Card */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-50/50 via-indigo-50/30 to-white border border-blue-100/80 space-y-3">
+          <div className="p-4 border border-[#191713] bg-[#fbf8f0] shadow-paper space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 uppercase tracking-wider">
+                <span className="font-mono text-[9px] font-bold px-2 py-0.5 border border-[#b9ac91] bg-[#f3efe3] text-[#191713] uppercase tracking-wider">
                   {packageData.examType.replace('_', ' ')}
                 </span>
-                <h4 className="text-base font-bold text-slate-900 mt-1 leading-snug">
+                <h4 className="font-serif text-base font-bold text-[#191713] mt-1.5 leading-snug">
                   {packageData.title}
                 </h4>
               </div>
               <div className="text-right shrink-0">
                 {hasDiscount && (
-                  <span className="text-xs text-slate-400 line-through block font-medium">
+                  <span className="font-mono text-xs text-[#7a7365] line-through block">
                     Rp {packageData.price.toLocaleString('id-ID')}
                   </span>
                 )}
-                <span className="text-lg font-black text-blue-700">
+                <span className="font-mono text-lg font-bold text-[#191713]">
                   Rp {finalPrice.toLocaleString('id-ID')}
                 </span>
                 {hasDiscount && (
-                  <span className="block text-[10px] font-bold text-emerald-600">
+                  <span className="block font-mono text-[10px] font-bold text-[#2f5a44]">
                     Hemat {discountPercent}%
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="pt-2 border-t border-blue-100/60 flex items-center justify-between text-xs text-slate-600">
-              <span className="flex items-center gap-1 font-medium">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <div className="pt-2 border-t border-[#d2c8b2] flex items-center justify-between font-mono text-[10px] text-[#4b463d]">
+              <span className="flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#2f5a44]" />
                 Masa Akses Selamanya
               </span>
-              <span className="font-semibold text-slate-700">
+              <span className="font-semibold text-[#191713]">
                 {packageData.tryouts.length} Simulasi Ujian Lengkap
               </span>
             </div>
@@ -401,9 +401,9 @@ export function CheckoutModal({
           {step === 'SELECT_PAYMENT' && (
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-slate-900 flex items-center gap-1.5 mb-2.5">
+                <label className="font-mono text-xs font-bold text-[#191713] flex items-center gap-1.5 mb-2.5 uppercase tracking-wider">
                   <span>Pilih Metode Pembayaran</span>
-                  <span className="text-[10px] font-medium text-slate-400">(Otomatis Terverifikasi)</span>
+                  <span className="text-[10px] text-[#7a7365] normal-case font-normal">(Otomatis Terverifikasi)</span>
                 </label>
 
                 <div className="space-y-2">
@@ -413,38 +413,38 @@ export function CheckoutModal({
                       <div
                         key={method.id}
                         onClick={() => setSelectedMethod(method.id)}
-                        className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                        className={`p-3.5 border transition-all cursor-pointer flex items-center justify-between ${
                           isSelected
-                            ? 'border-blue-600 bg-blue-50/40 shadow-xs ring-1 ring-blue-600'
-                            : 'border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/50'
+                            ? 'border-2 border-[#191713] bg-[#eae3d2] shadow-[2px_2px_0px_#191713]'
+                            : 'border-[#b9ac91] bg-[#fbf8f0] hover:bg-[#eae3d2]'
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                            className={`w-9 h-9 border border-[#191713] flex items-center justify-center shrink-0 ${
                               isSelected
-                                ? 'bg-blue-600 text-white shadow-xs'
-                                : 'bg-slate-100 text-slate-600'
+                                ? 'bg-[#191713] text-[#f3efe3]'
+                                : 'bg-[#f3efe3] text-[#191713]'
                             }`}
                           >
                             {method.category === 'QRIS' ? (
-                              <QrCode className="w-5 h-5" />
+                              <QrCode className="w-4 h-4" />
                             ) : (
-                              <Building2 className="w-5 h-5" />
+                              <Building2 className="w-4 h-4" />
                             )}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold text-slate-900">
+                              <span className="font-serif text-xs font-bold text-[#191713]">
                                 {method.name}
                               </span>
                               {method.isPopular && (
-                                <span className="text-[10px] font-extrabold px-2 py-0.2 rounded-full bg-emerald-100 text-emerald-700">
+                                <span className="font-mono text-[9px] font-bold px-1.5 py-0.2 border border-[#2f5a44] bg-[#2f5a44]/10 text-[#2f5a44]">
                                   {method.badge}
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] text-slate-500 mt-0.5">
+                            <p className="font-sans text-[11px] text-[#4b463d] mt-0.5">
                               {method.description}
                             </p>
                           </div>
@@ -673,17 +673,19 @@ export function CheckoutModal({
 
         {/* Footer (Only on SELECT_PAYMENT) */}
         {step === 'SELECT_PAYMENT' && (
-          <div className="p-5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="p-5 border-t border-[#d2c8b2] bg-[#eae3d2] flex flex-col sm:flex-row items-center justify-between gap-3">
             <div>
-              <span className="text-[11px] text-slate-500 block font-medium">Total Pembayaran</span>
-              <span className="text-lg font-black text-slate-900">
+              <span className="font-mono text-[9px] uppercase tracking-wider text-[#7a7365] block font-medium">
+                Total Pembayaran
+              </span>
+              <span className="font-mono text-xl font-bold text-[#191713]">
                 Rp {finalPrice.toLocaleString('id-ID')}
               </span>
             </div>
 
             <button
               onClick={handleProceedPayment}
-              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-extrabold shadow-md shadow-blue-600/20 active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-6 py-2.5 border border-[#191713] bg-[#191713] text-[#f3efe3] font-mono text-xs font-semibold tracking-wider uppercase hover:bg-[#c4402a] hover:border-[#c4402a] shadow-[2px_2px_0px_#b9ac91] active:translate-x-[1px] active:translate-y-[1px] transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Bayar Sekarang</span>
               <ArrowRight className="w-4 h-4" />

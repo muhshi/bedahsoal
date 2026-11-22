@@ -56,16 +56,13 @@ export function UserNav({
 
     if (!session?.user) {
       return (
-        <>
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center justify-center gap-2 h-9 px-3.5 sm:px-4 border border-[#191713] bg-transparent text-[#191713] font-mono text-[10.5px] font-semibold tracking-[0.1em] uppercase hover:bg-[#191713] hover:text-[#f3efe3] transition-all shadow-[2px_2px_0px_#d2c8b2] hover:translate-x-[-1px] hover:translate-y-[-1px] cursor-pointer"
-          >
-            <span>Masuk</span>
-          </button>
-          <LoginModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-        </>
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(true)}
+          className="inline-flex items-center justify-center gap-2 h-9 px-3.5 sm:px-4 border border-[#191713] bg-transparent text-[#191713] font-mono text-[10.5px] font-semibold tracking-[0.1em] uppercase hover:bg-[#191713] hover:text-[#f3efe3] transition-all shadow-[2px_2px_0px_#d2c8b2] hover:translate-x-[-1px] hover:translate-y-[-1px] cursor-pointer"
+        >
+          <span>Masuk</span>
+        </button>
       );
     }
 
@@ -158,14 +155,20 @@ export function UserNav({
 
   // If in compact mode, return only the user profile button
   if (compact) {
-    return <div className={`inline-flex items-center ${className}`}>{renderAuthAction()}</div>;
+    return (
+      <div className={`inline-flex items-center ${className}`}>
+        {renderAuthAction()}
+        <LoginModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      </div>
+    );
   }
 
   // Full Editorial Navbar
   return (
-    <header
-      className={`sticky top-0 z-40 w-full bg-[#f3efe3]/95 backdrop-blur-md border-b border-[#d2c8b2] transition-all ${className}`}
-    >
+    <>
+      <header
+        className={`sticky top-0 z-40 w-full bg-[#f3efe3]/95 backdrop-blur-md border-b border-[#d2c8b2] transition-all ${className}`}
+      >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
         {/* Brand Link with [B] Serif Brand Mark & 'Ruang Bedah Ujian' Kicker */}
         <Link href="/" className="inline-flex items-center gap-3 min-w-0 group" aria-label="BedahSoal, Beranda">
@@ -279,10 +282,37 @@ export function UserNav({
           >
             Ruang Ujian Demo &rarr;
           </Link>
+          {!session?.user ? (
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setIsModalOpen(true);
+              }}
+              className="w-full text-left py-2.5 px-3 border-t border-[#d2c8b2] text-[#191713] font-bold hover:text-[#c4402a] cursor-pointer flex items-center justify-between"
+            >
+              <span>Masuk ke Akun</span>
+              <span aria-hidden="true">&rarr;</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                signOut({ callbackUrl: '/' });
+              }}
+              className="w-full text-left py-2.5 px-3 border-t border-[#d2c8b2] text-[#c4402a] font-bold cursor-pointer flex items-center justify-between"
+            >
+              <span>Keluar Akun ({session.user.name || 'Peserta'})</span>
+              <LogOut className="w-3.5 h-3.5 text-[#c4402a]" />
+            </button>
+          )}
         </div>
       )}
     </header>
-  );
+    <LoginModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+  </>
+);
 }
 
 export { UserNav as Navbar };
