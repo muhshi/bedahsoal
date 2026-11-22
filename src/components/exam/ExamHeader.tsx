@@ -194,15 +194,21 @@ export function ExamHeader({
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-modal-title"
-          className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs p-4 flex min-h-full items-center justify-center"
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs"
           onClick={(e) => {
             if (e.target === e.currentTarget) setIsConfirmOpen(false);
           }}
         >
           <div
-            className="w-full max-w-md my-auto bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+            className="min-h-full flex items-center justify-center p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsConfirmOpen(false);
+            }}
           >
+            <div
+              className="w-full max-w-md my-8 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
             {/* Modal Header */}
             <div className="p-5 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3">
@@ -306,7 +312,8 @@ export function ExamHeader({
             </div>
           </div>
         </div>
-      )}
+      </div>
+    )}
     </>
   );
 }

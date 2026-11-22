@@ -1,0 +1,2379 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BedahSoal — Ruang Bedah Ujian</title>
+<meta name="description" content="Konsep redesign BedahSoal: platform simulasi CBT SKD, LPDP, UTBK, dan Olimpiade dengan bahasa visual kertas ujian.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js');</script>
+<style>
+/* ============================================================
+   BEDAH SOAL — "KERTAS UJIAN" / editorial exam atelier
+   A single-file visual concept. No framework, no build step.
+   ============================================================ */
+
+:root{
+  --paper:#f3efe3;
+  --paper-2:#eae3d2;
+  --paper-3:#ded4bf;
+  --white:#fbf8f0;
+  --ink:#191713;
+  --ink-2:#4b463d;
+  --ink-3:#7a7365;
+  --line:#d2c8b2;
+  --line-strong:#b9ac91;
+  --red:#c4402a;
+  --red-dark:#9c2f1e;
+  --green:#2f5a44;
+  --amber:#b67a18;
+  --blue:#23415c;
+  --sans:"Manrope",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:"Fraunces",ui-serif,Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --header-h:72px;
+  --shadow-hard:8px 8px 0 var(--paper-3);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  overflow-x:hidden;
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(rgba(25,23,19,.026) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(25,23,19,.026) 1px,transparent 1px);
+  background-size:56px 56px;
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  pointer-events:none;
+  opacity:.10;
+  mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.42'/%3E%3C/svg%3E");
+}
+::selection{background:var(--red);color:var(--paper)}
+h1,h2,h3,h4,p{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input{font:inherit;color:inherit}
+img,svg{display:block;max-width:100%}
+ul,ol{margin:0;padding:0;list-style:none}
+:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+[hidden]{display:none!important}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.skip-link{
+  position:fixed;left:16px;top:-80px;z-index:10000;
+  background:var(--ink);color:var(--paper);
+  padding:12px 18px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  transition:top .2s var(--ease);
+}
+.skip-link:focus{top:12px}
+.shell{width:min(1200px,calc(100% - 56px));margin-inline:auto}
+.mono{font-family:var(--mono)}
+.muted{color:var(--ink-3)}
+.red{color:var(--red-dark)}
+
+/* ---------- header ---------- */
+.site-header{
+  position:sticky;top:0;z-index:60;
+  background:rgba(243,239,227,.94);
+  border-bottom:1px solid var(--line-strong);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.header-inner{height:var(--header-h);display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:inline-flex;align-items:center;gap:12px;min-width:0}
+.brand-mark{
+  width:40px;height:40px;flex:0 0 auto;
+  display:grid;place-items:center;
+  background:var(--ink);color:var(--paper);
+  font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:-.06em;
+  position:relative;
+}
+.brand-mark::after{content:"";position:absolute;inset:4px;border:1px solid rgba(243,239,227,.4)}
+.brand-copy{display:flex;flex-direction:column;min-width:0}
+.brand-word{font-family:var(--display);font-size:25px;font-weight:650;line-height:.95;letter-spacing:-.04em}
+.brand-word em{color:var(--red);font-weight:400}
+.brand-sub{font-family:var(--mono);font-size:8.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-3);margin-top:4px;white-space:nowrap}
+.nav{display:flex;align-items:center;gap:2px}
+.nav button{
+  font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-2);padding:11px 12px;border-bottom:1px solid transparent;
+  transition:color .18s,border-color .18s;
+}
+.nav button:hover{color:var(--ink)}
+.nav button.is-active{color:var(--ink);border-bottom-color:var(--red)}
+.header-actions{display:flex;align-items:center;gap:9px}
+.menu-toggle{display:none;align-items:center;gap:8px;border:1px solid var(--line-strong);padding:10px 12px;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.1em}
+.menu-toggle i{display:block;width:14px;height:1px;background:var(--ink);box-shadow:0 4px 0 var(--ink),0 -4px 0 var(--ink)}
+.mobile-nav{
+  border-top:1px solid var(--line);
+  background:var(--paper);
+  padding:10px 0 16px;
+}
+.mobile-nav .shell{display:grid;gap:4px}
+.mobile-nav button{
+  text-align:left;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  padding:13px 4px;border-bottom:1px solid var(--line);
+}
+.mobile-nav button.is-active{color:var(--red-dark)}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  min-height:46px;padding:0 19px;
+  border:1px solid var(--ink);background:var(--ink);color:var(--paper);
+  font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  transition:background .18s,border-color .18s,transform .18s var(--ease),box-shadow .18s var(--ease),color .18s;
+}
+.btn:hover{background:var(--red);border-color:var(--red);transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--paper-3)}
+.btn:active{transform:translate(0,0);box-shadow:none}
+.btn--ghost{background:transparent;color:var(--ink)}
+.btn--ghost:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn--red{background:var(--red);border-color:var(--red)}
+.btn--red:hover{background:var(--red-dark);border-color:var(--red-dark)}
+.btn--sm{min-height:38px;padding:0 13px;font-size:9.5px}
+.btn--wide{width:100%}
+.btn .arrow{transition:transform .18s var(--ease)}
+.btn:hover .arrow{transform:translateX(3px)}
+.btn[disabled]{opacity:.38;cursor:not-allowed;transform:none;box-shadow:none}
+.text-link{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink);border-bottom:1px solid var(--ink);padding-bottom:3px;
+}
+.text-link:hover{color:var(--red-dark);border-color:var(--red-dark)}
+
+/* ---------- shared type ---------- */
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2)}
+.eyebrow::before{content:"";width:7px;height:7px;background:var(--red);flex:0 0 auto}
+.section{padding:clamp(54px,7vw,92px) 0;border-bottom:1px solid var(--line)}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:28px;margin-bottom:clamp(28px,4vw,46px)}
+.section-kicker{font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--red-dark)}
+.section-title{font-family:var(--display);font-size:clamp(2rem,4vw,3.5rem);font-weight:600;line-height:1;letter-spacing:-.04em;margin-top:10px;max-width:20ch}
+.section-title em{font-weight:400;color:var(--ink-3)}
+.section-note{max-width:40ch;font-size:13.5px;line-height:1.65;color:var(--ink-2)}
+.section-side{display:flex;flex-direction:column;align-items:flex-end;gap:14px;flex:0 0 auto}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:clamp(44px,6.5vw,82px) 0 clamp(44px,6vw,76px);overflow:hidden}
+.hero::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(46rem 30rem at 82% 18%,rgba(196,64,42,.09),transparent 62%),
+    radial-gradient(32rem 26rem at 8% 90%,rgba(35,65,92,.07),transparent 65%);
+}
+.hero-grid{display:grid;grid-template-columns:1.06fr .94fr;gap:clamp(32px,5.5vw,76px);align-items:center}
+.hero h1{
+  font-family:var(--display);
+  font-size:clamp(3.1rem,6.5vw,6.1rem);
+  font-weight:640;line-height:.93;letter-spacing:-.05em;
+  margin:22px 0 24px;max-width:12ch;
+}
+.hero h1 em{font-weight:400;color:var(--red);font-style:italic}
+.hero-lede{max-width:50ch;font-size:clamp(15px,1.35vw,17.5px);line-height:1.68;color:var(--ink-2)}
+.hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+.hero-meta{
+  display:flex;flex-wrap:wrap;gap:12px 26px;
+  margin-top:30px;padding-top:18px;border-top:1px solid var(--line-strong);
+  font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+}
+.hero-meta b{color:var(--ink);font-weight:600}
+.hero-meta span{display:inline-flex;align-items:center;gap:7px}
+.hero-meta span::before{content:"✳";color:var(--red);font-size:10px}
+
+/* exam docket */
+.docket-wrap{position:relative}
+.docket-wrap::before{
+  content:"";position:absolute;inset:18px -18px -18px 18px;
+  border:1px solid var(--line-strong);z-index:0;
+}
+.exam-docket{
+  position:relative;z-index:1;
+  background:var(--white);border:1px solid var(--ink);
+  padding:22px;box-shadow:12px 12px 0 var(--paper-3);
+  transform:rotate(-1.1deg);
+}
+.docket-top{display:flex;justify-content:space-between;gap:16px;padding-bottom:15px;border-bottom:1px dashed var(--line-strong)}
+.docket-label{font-family:var(--mono);font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3)}
+.docket-title{font-family:var(--display);font-size:clamp(1.35rem,2.4vw,1.8rem);font-weight:600;letter-spacing:-.03em;line-height:1.05;margin-top:5px}
+.docket-timer{font-family:var(--mono);font-size:clamp(1.2rem,2vw,1.55rem);font-weight:600;letter-spacing:-.05em;white-space:nowrap}
+.docket-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:18px 0}
+.docket-cell{aspect-ratio:1;display:grid;place-items:center;border:1px solid var(--line-strong);font-family:var(--mono);font-size:9.5px;color:var(--ink-3)}
+.docket-cell.is-done{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.docket-cell.is-doubt{background:var(--amber);border-color:var(--amber);color:var(--ink);font-weight:600}
+.docket-cell.is-active{border:2px solid var(--red);color:var(--red);font-weight:600}
+.docket-stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}
+.docket-stat{background:var(--white);padding:10px 12px}
+.docket-stat span{display:block;font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.docket-stat strong{display:block;font-family:var(--display);font-size:22px;font-weight:600;line-height:1.1;letter-spacing:-.02em;margin-top:3px}
+.stamp{
+  position:absolute;right:12px;top:-15px;bottom:auto;z-index:2;
+  transform:rotate(-7deg);
+  border:2px solid var(--red);color:var(--red-dark);
+  font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  padding:6px 10px;background:rgba(251,248,240,.7);
+}
+.stamp::after{content:"";position:absolute;inset:3px;border:1px solid var(--red);pointer-events:none}
+.docket-foot{margin-top:13px;padding-top:11px;border-top:1px solid var(--line);font-family:var(--mono);font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+
+/* ---------- ticker ---------- */
+.ticker{border-block:1px solid var(--line-strong);background:var(--paper-2);overflow:hidden}
+.ticker-track{display:flex;width:max-content;animation:marquee 38s linear infinite}
+.ticker-item{
+  display:inline-flex;align-items:center;gap:18px;padding:11px 0;
+  font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap;
+}
+.ticker-item::after{content:"✳";color:var(--red);font-size:11px;margin-inline:18px}
+@keyframes marquee{to{transform:translateX(-50%)}}
+
+/* ---------- tracks ---------- */
+.track-list{border-top:1px solid var(--ink)}
+.track{
+  display:grid;grid-template-columns:58px minmax(0,1fr) auto 26px;gap:22px;align-items:center;
+  width:100%;text-align:left;
+  padding:20px 4px;border-bottom:1px solid var(--line-strong);cursor:pointer;
+  transition:background .18s,padding .22s var(--ease),color .18s;
+}
+.track:hover{background:var(--white);padding-inline:16px}
+.track-num{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.08em}
+.track-name{display:block;font-family:var(--display);font-size:clamp(1.35rem,2.3vw,2rem);font-weight:600;letter-spacing:-.03em;line-height:1.08}
+.track-desc{display:block;font-size:12px;line-height:1.5;color:var(--ink-3);margin-top:4px;max-width:62ch}
+.track-tag{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);border:1px solid var(--line-strong);padding:5px 8px;white-space:nowrap}
+.track-arrow{font-size:18px;line-height:1;transition:transform .18s var(--ease),color .18s}
+.track:hover .track-arrow{transform:translateX(5px);color:var(--red)}
+
+/* ---------- method ledger ---------- */
+.ledger{border-top:1px solid var(--ink)}
+.ledger-row{display:grid;grid-template-columns:74px minmax(0,.9fr) minmax(0,1.15fr);gap:26px;padding:24px 0;border-bottom:1px solid var(--line-strong);align-items:start}
+.ledger-num{font-family:var(--display);font-size:38px;font-weight:500;line-height:1;color:var(--red);letter-spacing:-.04em}
+.ledger-row h3{font-family:var(--display);font-size:clamp(1.2rem,2vw,1.55rem);font-weight:600;letter-spacing:-.025em;line-height:1.15}
+.ledger-row p{font-size:13.5px;line-height:1.7;color:var(--ink-2);max-width:56ch}
+
+/* ---------- report preview ---------- */
+.report-grid{display:grid;grid-template-columns:.92fr 1.08fr;gap:clamp(32px,5vw,64px);align-items:center}
+.report-copy .section-title{margin-top:12px}
+.report-copy p{max-width:46ch;margin-top:18px;font-size:14px;line-height:1.7;color:var(--ink-2)}
+.report-points{display:grid;gap:10px;margin:24px 0 28px;padding-top:20px;border-top:1px solid var(--line)}
+.report-points li{display:flex;gap:11px;font-size:13px;line-height:1.5;color:var(--ink-2)}
+.report-points li::before{content:"—";color:var(--red);font-family:var(--mono);flex:0 0 auto}
+.report-card{position:relative;background:var(--white);border:1px solid var(--ink);padding:26px;box-shadow:10px 10px 0 var(--paper-3)}
+.report-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.report-label{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.report-score{font-family:var(--display);font-size:clamp(3.4rem,7vw,5.2rem);font-weight:600;line-height:.9;letter-spacing:-.06em;margin-top:6px}
+.report-score small{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.04em;color:var(--ink-3);margin-left:6px}
+.report-badge{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--green);color:var(--green);padding:5px 8px;white-space:nowrap}
+.report-bars{display:grid;gap:14px;margin-top:18px}
+.report-bar-top{display:flex;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.report-bar-top b{color:var(--ink);font-weight:600}
+.bar{height:7px;background:var(--paper-3);margin-top:6px;overflow:hidden}
+.bar > i{display:block;height:100%;background:var(--ink);width:var(--w,0%)}
+.bar > i.red{background:var(--red)}
+.bar > i.green{background:var(--green)}
+.report-foot{display:flex;justify-content:space-between;gap:14px;margin-top:18px;padding-top:13px;border-top:1px dashed var(--line-strong);font-family:var(--mono);font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+
+/* ---------- package cards ---------- */
+.pack-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.pack{
+  --cat:var(--ink);
+  position:relative;display:flex;flex-direction:column;gap:16px;
+  background:var(--white);border:1px solid var(--line-strong);
+  padding:22px 22px 20px;
+  transition:transform .2s var(--ease),box-shadow .2s var(--ease),border-color .2s;
+}
+.pack::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cat)}
+.pack:hover{transform:translateY(-4px);border-color:var(--ink);box-shadow:var(--shadow-hard)}
+.pack-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pack-index{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-3)}
+.tag{font-family:var(--mono);font-size:8px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--cat);border:1px solid currentColor;padding:4px 7px;white-space:nowrap}
+.pack h3{font-family:var(--display);font-size:clamp(1.25rem,1.8vw,1.55rem);font-weight:600;line-height:1.12;letter-spacing:-.03em}
+.pack p{font-size:12.5px;line-height:1.6;color:var(--ink-2);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.pack-meta{display:grid;gap:7px;padding-top:12px;border-top:1px dashed var(--line)}
+.meta-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
+.meta-row b{font-weight:600;color:var(--ink);text-align:right}
+.pack-foot{margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding-top:15px;border-top:1px solid var(--line)}
+.price{font-family:var(--display);font-size:26px;font-weight:600;line-height:1;letter-spacing:-.03em}
+.price small{display:block;font-family:var(--mono);font-size:8px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px}
+.price s{font-family:var(--mono);font-size:9px;font-weight:400;color:var(--ink-3);margin-left:5px}
+
+/* ---------- catalog ---------- */
+.page-head{padding:clamp(34px,5vw,56px) 0 clamp(28px,4vw,42px);border-bottom:1px solid var(--ink)}
+.crumb{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.crumb span{color:var(--red)}
+.page-head h1{font-family:var(--display);font-size:clamp(2.7rem,5.5vw,5rem);font-weight:600;line-height:.96;letter-spacing:-.05em;margin-top:16px;max-width:14ch}
+.page-head h1 em{font-weight:400;color:var(--red)}
+.page-head-row{display:flex;align-items:flex-end;justify-content:space-between;gap:28px}
+.page-head-note{max-width:36ch;font-size:13px;line-height:1.65;color:var(--ink-2);padding-bottom:4px}
+.catalog-toolbar{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;padding:22px 0;border-bottom:1px solid var(--line)}
+.filters{display:flex;flex-wrap:wrap;gap:5px}
+.chip{
+  font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-2);border:1px solid var(--line-strong);padding:8px 11px;
+  transition:background .18s,color .18s,border-color .18s;
+}
+.chip:hover{border-color:var(--ink);color:var(--ink)}
+.chip.is-active{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.search{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--ink);padding:5px 0;min-width:230px}
+.search svg{width:14px;height:14px;flex:0 0 auto;color:var(--ink-3)}
+.search input{width:100%;border:0;outline:0;background:none;font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--ink)}
+.search input::placeholder{color:var(--ink-3);text-transform:uppercase;letter-spacing:.08em}
+.catalog-count{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);padding:16px 0 0}
+.empty-state{padding:54px 20px;text-align:center;border:1px dashed var(--line-strong);background:var(--white)}
+.empty-state h3{font-family:var(--display);font-size:26px;font-weight:600;letter-spacing:-.03em}
+.empty-state p{font-size:13px;color:var(--ink-3);margin-top:6px}
+
+/* ---------- dashboard ---------- */
+.profile-strip{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:24px 0;border-bottom:1px solid var(--line)}
+.profile-id{display:flex;align-items:center;gap:16px;min-width:0}
+.avatar{width:58px;height:58px;flex:0 0 auto;display:grid;place-items:center;background:var(--ink);color:var(--paper);font-family:var(--display);font-size:23px;font-weight:600;letter-spacing:-.03em}
+.profile-name{font-family:var(--display);font-size:clamp(1.5rem,2.4vw,2rem);font-weight:600;letter-spacing:-.03em;line-height:1.05}
+.profile-mail{font-family:var(--mono);font-size:9px;letter-spacing:.05em;color:var(--ink-3);margin-top:5px}
+.profile-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--green);border:1px solid var(--green);padding:3px 6px;margin-bottom:7px}
+.profile-tag::before{content:"";width:5px;height:5px;background:var(--green);border-radius:50%}
+.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--ink);border:1px solid var(--ink);margin:24px 0}
+.stat{background:var(--white);padding:18px 18px 16px;min-width:0}
+.stat-label{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.stat-value{font-family:var(--display);font-size:clamp(2.2rem,4vw,3.2rem);font-weight:600;line-height:1;letter-spacing:-.05em;margin-top:8px}
+.stat-value.red{color:var(--red-dark)}
+.stat-value.green{color:var(--green)}
+.stat-note{font-size:10.5px;color:var(--ink-3);margin-top:7px;line-height:1.4}
+.dash-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,.55fr);gap:22px;align-items:start}
+.panel{background:var(--white);border:1px solid var(--line-strong)}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 18px;border-bottom:1px solid var(--line)}
+.panel-title{font-family:var(--display);font-size:19px;font-weight:600;letter-spacing:-.025em}
+.panel-sub{font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-top:2px}
+.seg{display:flex;gap:2px;border:1px solid var(--line-strong);padding:2px}
+.seg button{font-family:var(--mono);font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;padding:6px 8px;color:var(--ink-3)}
+.seg button.is-active{background:var(--ink);color:var(--paper)}
+.table-head,.table-row{display:grid;grid-template-columns:minmax(0,1.6fr) .72fr .5fr auto;gap:14px;align-items:center;padding:13px 18px}
+.table-head{font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--line);background:var(--paper)}
+.table-row{border-bottom:1px solid var(--line);transition:background .15s}
+.table-row:last-child{border-bottom:0}
+.table-row:hover{background:var(--paper)}
+.row-title{font-family:var(--display);font-size:16px;font-weight:600;letter-spacing:-.02em;line-height:1.15}
+.row-meta{display:flex;flex-wrap:wrap;gap:6px 12px;font-family:var(--mono);font-size:8px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin-top:4px}
+.row-score{font-family:var(--display);font-size:22px;font-weight:600;letter-spacing:-.03em;line-height:1}
+.row-score small{font-family:var(--mono);font-size:7.5px;font-weight:400;letter-spacing:.06em;color:var(--ink-3);display:block;margin-top:2px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:7.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:4px 6px;border:1px solid currentColor;white-space:nowrap}
+.pill--pass{color:var(--green)}
+.pill--fail{color:var(--red-dark)}
+.pill--live{color:var(--amber)}
+.pill::before{content:"";width:4px;height:4px;border-radius:50%;background:currentColor}
+.row-action{font-family:var(--mono);font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--ink);padding-bottom:2px;white-space:nowrap}
+.row-action:hover{color:var(--red-dark);border-color:var(--red-dark)}
+.weak-list{display:grid;gap:15px;padding:17px 18px}
+.weak-item .weak-top{display:flex;justify-content:space-between;gap:10px;font-size:11.5px;line-height:1.3;color:var(--ink-2)}
+.weak-top b{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--ink)}
+.weak-item .bar{margin-top:7px}
+.streak{padding:17px 18px}
+.streak-top{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
+.streak-grid{display:grid;grid-template-columns:repeat(14,1fr);gap:4px}
+.streak-cell{aspect-ratio:1;background:var(--paper-3);border:1px solid var(--line)}
+.streak-cell.l1{background:#d7cbb2}
+.streak-cell.l2{background:#b3a184}
+.streak-cell.l3{background:var(--green)}
+.streak-cell.l4{background:var(--ink)}
+.streak-note{font-family:var(--mono);font-size:8px;letter-spacing:.05em;color:var(--ink-3);margin-top:10px}
+
+/* ---------- exam ---------- */
+.exam-top{
+  position:sticky;top:var(--header-h);z-index:40;
+  display:flex;align-items:center;justify-content:space-between;gap:18px;
+  padding:13px 0 14px;border-bottom:1px solid var(--ink);
+  background:rgba(243,239,227,.96);backdrop-filter:blur(10px);
+}
+.exam-id{display:flex;align-items:center;gap:13px;min-width:0}
+.exam-index{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-3);border:1px solid var(--line-strong);padding:5px 7px;white-space:nowrap}
+.exam-title{font-family:var(--display);font-size:clamp(1.1rem,2vw,1.45rem);font-weight:600;letter-spacing:-.03em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exam-sub{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-top:3px}
+.exam-tools{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.timer{
+  display:inline-flex;align-items:center;gap:9px;
+  border:1px solid var(--ink);padding:8px 11px;
+  font-family:var(--mono);font-size:18px;font-weight:600;letter-spacing:-.04em;
+  background:var(--white);white-space:nowrap;
+}
+.timer svg{width:15px;height:15px;color:var(--ink-3)}
+.timer.is-warning{border-color:var(--red);color:var(--red-dark);animation:pulse 1.4s ease-in-out infinite}
+.timer.is-warning svg{color:var(--red)}
+@keyframes pulse{50%{background:#f6dfd8}}
+.exam-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:22px;align-items:start;padding:22px 0 64px}
+.q-card{background:var(--white);border:1px solid var(--ink);min-width:0}
+.q-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 20px;background:var(--paper-2);border-bottom:1px solid var(--line)}
+.q-head-left{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.q-number{font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.q-tag{font-family:var(--mono);font-size:8px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;border:1px solid var(--line-strong);color:var(--ink-2)}
+.q-tag--topic{color:var(--ink-3);border-style:dashed}
+.doubt-btn{
+  display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:0 10px;
+  border:1px dashed var(--amber);color:var(--amber);
+  font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;
+}
+.doubt-btn:hover{background:#f5e8cf}
+.doubt-btn.is-on{background:var(--amber);border-style:solid;color:var(--ink);font-weight:600}
+.q-body{padding:clamp(20px,3.4vw,32px)}
+.q-prompt{font-family:var(--display);font-size:clamp(1.25rem,2.3vw,1.75rem);font-weight:500;line-height:1.35;letter-spacing:-.02em;max-width:62ch}
+.q-context{margin-top:14px;font-size:13.5px;line-height:1.7;color:var(--ink-2);max-width:64ch}
+.q-context p+p{margin-top:10px}
+.options{display:grid;gap:9px;margin-top:26px}
+.opt{
+  display:grid;grid-template-columns:32px minmax(0,1fr) 18px;gap:13px;align-items:start;
+  width:100%;text-align:left;padding:13px 14px;
+  border:1px solid var(--line-strong);background:var(--white);
+  transition:background .15s,border-color .15s,transform .15s var(--ease),box-shadow .15s;
+}
+.opt:hover{border-color:var(--ink);background:var(--paper)}
+.opt.is-selected{border-color:var(--ink);background:var(--paper-2);box-shadow:4px 4px 0 var(--paper-3)}
+.opt.is-correct{border-color:var(--green);background:#e5eee6}
+.opt.is-wrong{border-color:var(--red);background:#f6e3dd}
+.opt-key{width:31px;height:31px;display:grid;place-items:center;border:1px solid var(--line-strong);font-family:var(--mono);font-size:11px;font-weight:600;color:var(--ink-2);transition:background .15s,color .15s,border-color .15s}
+.opt.is-selected .opt-key{background:var(--red);border-color:var(--red);color:var(--paper)}
+.opt.is-correct .opt-key{background:var(--green);border-color:var(--green);color:var(--paper)}
+.opt.is-wrong .opt-key{background:var(--red);border-color:var(--red);color:var(--paper)}
+.opt-text{font-size:13.5px;line-height:1.55;padding-top:5px;color:var(--ink)}
+.opt-mark{font-family:var(--mono);font-size:12px;line-height:1;padding-top:9px;color:var(--red);opacity:0}
+.opt.is-selected .opt-mark,.opt.is-correct .opt-mark,.opt.is-wrong .opt-mark{opacity:1}
+.opt.is-correct .opt-mark{color:var(--green)}
+.explanation{margin-top:20px;border:1px solid var(--green);background:#edf3ec;padding:15px 16px}
+.explanation-top{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:8.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--green)}
+.explanation p{margin-top:7px;font-size:12.5px;line-height:1.65;color:var(--ink-2)}
+.q-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 18px;border-top:1px solid var(--line);background:var(--paper)}
+.q-foot .btn{min-height:40px;padding:0 14px;font-size:9px}
+.q-foot-center{font-family:var(--mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.review-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 18px;border-bottom:1px solid var(--green);background:#e5eee6;font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--green)}
+
+/* answer sheet */
+.sheet{position:sticky;top:calc(var(--header-h) + 68px);background:var(--white);border:1px solid var(--ink)}
+.sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.sheet-title{font-family:var(--display);font-size:18px;font-weight:600;letter-spacing:-.025em;line-height:1.1}
+.sheet-sub{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-top:3px}
+.sheet-timer{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:-.02em}
+.sheet-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.sheet-stat{background:var(--white);padding:9px 6px;text-align:center}
+.sheet-stat b{display:block;font-family:var(--display);font-size:21px;font-weight:600;line-height:1}
+.sheet-stat span{display:block;font-family:var(--mono);font-size:7px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin-top:4px}
+.sheet-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:15px 16px}
+.sheet-cell{
+  aspect-ratio:1;display:grid;place-items:center;
+  border:1px solid var(--line-strong);background:var(--white);
+  font-family:var(--mono);font-size:10px;font-weight:500;color:var(--ink-2);
+  transition:background .15s,color .15s,border-color .15s,transform .15s;
+}
+.sheet-cell:hover{border-color:var(--ink);transform:translateY(-1px)}
+.sheet-cell.is-done{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.sheet-cell.is-doubt{background:var(--amber);border-color:var(--amber);color:var(--ink);font-weight:600}
+.sheet-cell.is-active{outline:2px solid var(--red);outline-offset:1px;border-color:var(--red);color:var(--red);font-weight:600}
+.sheet-cell.is-active.is-done{color:var(--paper)}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:7px 10px;padding:0 16px 15px;font-family:var(--mono);font-size:7.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:9px;height:9px;border:1px solid var(--line-strong);display:block;flex:0 0 auto}
+.legend i.done{background:var(--ink);border-color:var(--ink)}
+.legend i.doubt{background:var(--amber);border-color:var(--amber)}
+.legend i.active{outline:1px solid var(--red);border-color:var(--red)}
+.sheet-foot{padding:14px 16px;border-top:1px solid var(--line);display:grid;gap:8px}
+.sheet-note{font-family:var(--mono);font-size:7.5px;line-height:1.5;letter-spacing:.04em;color:var(--ink-3);text-align:center}
+
+/* result */
+.result-card{background:var(--white);border:1px solid var(--ink);padding:clamp(24px,4vw,44px);position:relative;overflow:hidden}
+.result-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+.result-kicker{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-dark)}
+.result-title{font-family:var(--display);font-size:clamp(2rem,4vw,3.3rem);font-weight:600;line-height:1;letter-spacing:-.045em;margin-top:10px}
+.result-score{font-family:var(--display);font-size:clamp(4rem,9vw,7rem);font-weight:600;line-height:.85;letter-spacing:-.07em;text-align:right}
+.result-score small{display:block;font-family:var(--mono);font-size:9px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-top:8px;text-align:right}
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:24px 0}
+.result-cell{background:var(--white);padding:16px}
+.result-cell span{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.result-cell b{display:block;font-family:var(--display);font-size:30px;font-weight:600;line-height:1;margin-top:5px}
+.result-cell small{font-family:var(--mono);font-size:8px;color:var(--ink-3);display:block;margin-top:4px}
+.result-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+.result-note{font-family:var(--mono);font-size:8px;line-height:1.6;letter-spacing:.04em;color:var(--ink-3);margin-top:18px;padding-top:12px;border-top:1px dashed var(--line-strong)}
+.result-stamp{position:absolute;right:clamp(18px,4vw,40px);bottom:clamp(70px,9vw,110px);transform:rotate(-7deg);border:2px solid var(--green);color:var(--green);font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;padding:7px 11px;opacity:.9}
+.result-stamp::after{content:"";position:absolute;inset:3px;border:1px solid var(--green)}
+
+/* ---------- CTA + footer ---------- */
+.cta-band{background:var(--ink);color:var(--paper);padding:clamp(50px,7vw,86px) 0;position:relative;overflow:hidden}
+.cta-band::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(243,239,227,.14) 1px,transparent 1px);background-size:18px 18px;opacity:.4;pointer-events:none}
+.cta-inner{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:36px}
+.cta-band h2{font-family:var(--display);font-size:clamp(2.3rem,5.5vw,4.8rem);font-weight:500;line-height:.98;letter-spacing:-.045em;max-width:17ch}
+.cta-band h2 em{color:#e8a18e;font-weight:400}
+.cta-side{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding-bottom:6px}
+.cta-side p{max-width:28ch;font-size:12.5px;line-height:1.6;color:#c9c0ae}
+.cta-band .btn{background:var(--paper);border-color:var(--paper);color:var(--ink)}
+.cta-band .btn:hover{background:var(--red);border-color:var(--red);color:var(--paper);box-shadow:4px 4px 0 rgba(243,239,227,.18)}
+.site-footer{background:var(--paper-2);border-top:1px solid var(--line-strong);padding:44px 0 28px}
+.footer-grid{display:grid;grid-template-columns:1.4fr .6fr .6fr .8fr;gap:32px;padding-bottom:32px;border-bottom:1px solid var(--line-strong)}
+.footer-brand .brand-word{font-size:30px}
+.footer-brand p{max-width:34ch;font-size:12px;line-height:1.65;color:var(--ink-2);margin-top:14px}
+.footer-col h4{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px}
+.footer-col a,.footer-col button{display:block;font-size:11.5px;color:var(--ink-2);padding:4px 0;text-align:left}
+.footer-col a:hover,.footer-col button:hover{color:var(--red-dark)}
+.footer-bottom{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding-top:20px;font-family:var(--mono);font-size:8px;line-height:1.6;letter-spacing:.04em;color:var(--ink-3)}
+.footer-bottom p{max-width:74ch}
+.footer-bottom strong{color:var(--ink-2);font-weight:500}
+
+/* ---------- modals ---------- */
+.modal{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:20px;background:rgba(25,23,19,.58);backdrop-filter:blur(5px)}
+.modal-card{
+  position:relative;width:min(540px,100%);max-height:calc(100vh - 40px);overflow:auto;
+  background:var(--paper);border:1px solid var(--ink);padding:28px;
+  box-shadow:12px 12px 0 rgba(25,23,19,.28);
+}
+.modal-card--wide{width:min(620px,100%)}
+.modal-close{position:absolute;top:10px;right:10px;width:34px;height:34px;display:grid;place-items:center;border:1px solid transparent;font-family:var(--mono);font-size:16px;color:var(--ink-2)}
+.modal-close:hover{border-color:var(--line-strong);background:var(--white)}
+.modal-kicker{font-family:var(--mono);font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--red-dark)}
+.modal-title{font-family:var(--display);font-size:clamp(1.7rem,3.4vw,2.2rem);font-weight:600;line-height:1.05;letter-spacing:-.04em;margin-top:8px;padding-right:24px}
+.modal-desc{font-size:12.5px;line-height:1.65;color:var(--ink-2);margin-top:10px}
+.modal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:20px 0}
+.modal-stat{background:var(--white);padding:12px;text-align:center}
+.modal-stat b{display:block;font-family:var(--display);font-size:26px;font-weight:600;line-height:1}
+.modal-stat span{display:block;font-family:var(--mono);font-size:7px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-top:5px}
+.modal-warning{border-left:2px solid var(--amber);background:#f5e8cf;padding:10px 12px;font-size:11px;line-height:1.55;color:var(--ink-2);margin-bottom:18px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.modal-actions .btn{min-height:42px;font-size:9px}
+.field{display:grid;gap:6px;margin-top:16px}
+.field label{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.field input{border:1px solid var(--line-strong);background:var(--white);padding:11px 12px;font-size:12px;outline:0}
+.field input:focus{border-color:var(--ink)}
+.login-alt{display:grid;gap:8px;margin-top:14px}
+.login-alt .btn{justify-content:flex-start;background:var(--white);color:var(--ink);border-color:var(--line-strong)}
+.login-alt .btn:hover{background:var(--paper-2);border-color:var(--ink);box-shadow:none;transform:none}
+.login-note{font-family:var(--mono);font-size:8px;line-height:1.5;color:var(--ink-3);margin-top:14px}
+
+/* ---------- reveal ---------- */
+.js .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.js .reveal.is-in{opacity:1;transform:none}
+.js .reveal[data-delay="1"]{transition-delay:.07s}
+.js .reveal[data-delay="2"]{transition-delay:.14s}
+.js .reveal[data-delay="3"]{transition-delay:.21s}
+
+/* ---------- responsive ---------- */
+@media (max-width:1080px){
+  .hero-grid{grid-template-columns:1fr;gap:44px}
+  .hero h1{max-width:14ch}
+  .docket-wrap{max-width:560px}
+  .report-grid{grid-template-columns:1fr;gap:36px}
+  .pack-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dash-grid{grid-template-columns:1fr}
+  .exam-grid{grid-template-columns:1fr}
+  .sheet{position:static}
+  .nav{display:none}
+  .menu-toggle{display:inline-flex}
+}
+@media (max-width:820px){
+  .section-head{flex-direction:column;align-items:flex-start;gap:16px}
+  .section-side{align-items:flex-start}
+  .page-head-row{flex-direction:column;align-items:flex-start;gap:18px}
+  .footer-grid{grid-template-columns:1fr 1fr}
+  .footer-brand{grid-column:1/-1}
+  .cta-inner{flex-direction:column;align-items:flex-start}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .table-head{display:none}
+  .table-row{grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:15px 16px}
+  .table-row .row-score{grid-column:1;grid-row:2;font-size:19px}
+  .table-row .row-score small{display:inline;margin-left:4px}
+  .table-row .row-status{grid-column:2;grid-row:1;justify-self:end}
+  .table-row .row-action{grid-column:2;grid-row:2;justify-self:end}
+  .result-top{flex-direction:column;gap:18px}
+  .result-score{text-align:left}
+  .result-score small{text-align:left}
+  .result-stamp{position:static;display:inline-block;margin-top:18px;transform:rotate(-3deg)}
+}
+@media (max-width:640px){
+  :root{--header-h:64px}
+  .shell{width:calc(100% - 32px)}
+  .brand-sub{display:none}
+  .header-actions .btn--ghost{display:none}
+  .hero{padding-top:34px}
+  .hero h1{font-size:clamp(2.7rem,12vw,4rem)}
+  .hero-meta{gap:8px 18px}
+  .track{grid-template-columns:32px minmax(0,1fr) 20px;gap:12px;padding:17px 2px}
+  .track-tag{display:none}
+  .track-desc{font-size:11px}
+  .ledger-row{grid-template-columns:44px minmax(0,1fr);gap:14px}
+  .ledger-row p{grid-column:2;margin-top:2px}
+  .ledger-num{font-size:30px}
+  .pack-grid{grid-template-columns:1fr}
+  .catalog-toolbar{align-items:stretch}
+  .search{min-width:0;width:100%}
+  .exam-top{flex-wrap:wrap;gap:10px;top:var(--header-h)}
+  .exam-id{width:100%}
+  .exam-title{white-space:normal}
+  .exam-tools{width:100%;justify-content:space-between}
+  .q-head{align-items:flex-start;flex-direction:column;gap:8px}
+  .q-foot{flex-wrap:wrap}
+  .q-foot .btn{flex:1}
+  .q-foot-center{display:none}
+  .result-grid{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:24px}
+  .footer-bottom{flex-direction:column;gap:10px}
+  .modal-card{padding:22px}
+  .modal-actions{flex-direction:column-reverse}
+  .modal-actions .btn{width:100%}
+  .docket-wrap::before{display:none}
+  .exam-docket{transform:none;padding-top:50px}
+  .stamp{left:10px;right:auto;top:10px;bottom:auto}
+  .report-foot{flex-direction:column;gap:5px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  .js .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Lewati ke konten</a>
+
+<header class="site-header">
+  <div class="shell header-inner">
+    <a href="#home" class="brand" data-view-link="home" aria-label="BedahSoal, kembali ke beranda">
+      <span class="brand-mark" aria-hidden="true">BS</span>
+      <span class="brand-copy">
+        <span class="brand-word">Bedah<em>Soal</em></span>
+        <span class="brand-sub">CBT Studio · Edisi 2026</span>
+      </span>
+    </a>
+
+    <nav class="nav" aria-label="Navigasi utama">
+      <button type="button" data-view-link="home" class="is-active">Beranda</button>
+      <button type="button" data-view-link="catalog">Katalog</button>
+      <button type="button" data-view-link="dashboard">Rapor</button>
+      <button type="button" data-view-link="exam">Ruang Ujian</button>
+    </nav>
+
+    <div class="header-actions">
+      <button type="button" class="btn btn--ghost btn--sm" id="loginBtn">Masuk</button>
+      <button type="button" class="btn btn--sm" data-view-link="catalog">Mulai <span class="arrow" aria-hidden="true">→</span></button>
+      <button type="button" class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mobileNav">
+        <i aria-hidden="true"></i><span>Menu</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="mobile-nav" id="mobileNav" hidden>
+    <div class="shell">
+      <button type="button" data-view-link="home">Beranda</button>
+      <button type="button" data-view-link="catalog">Katalog Paket</button>
+      <button type="button" data-view-link="dashboard">Rapor &amp; Riwayat</button>
+      <button type="button" data-view-link="exam">Ruang Ujian</button>
+      <button type="button" id="mobileLogin">Masuk / Akun</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<div class="view" data-view="home" role="region" aria-label="Beranda BedahSoal">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="shell hero-grid">
+      <div class="reveal">
+        <span class="eyebrow">Simulasi CBT · SKD / LPDP / UTBK / OSN</span>
+        <h1>Ujian bukan soal tebak-tebakan. <em>Bedah soalnya.</em></h1>
+        <p class="hero-lede">
+          Simulasi ujian dengan timer server, penilaian resmi, dan pembahasan yang menunjukkan
+          di mana logikamu patah — bukan sekadar angka di akhir layar.
+        </p>
+        <div class="hero-actions">
+          <button type="button" class="btn" data-view-link="exam">
+            Mulai simulasi gratis <span class="arrow" aria-hidden="true">→</span>
+          </button>
+          <button type="button" class="btn btn--ghost" data-view-link="catalog">
+            Lihat katalog paket
+          </button>
+        </div>
+        <div class="hero-meta" aria-label="Ringkasan platform">
+          <span><b>110 butir</b> SKD standar BKN</span>
+          <span><b>Timer server</b> tidak bisa diakali</span>
+          <span><b>Pembahasan</b> per langkah</span>
+        </div>
+      </div>
+
+      <div class="docket-wrap reveal" data-delay="1">
+        <div class="exam-docket" aria-label="Contoh lembar ujian">
+          <div class="docket-top">
+            <div>
+              <div class="docket-label">Lembar Ujian / Sesi 04</div>
+              <div class="docket-title">SKD CPNS 2026</div>
+            </div>
+            <div class="docket-timer">01:39:42</div>
+          </div>
+
+          <div class="docket-grid" aria-hidden="true">
+            <span class="docket-cell is-done">01</span>
+            <span class="docket-cell is-done">02</span>
+            <span class="docket-cell is-done">03</span>
+            <span class="docket-cell is-doubt">04</span>
+            <span class="docket-cell is-done">05</span>
+            <span class="docket-cell is-done">06</span>
+            <span class="docket-cell is-active">07</span>
+            <span class="docket-cell is-done">08</span>
+            <span class="docket-cell is-done">09</span>
+            <span class="docket-cell is-doubt">10</span>
+            <span class="docket-cell is-done">11</span>
+            <span class="docket-cell is-done">12</span>
+            <span class="docket-cell is-done">13</span>
+            <span class="docket-cell">14</span>
+            <span class="docket-cell is-done">15</span>
+            <span class="docket-cell is-done">16</span>
+            <span class="docket-cell is-done">17</span>
+            <span class="docket-cell">18</span>
+            <span class="docket-cell is-done">19</span>
+            <span class="docket-cell is-done">20</span>
+          </div>
+
+          <div class="docket-stats">
+            <div class="docket-stat"><span>Terjawab</span><strong>27</strong></div>
+            <div class="docket-stat"><span>Ragu-ragu</span><strong>04</strong></div>
+            <div class="docket-stat"><span>Skor sementara</span><strong>412</strong></div>
+            <div class="docket-stat"><span>Passing grade</span><strong>311</strong></div>
+          </div>
+
+          <span class="stamp" aria-hidden="true">Lulus PG</span>
+          <div class="docket-foot">Tie-breaker resmi BKN: TKP → TIU → TWK</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TICKER -->
+  <div class="ticker" aria-label="Jenis ujian yang tersedia">
+    <div class="ticker-track">
+      <span class="ticker-item">SKD CPNS — 110 butir</span>
+      <span class="ticker-item">LPDP TBS — 40 butir</span>
+      <span class="ticker-item">UTBK-SNBT — 45 butir</span>
+      <span class="ticker-item">OSN Matematika — 25 butir</span>
+      <span class="ticker-item">Timer server</span>
+      <span class="ticker-item">Pembahasan analitis</span>
+      <span class="ticker-item">Zero answer leakage</span>
+      <span class="ticker-item">SKD CPNS — 110 butir</span>
+      <span class="ticker-item">LPDP TBS — 40 butir</span>
+      <span class="ticker-item">UTBK-SNBT — 45 butir</span>
+      <span class="ticker-item">OSN Matematika — 25 butir</span>
+      <span class="ticker-item">Timer server</span>
+      <span class="ticker-item">Pembahasan analitis</span>
+      <span class="ticker-item">Zero answer leakage</span>
+    </div>
+  </div>
+
+  <!-- TRACKS -->
+  <section class="section">
+    <div class="shell">
+      <div class="section-head">
+        <div class="reveal">
+          <div class="section-kicker">01 — Jalur ujian</div>
+          <h2 class="section-title">Empat meja. <em>Satu cara berpikir.</em></h2>
+        </div>
+        <p class="section-note reveal" data-delay="1">
+          Setiap jalur punya aturan mainnya sendiri. Pilih meja yang paling dekat dengan
+          ujian yang sedang kamu kejar.
+        </p>
+      </div>
+
+      <div class="track-list">
+        <button type="button" class="track reveal" data-goto-catalog="skd">
+          <span class="track-num">01</span>
+          <span>
+            <span class="track-name">SKD CPNS &amp; Kedinasan</span>
+            <span class="track-desc">TWK, TIU, TKP — 110 butir, passing grade KepmenPANRB, dan tie-breaker resmi BKN.</span>
+          </span>
+          <span class="track-tag">2 paket</span>
+          <span class="track-arrow" aria-hidden="true">→</span>
+        </button>
+        <button type="button" class="track reveal" data-goto-catalog="lpdp">
+          <span class="track-num">02</span>
+          <span>
+            <span class="track-name">Beasiswa LPDP</span>
+            <span class="track-desc">Tes Bakat Skolastik: penalaran verbal, kuantitatif, dan pemecahan masalah tingkat lanjut.</span>
+          </span>
+          <span class="track-tag">1 paket</span>
+          <span class="track-arrow" aria-hidden="true">→</span>
+        </button>
+        <button type="button" class="track reveal" data-goto-catalog="utbk">
+          <span class="track-num">03</span>
+          <span>
+            <span class="track-name">UTBK-SNBT</span>
+            <span class="track-desc">TPS, literasi, dan penalaran matematika untuk seleksi masuk perguruan tinggi negeri.</span>
+          </span>
+          <span class="track-tag">1 paket</span>
+          <span class="track-arrow" aria-hidden="true">→</span>
+        </button>
+        <button type="button" class="track reveal" data-goto-catalog="osn">
+          <span class="track-num">04</span>
+          <span>
+            <span class="track-name">Olimpiade Sains</span>
+            <span class="track-desc">Aljabar, geometri, teori bilangan, kombinatorika. Skor +4 benar, −1 salah.</span>
+          </span>
+          <span class="track-tag">1 paket</span>
+          <span class="track-arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- METHOD -->
+  <section class="section">
+    <div class="shell">
+      <div class="section-head">
+        <div class="reveal">
+          <div class="section-kicker">02 — Cara kerja</div>
+          <h2 class="section-title">Ujian yang jujur.<br><em>Nilai yang bisa dibela.</em></h2>
+        </div>
+        <p class="section-note reveal" data-delay="1">
+          Empat hal yang kami anggap tidak bisa dikompromikan saat kamu sedang berlatih.
+        </p>
+      </div>
+
+      <div class="ledger">
+        <div class="ledger-row reveal">
+          <span class="ledger-num">01</span>
+          <h3>Soal yang tidak bocor.</h3>
+          <p>Kunci jawaban dan bobot nilai tidak pernah dikirim ke browser selama ujian berjalan. Yang kamu lihat hanya soal, pilihan, dan sisa waktu.</p>
+        </div>
+        <div class="ledger-row reveal">
+          <span class="ledger-num">02</span>
+          <h3>Waktu yang tidak bisa ditawar.</h3>
+          <p>Timer dikunci oleh server. Mengganti jam ponsel atau me-refresh halaman tidak menambah satu detik pun.</p>
+        </div>
+        <div class="ledger-row reveal">
+          <span class="ledger-num">03</span>
+          <h3>Nilai yang bisa dipertanggungjawabkan.</h3>
+          <p>Skor TWK, TIU, dan TKP dihitung mengikuti passing grade dan tie-breaker BKN. Bukan rata-rata yang dibuat-buat.</p>
+        </div>
+        <div class="ledger-row reveal">
+          <span class="ledger-num">04</span>
+          <h3>Pembahasan yang membedah.</h3>
+          <p>Setiap jawaban salah diurai: langkah mana yang patah, konsep mana yang perlu diulang, dan bagaimana cara berpikir yang benar.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REPORT PREVIEW -->
+  <section class="section">
+    <div class="shell report-grid">
+      <div class="report-copy reveal">
+        <div class="section-kicker">03 — Rapor peserta</div>
+        <h2 class="section-title">Bukan sekadar skor. <em>Peta kebocoranmu.</em></h2>
+        <p>
+          Setelah ujian selesai, kamu tidak hanya dapat nilai. Kamu dapat urutan pengerjaan,
+          distribusi jawaban, dan materi yang paling sering menjatuhkanmu.
+        </p>
+        <ul class="report-points">
+          <li>Rincian TWK, TIU, TKP dalam satu lembar.</li>
+          <li>Perbandingan skor dengan passing grade resmi.</li>
+          <li>Rekomendasi materi berdasarkan jawaban salah.</li>
+        </ul>
+        <button type="button" class="text-link" data-view-link="dashboard">Buka contoh rapor <span aria-hidden="true">→</span></button>
+      </div>
+
+      <div class="report-card reveal" data-delay="1">
+        <div class="report-top">
+          <div>
+            <div class="report-label">Rapor Tryout / 12 Nov 2026</div>
+            <div class="report-score">412<small>/ 550</small></div>
+          </div>
+          <span class="report-badge">Lulus PG</span>
+        </div>
+
+        <div class="report-bars">
+          <div>
+            <div class="report-bar-top"><span>TWK</span><b>95 / 150</b></div>
+            <div class="bar"><i style="--w:63%"></i></div>
+          </div>
+          <div>
+            <div class="report-bar-top"><span>TIU</span><b>110 / 175</b></div>
+            <div class="bar"><i class="red" style="--w:63%"></i></div>
+          </div>
+          <div>
+            <div class="report-bar-top"><span>TKP</span><b>207 / 225</b></div>
+            <div class="bar"><i class="green" style="--w:92%"></i></div>
+          </div>
+        </div>
+
+        <div class="report-foot">
+          <span>Tie-breaker: TKP 207</span>
+          <span>110 butir · 100 menit</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED CATALOG -->
+  <section class="section">
+    <div class="shell">
+      <div class="section-head">
+        <div class="reveal">
+          <div class="section-kicker">04 — Katalog</div>
+          <h2 class="section-title">Mulai dari yang <em>paling dekat.</em></h2>
+        </div>
+        <div class="section-side reveal" data-delay="1">
+          <button type="button" class="text-link" data-view-link="catalog">Lihat semua 6 paket <span aria-hidden="true">→</span></button>
+        </div>
+      </div>
+
+      <div class="pack-grid">
+        <article class="pack reveal" style="--cat:var(--blue)">
+          <div class="pack-top">
+            <span class="pack-index">01 / SKD</span>
+            <span class="tag">SKD CPNS</span>
+          </div>
+          <h3>Mastery Simulasi SKD CPNS 110 Butir</h3>
+          <p>TWK, TIU, dan TKP lengkap dengan passing grade simultan serta tie-breaker resmi BKN.</p>
+          <div class="pack-meta">
+            <div class="meta-row"><span>Butir</span><b>110 soal</b></div>
+            <div class="meta-row"><span>Durasi</span><b>100 menit</b></div>
+            <div class="meta-row"><span>Penilaian</span><b>PG BKN</b></div>
+          </div>
+          <div class="pack-foot">
+            <div class="price"><small>Akses</small>Gratis</div>
+            <button type="button" class="btn btn--sm" data-view-link="exam">Mulai <span class="arrow" aria-hidden="true">→</span></button>
+          </div>
+        </article>
+
+        <article class="pack reveal" data-delay="1" style="--cat:var(--green)">
+          <div class="pack-top">
+            <span class="pack-index">02 / LPDP</span>
+            <span class="tag">LPDP TBS</span>
+          </div>
+          <h3>Mastery TBS LPDP Paket 2</h3>
+          <p>Penalaran verbal, kuantitatif, dan pemecahan masalah untuk seleksi substansi beasiswa.</p>
+          <div class="pack-meta">
+            <div class="meta-row"><span>Butir</span><b>40 soal</b></div>
+            <div class="meta-row"><span>Durasi</span><b>90 menit</b></div>
+            <div class="meta-row"><span>Penilaian</span><b>Ambang 150</b></div>
+          </div>
+          <div class="pack-foot">
+            <div class="price"><small>Akses</small>Rp29.000<s>Rp40.000</s></div>
+            <button type="button" class="btn btn--sm" data-view-link="catalog">Detail <span class="arrow" aria-hidden="true">→</span></button>
+          </div>
+        </article>
+
+        <article class="pack reveal" data-delay="2" style="--cat:var(--amber)">
+          <div class="pack-top">
+            <span class="pack-index">03 / UTBK</span>
+            <span class="tag">UTBK-SNBT</span>
+          </div>
+          <h3>Mastery UTBK-SNBT 2026/2027</h3>
+          <p>TPS, literasi bahasa, dan penalaran matematika dengan pembahasan analitis.</p>
+          <div class="pack-meta">
+            <div class="meta-row"><span>Butir</span><b>45 soal</b></div>
+            <div class="meta-row"><span>Durasi</span><b>90 menit</b></div>
+            <div class="meta-row"><span>Penilaian</span><b>Skor terstandar</b></div>
+          </div>
+          <div class="pack-foot">
+            <div class="price"><small>Akses</small>Rp25.000<s>Rp35.000</s></div>
+            <button type="button" class="btn btn--sm" data-view-link="catalog">Detail <span class="arrow" aria-hidden="true">→</span></button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-band">
+    <div class="shell cta-inner">
+      <h2>Kerjakan satu simulasi. <em>Lihat di mana kamu bocor.</em></h2>
+      <div class="cta-side">
+        <p>Gratis, tanpa kartu kredit. Timer mulai saat kamu menekan tombol, bukan saat halaman dibuka.</p>
+        <button type="button" class="btn" data-view-link="exam">Buka ruang ujian <span class="arrow" aria-hidden="true">→</span></button>
+      </div>
+    </div>
+  </section>
+
+</div>
+<div class="view" data-view="catalog" role="region" aria-label="Katalog paket tryout" hidden>
+
+  <div class="page-head">
+    <div class="shell page-head-row">
+      <div>
+        <div class="crumb">Beranda <span>/</span> Katalog</div>
+        <h1>Pilih meja <em>ujianmu.</em></h1>
+      </div>
+      <p class="page-head-note">
+        Enam paket, empat jalur ujian. Semua sudah memakai timer server, penilaian resmi,
+        dan pembahasan yang bisa kamu buka lagi kapan saja.
+      </p>
+    </div>
+  </div>
+
+  <section class="section" style="border-bottom:0">
+    <div class="shell">
+      <div class="catalog-toolbar">
+        <div class="filters" role="group" aria-label="Filter kategori paket">
+          <button type="button" class="chip is-active" data-filter="all">Semua</button>
+          <button type="button" class="chip" data-filter="skd">SKD CPNS</button>
+          <button type="button" class="chip" data-filter="lpdp">LPDP</button>
+          <button type="button" class="chip" data-filter="utbk">UTBK</button>
+          <button type="button" class="chip" data-filter="osn">Olimpiade</button>
+        </div>
+        <label class="search" for="catalogSearch">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+          <span class="sr-only">Cari paket</span>
+          <input id="catalogSearch" type="search" placeholder="Cari paket…" autocomplete="off">
+        </label>
+      </div>
+
+      <div class="catalog-count" id="catalogCount">Menampilkan 6 paket</div>
+
+      <div class="pack-grid" id="catalogGrid" style="margin-top:18px">
+
+        <article class="pack" data-cat="skd" data-search="mastery simulasi skd cpns 110 butir twk tiu tkp" style="--cat:var(--blue)">
+          <div class="pack-top">
+            <span class="pack-index">01 / SKD</span>
+            <span class="tag">SKD CPNS</span>
+          </div>
+          <h3>Mastery Simulasi SKD CPNS 110 Butir</h3>
+          <p>Simulasi terlengkap 110 butir standar KepmenPANRB: TWK 30, TIU 35, TKP 45, dengan passing grade simultan.</p>
+          <div class="pack-meta">
+            <div class="meta-row"><span>Butir</span><b>110 soal</b></div>
+            <div class="meta-row"><span>Durasi</span><b>100 menit</b></div>
+            <div class="meta-row"><span>Penilaian</span><b>PG BKN</b></div>
+            <div class="meta-row"><span>Pembahasan</span><b>Analitis</b></div>
+          </div>
+          <div class="pack-foot">
+            <div class="price"><small>Akses</small>Gratis</div>
+            <button type="button" class="btn btn--sm" data-view-link="exam">Mulai <span class="arrow" aria-hidden="true">→</span></button>
+          </div>
+        </article>
+
+        <article class="pack" data-cat="skd" data-search="tryout akbar skd cpns 2026 paket 2" style="--cat:var(--blue)">
+          <div class="pack-top">
+            <span class="pack-index">02 / SKD</span>
+            <span class="tag">SKD CPNS</span>
+          </div>
+          <h3>Tryout Akbar SKD CPNS 2026 — Paket 2</h3>
+          <p>Paket lanjutan 110 butir dengan komposisi TWK, TIU, dan TKP yang lebih menantang serta pembahasan mendalam.</p>
+          <div class="pack-meta">
+            <div class="meta-row"><span>Butir</span><b>110 soal</b></div>
+            <div class="meta-row"><span>Durasi</span><b>100 menit</b></div>
+            <div class="meta-row"><span>Penilaian</span><b>PG BKN</b></div>
+            <div class="meta-row"><span>Pembahasan</span><b>Analitis</b></div>
+          </div>
+          <div class="pack-foot">
+            <div class="price"><small>Akses</small>Rp19.000<s>Rp29.000</s></div>
+            <button type="button" class="btn btn--sm" data-open-login>Beli <span class="arrow" aria-hidden="true">→</span></button>
+          </div>
+        </article>
+
+        <article class="pack" data-cat="lpdp" data-search="mastery tes bakat skolastik tbs lpdp paket 2" style="--cat:var(--green)">
+          <div class="pack-top">
+            <span class="pack-index">03 / LPDP</span>
+            <span class="tag">LPDP TBS</span>
+          </div>
+          <h3>Mastery Tes Bakat Skolastik LPDP — Paket 2</h3>
+          <p>Penalaran verbal, kuantitatif, dan pemecahan masalah untuk seleksi substansi beasiswa pascasarjana.</p>
+          <div class="pack-meta">
+            <div class="meta-row"><span>Butir</span><b>40 soal</b></div>
+            <div class="meta-row"><span>Durasi</span><b>90 menit</b></div>
+            <div class="meta-row"><span>Penilaian</span><b>Ambang 150</b></div>
+            <div class="meta-row"><span>Pembahasan</span><b>Analitis</b></div>
+          </div>
+          <div class="pack-foot">
+            <div class="price"><small>Akses</small>Rp29.000<s>Rp40.000</s></div>
+            <button type="button" class="btn btn--sm" data-open-login>Beli <span class="arrow" aria-hidden="true">→</span></button>
+          </div>
+        </article>
+
+        <article class="pack" data-cat="utbk" data-search="mastery utbk snbt 2026 2027 tps literasi penalaran" style="--cat:var(--amber)">
+          <div class="pack-top">
+            <span class="pack-index">04 / UTBK</span>
+            <span class="tag">UTBK-SNBT</span>
+          </div>
+          <h3>Mastery UTBK-SNBT 2026/2027</h3>
+          <p>Tes Potensi Skolastik, literasi bahasa Indonesia dan Inggris, serta penalaran matematika untuk masuk PTN.</p>
+          <div class="pack-meta">
+            <div class="meta-row"><span>Butir</span><b>45 soal</b></div>
+            <div class="meta-row"><span>Durasi</span><b>90 menit</b></div>
+            <div class="meta-row"><span>Penilaian</span><b>Skor terstandar</b></div>
+            <div class="meta-row"><span>Pembahasan</span><b>Analitis</b></div>
+          </div>
+          <div class="pack-foot">
+            <div class="price"><small>Akses</small>Rp25.000<s>Rp35.000</s></div>
+            <button type="button" class="btn btn--sm" data-open-login>Beli <span class="arrow" aria-hidden="true">→</span></button>
+          </div>
+        </article>
+
+        <article class="pack" data-cat="osn" data-search="simulasi seleksi olimpiade sains matematika osn paket 2" style="--cat:var(--red)">
+          <div class="pack-top">
+            <span class="pack-index">05 / OSN</span>
+            <span class="tag">Olimpiade</span>
+          </div>
+          <h3>Simulasi OSN Matematika — Paket 2</h3>
+          <p>Aljabar, geometri, teori bilangan, dan kombinatorika dengan negative marking +4 benar / −1 salah.</p>
+          <div class="pack-meta">
+            <div class="meta-row"><span>Butir</span><b>25 soal</b></div>
+            <div class="meta-row"><span>Durasi</span><b>120 menit</b></div>
+            <div class="meta-row"><span>Penilaian</span><b>+4 / −1</b></div>
+            <div class="meta-row"><span>Pembahasan</span><b>Pembuktian</b></div>
+          </div>
+          <div class="pack-foot">
+            <div class="price"><small>Akses</small>Rp39.000<s>Rp50.000</s></div>
+            <button type="button" class="btn btn--sm" data-open-login>Beli <span class="arrow" aria-hidden="true">→</span></button>
+          </div>
+        </article>
+
+        <article class="pack" data-cat="skd" data-search="simulasi mandiri tiu 60 soal verbal numerik figural" style="--cat:var(--blue)">
+          <div class="pack-top">
+            <span class="pack-index">06 / TIU</span>
+            <span class="tag">TIU</span>
+          </div>
+          <h3>Simulasi Mandiri TIU 60 Soal</h3>
+          <p>Latihan terfokus: analogi, silogisme, analitis, deret, berhitung, dan soal cerita. Cocok untuk pemanasan.</p>
+          <div class="pack-meta">
+            <div class="meta-row"><span>Butir</span><b>60 soal</b></div>
+            <div class="meta-row"><span>Durasi</span><b>60 menit</b></div>
+            <div class="meta-row"><span>Penilaian</span><b>Akumulasi</b></div>
+            <div class="meta-row"><span>Pembahasan</span><b>Analitis</b></div>
+          </div>
+          <div class="pack-foot">
+            <div class="price"><small>Akses</small>Gratis</div>
+            <button type="button" class="btn btn--sm" data-view-link="exam">Mulai <span class="arrow" aria-hidden="true">→</span></button>
+          </div>
+        </article>
+
+      </div>
+
+      <div class="empty-state" id="catalogEmpty" hidden>
+        <h3>Tidak ada paket yang cocok.</h3>
+        <p>Coba kata kunci lain atau pilih kategori “Semua”.</p>
+      </div>
+
+      <p class="catalog-count" style="padding-top:26px">
+        Semua harga dalam rupiah. Akses paket berlaku selama platform aktif.
+      </p>
+    </div>
+  </section>
+
+</div>
+<div class="view" data-view="dashboard" role="region" aria-label="Rapor dan riwayat ujian" hidden>
+
+  <div class="page-head">
+    <div class="shell page-head-row">
+      <div>
+        <div class="crumb">Beranda <span>/</span> Rapor</div>
+        <h1>Rapor &amp; <em>riwayat.</em></h1>
+      </div>
+      <p class="page-head-note">
+        Satu tempat untuk melihat performa, status passing grade, dan materi yang paling
+        sering menjatuhkanmu.
+      </p>
+    </div>
+  </div>
+
+  <section class="section" style="border-bottom:0">
+    <div class="shell">
+
+      <div class="profile-strip">
+        <div class="profile-id">
+          <div class="avatar" aria-hidden="true">AR</div>
+          <div>
+            <div class="profile-tag">Peserta aktif</div>
+            <div class="profile-name">Aulia Rahma</div>
+            <div class="profile-mail">aulia.rahma@contoh.id · bergabung Okt 2026</div>
+          </div>
+        </div>
+        <button type="button" class="btn btn--sm" data-view-link="catalog">Ujian baru <span class="arrow" aria-hidden="true">→</span></button>
+      </div>
+
+      <div class="stat-grid" aria-label="Ringkasan performa">
+        <div class="stat">
+          <div class="stat-label">Total sesi</div>
+          <div class="stat-value">14</div>
+          <div class="stat-note">Sejak 12 Oktober 2026</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Selesai</div>
+          <div class="stat-value green">11</div>
+          <div class="stat-note">7 lulus passing grade</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Skor tertinggi</div>
+          <div class="stat-value red">412</div>
+          <div class="stat-note">Tryout Akbar SKD CPNS</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Rata-rata</div>
+          <div class="stat-value">368</div>
+          <div class="stat-note">Naik 24 poin dari bulan lalu</div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Riwayat tryout</div>
+              <div class="panel-sub" id="dashCount">6 sesi terakhir</div>
+            </div>
+            <div class="seg" role="group" aria-label="Filter riwayat">
+              <button type="button" class="is-active" data-dash-filter="all">Semua</button>
+              <button type="button" data-dash-filter="completed">Selesai</button>
+              <button type="button" data-dash-filter="live">Berjalan</button>
+            </div>
+          </div>
+
+          <div class="table-head" aria-hidden="true">
+            <span>Tryout</span>
+            <span>Status</span>
+            <span>Skor</span>
+            <span></span>
+          </div>
+
+          <div class="table-row" data-row-status="completed">
+            <div>
+              <div class="row-title">Tryout Akbar SKD CPNS 2026 — Paket 2</div>
+              <div class="row-meta"><span>SKD CPNS</span><span>12 Nov 2026</span><span>110 butir</span></div>
+            </div>
+            <div class="row-status"><span class="pill pill--pass">Lulus PG</span></div>
+            <div class="row-score">412 <small>poin</small></div>
+            <button type="button" class="row-action" data-view-link="exam">Bahas</button>
+          </div>
+
+          <div class="table-row" data-row-status="completed">
+            <div>
+              <div class="row-title">Mastery TBS LPDP — Paket 2</div>
+              <div class="row-meta"><span>LPDP TBS</span><span>08 Nov 2026</span><span>40 butir</span></div>
+            </div>
+            <div class="row-status"><span class="pill pill--pass">Lulus ambang</span></div>
+            <div class="row-score">318 <small>poin</small></div>
+            <button type="button" class="row-action" data-view-link="exam">Bahas</button>
+          </div>
+
+          <div class="table-row" data-row-status="completed">
+            <div>
+              <div class="row-title">Mastery UTBK-SNBT 2026/2027</div>
+              <div class="row-meta"><span>UTBK-SNBT</span><span>03 Nov 2026</span><span>45 butir</span></div>
+            </div>
+            <div class="row-status"><span class="pill pill--fail">Di bawah target</span></div>
+            <div class="row-score">612 <small>poin</small></div>
+            <button type="button" class="row-action" data-view-link="exam">Bahas</button>
+          </div>
+
+          <div class="table-row" data-row-status="completed">
+            <div>
+              <div class="row-title">Simulasi OSN Matematika — Paket 2</div>
+              <div class="row-meta"><span>Olimpiade</span><span>28 Okt 2026</span><span>25 butir</span></div>
+            </div>
+            <div class="row-status"><span class="pill pill--pass">Medali perunggu</span></div>
+            <div class="row-score">72 <small>poin</small></div>
+            <button type="button" class="row-action" data-view-link="exam">Bahas</button>
+          </div>
+
+          <div class="table-row" data-row-status="completed">
+            <div>
+              <div class="row-title">Mastery Simulasi SKD CPNS 110 Butir</div>
+              <div class="row-meta"><span>SKD CPNS</span><span>21 Okt 2026</span><span>110 butir</span></div>
+            </div>
+            <div class="row-status"><span class="pill pill--pass">Lulus PG</span></div>
+            <div class="row-score">389 <small>poin</small></div>
+            <button type="button" class="row-action" data-view-link="exam">Bahas</button>
+          </div>
+
+          <div class="table-row" data-row-status="live">
+            <div>
+              <div class="row-title">Simulasi Mandiri TIU 60 Soal</div>
+              <div class="row-meta"><span>TIU</span><span>Dimulai 15 Okt 2026</span><span>60 butir</span></div>
+            </div>
+            <div class="row-status"><span class="pill pill--live">Berjalan</span></div>
+            <div class="row-score">— <small>belum final</small></div>
+            <button type="button" class="row-action" data-view-link="exam">Lanjut</button>
+          </div>
+
+          <div class="empty-state" id="dashEmpty" hidden style="border:0;border-top:1px solid var(--line)">
+            <h3>Tidak ada sesi di filter ini.</h3>
+            <p>Pilih “Semua” untuk melihat seluruh riwayat.</p>
+          </div>
+        </div>
+
+        <div style="display:grid;gap:22px">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Materi yang perlu dibedah</div>
+                <div class="panel-sub">Berdasarkan 11 sesi selesai</div>
+              </div>
+            </div>
+            <div class="weak-list">
+              <div class="weak-item">
+                <div class="weak-top"><span>TIU · Deret angka</span><b>48%</b></div>
+                <div class="bar"><i class="red" style="--w:48%"></i></div>
+              </div>
+              <div class="weak-item">
+                <div class="weak-top"><span>TKP · Pelayanan publik</span><b>62%</b></div>
+                <div class="bar"><i class="red" style="--w:62%"></i></div>
+              </div>
+              <div class="weak-item">
+                <div class="weak-top"><span>TWK · Pilar negara</span><b>71%</b></div>
+                <div class="bar"><i style="--w:71%"></i></div>
+              </div>
+              <div class="weak-item">
+                <div class="weak-top"><span>TIU · Silogisme</span><b>78%</b></div>
+                <div class="bar"><i class="green" style="--w:78%"></i></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Ritme belajar</div>
+                <div class="panel-sub">14 hari terakhir</div>
+              </div>
+              <span class="pill pill--pass">5 hari beruntun</span>
+            </div>
+            <div class="streak">
+              <div class="streak-top"><span>Intensitas sesi</span><span>Hari ini</span></div>
+              <div class="streak-grid" aria-label="Aktivitas belajar 14 hari terakhir">
+                <span class="streak-cell l1"></span>
+                <span class="streak-cell l2"></span>
+                <span class="streak-cell l3"></span>
+                <span class="streak-cell l4"></span>
+                <span class="streak-cell l3"></span>
+                <span class="streak-cell l2"></span>
+                <span class="streak-cell l1"></span>
+                <span class="streak-cell l3"></span>
+                <span class="streak-cell l4"></span>
+                <span class="streak-cell l4"></span>
+                <span class="streak-cell l3"></span>
+                <span class="streak-cell l2"></span>
+                <span class="streak-cell l4"></span>
+                <span class="streak-cell l4"></span>
+              </div>
+              <div class="streak-note">Rata-rata 1 sesi · 42 menit per hari</div>
+            </div>
+          </div>
+
+          <div class="panel" style="background:var(--ink);color:var(--paper);border-color:var(--ink)">
+            <div class="weak-list" style="padding:20px 18px">
+              <div class="eyebrow" style="color:#cfc5b2">Target berikutnya</div>
+              <div style="font-family:var(--display);font-size:27px;font-weight:500;letter-spacing:-.03em;line-height:1.05;margin-top:10px">
+                SKD CPNS 2026<br><em style="color:#e8a18e">24 hari lagi.</em>
+              </div>
+              <p style="font-size:11.5px;line-height:1.6;color:#c9c0ae;margin-top:9px">
+                Fokus minggu ini: deret angka dan pelayanan publik.
+              </p>
+              <button type="button" class="btn btn--sm" data-view-link="exam" style="background:var(--paper);border-color:var(--paper);color:var(--ink);margin-top:6px">
+                Latihan sekarang <span class="arrow" aria-hidden="true">→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</div>
+<div class="view" data-view="exam" role="region" aria-label="Ruang ujian demo" hidden>
+  <div class="shell">
+
+    <div class="exam-top">
+      <div class="exam-id">
+        <span class="exam-index">DEMO / 10</span>
+        <div style="min-width:0">
+          <div class="exam-title" id="examTitle">Tryout Akbar SKD CPNS 2026 — Paket 2</div>
+          <div class="exam-sub" id="examSub">Mode demo · 10 butir contoh · timer berjalan saat ruang dibuka</div>
+        </div>
+      </div>
+      <div class="exam-tools">
+        <div class="timer" id="examTimer" role="timer" aria-label="Sisa waktu ujian">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 1.5M9 3h6"/></svg>
+          <span id="examTimerText">01:39:42</span>
+        </div>
+        <button type="button" class="btn btn--red btn--sm" id="submitBtn">Selesai ujian</button>
+      </div>
+    </div>
+
+    <div id="examLive">
+      <div class="exam-grid">
+
+        <article class="q-card" aria-label="Soal ujian">
+          <div class="review-banner" id="reviewBanner" hidden>
+            <span>Mode pembahasan — jawaban terkunci</span>
+            <button type="button" class="text-link" id="reviewBackBtn" style="font-size:8.5px">Kembali ke hasil</button>
+          </div>
+
+          <div class="q-head">
+            <div class="q-head-left">
+              <span class="q-number" id="qNumber">Soal 01 / 10</span>
+              <span class="q-tag" id="qCategory">TIU</span>
+              <span class="q-tag q-tag--topic" id="qTopic">Analogi Kata</span>
+            </div>
+            <button type="button" class="doubt-btn" id="doubtBtn" aria-pressed="false">
+              <span aria-hidden="true">⚑</span> <span id="doubtLabel">Ragu-ragu</span>
+            </button>
+          </div>
+
+          <div class="q-body">
+            <div class="q-prompt" id="qPrompt">Memuat soal…</div>
+            <div class="q-context" id="qContext" hidden></div>
+            <div class="options" id="qOptions" role="radiogroup" aria-label="Pilihan jawaban"></div>
+            <div class="explanation" id="qExplanation" hidden>
+              <div class="explanation-top"><span aria-hidden="true">✓</span> Pembahasan</div>
+              <p id="qExplanationText"></p>
+            </div>
+          </div>
+
+          <div class="q-foot">
+            <button type="button" class="btn btn--ghost btn--sm" id="prevBtn">← Sebelumnya</button>
+            <span class="q-foot-center" id="qFootNote">Pilih A–E · ← → pindah · R ragu-ragu</span>
+            <button type="button" class="btn btn--sm" id="nextBtn">Selanjutnya →</button>
+          </div>
+        </article>
+
+        <aside class="sheet" aria-label="Lembar jawaban">
+          <div class="sheet-head">
+            <div>
+              <div class="sheet-title">Lembar jawaban</div>
+              <div class="sheet-sub">SKD · demo 10 butir</div>
+            </div>
+            <div class="sheet-timer" id="sheetTimer">01:39:42</div>
+          </div>
+
+          <div class="sheet-stats">
+            <div class="sheet-stat"><b id="answeredCount">0</b><span>Terjawab</span></div>
+            <div class="sheet-stat"><b id="doubtCount">0</b><span>Ragu</span></div>
+            <div class="sheet-stat"><b id="emptyCount">10</b><span>Kosong</span></div>
+          </div>
+
+          <div class="sheet-grid" id="sheetGrid" aria-label="Navigasi nomor soal"></div>
+
+          <div class="legend" aria-hidden="true">
+            <span><i class="done"></i> Terjawab</span>
+            <span><i class="doubt"></i> Ragu-ragu</span>
+            <span><i></i> Belum</span>
+            <span><i class="active"></i> Aktif</span>
+          </div>
+
+          <div class="sheet-foot">
+            <button type="button" class="btn btn--red btn--wide" id="submitBtn2">Selesai &amp; kumpulkan</button>
+            <div class="sheet-note">Jawaban tersimpan otomatis di perangkat ini.</div>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+
+    <div id="examResult" hidden style="padding:24px 0 64px">
+      <div class="result-card">
+        <div class="result-top">
+          <div>
+            <div class="result-kicker">Hasil simulasi · demo 10 butir</div>
+            <h2 class="result-title" id="resultTitle">Kerja bagus.<br><em style="color:var(--red);font-weight:400">Tetap ada yang bocor.</em></h2>
+            <p class="modal-desc" id="resultDesc">Skor demo dihitung dari 10 butir contoh. Bukan nilai akhir SKD.</p>
+          </div>
+          <div class="result-score"><span id="resultScore">0</span><small>dari 50 poin demo</small></div>
+        </div>
+
+        <div class="result-grid">
+          <div class="result-cell"><span>TWK</span><b id="resultTWK">0</b><small>dari 15 poin</small></div>
+          <div class="result-cell"><span>TIU</span><b id="resultTIU">0</b><small>dari 20 poin</small></div>
+          <div class="result-cell"><span>TKP</span><b id="resultTKP">0</b><small>dari 15 poin</small></div>
+        </div>
+
+        <div class="result-actions">
+          <button type="button" class="btn" id="reviewBtn">Bahas jawaban <span class="arrow" aria-hidden="true">→</span></button>
+          <button type="button" class="btn btn--ghost" id="retryBtn">Ulangi demo</button>
+          <button type="button" class="btn btn--ghost" data-view-link="dashboard">Lihat rapor</button>
+        </div>
+
+        <div class="result-stamp" id="resultStamp">Lulus simulasi</div>
+        <div class="result-note">
+          Catatan: demo ini memakai 10 butir contoh, bukan 110 butir SKD. Timer, penghitungan TWK/TIU/TKP,
+          dan penandaan ragu-ragu mengikuti alur aplikasi produksi.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#home" class="brand" data-view-link="home" aria-label="BedahSoal, kembali ke beranda">
+          <span class="brand-mark" aria-hidden="true">BS</span>
+          <span class="brand-copy">
+            <span class="brand-word">Bedah<em>Soal</em></span>
+            <span class="brand-sub">CBT Studio · Edisi 2026</span>
+          </span>
+        </a>
+        <p>
+          Ruang latihan untuk membedah soal, bukan menebak jawaban. SKD, LPDP, UTBK,
+          dan Olimpiade dalam satu meja kerja.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Jelajahi</h4>
+        <button type="button" data-view-link="home">Beranda</button>
+        <button type="button" data-view-link="catalog">Katalog paket</button>
+        <button type="button" data-view-link="dashboard">Rapor &amp; riwayat</button>
+        <button type="button" data-view-link="exam">Ruang ujian</button>
+      </div>
+
+      <div class="footer-col">
+        <h4>Jalur ujian</h4>
+        <button type="button" data-goto-catalog="skd">SKD CPNS</button>
+        <button type="button" data-goto-catalog="lpdp">Beasiswa LPDP</button>
+        <button type="button" data-goto-catalog="utbk">UTBK-SNBT</button>
+        <button type="button" data-goto-catalog="osn">Olimpiade Sains</button>
+      </div>
+
+      <div class="footer-col">
+        <h4>Catatan</h4>
+        <a href="#main">Panduan pengerjaan</a>
+        <a href="#main">Kebijakan privasi</a>
+        <a href="#main">Kontak</a>
+        <a href="#main">Status layanan</a>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>
+        <strong>Penafian independen:</strong> platform ini adalah sarana simulasi belajar mandiri
+        dan tidak terafiliasi resmi dengan BKN, KemenPANRB, LPDP, SNPMB, atau penyelenggara OSN.
+        Nilai tryout tidak menjamin kelulusan pada seleksi resmi.
+      </p>
+      <p>© 2026 BedahSoal · Prototipe arah visual</p>
+    </div>
+  </div>
+</footer>
+<!-- SUBMIT MODAL -->
+<div class="modal" id="submitModal" hidden role="dialog" aria-modal="true" aria-labelledby="submitTitle">
+  <div class="modal-card">
+    <button type="button" class="modal-close" data-close-modal aria-label="Tutup dialog">×</button>
+    <div class="modal-kicker">Konfirmasi pengumpulan</div>
+    <h2 class="modal-title" id="submitTitle">Kumpulkan jawaban sekarang?</h2>
+    <p class="modal-desc">
+      Setelah dikumpulkan, jawaban tidak bisa diubah lagi. Periksa jumlah soal yang masih kosong.
+    </p>
+
+    <div class="modal-stats">
+      <div class="modal-stat"><b id="modalAnswered">0</b><span>Terjawab</span></div>
+      <div class="modal-stat"><b id="modalDoubt">0</b><span>Ragu-ragu</span></div>
+      <div class="modal-stat"><b id="modalEmpty">10</b><span>Kosong</span></div>
+    </div>
+
+    <div class="modal-warning" id="modalWarning">
+      Masih ada 10 soal yang belum dijawab.
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn btn--ghost" data-close-modal>Lanjut mengerjakan</button>
+      <button type="button" class="btn btn--red" id="confirmSubmit">Ya, kumpulkan</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div class="modal" id="loginModal" hidden role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <div class="modal-card">
+    <button type="button" class="modal-close" data-close-modal aria-label="Tutup dialog">×</button>
+    <div class="modal-kicker">Akun peserta</div>
+    <h2 class="modal-title" id="loginTitle">Masuk untuk menyimpan rapor.</h2>
+    <p class="modal-desc">
+      Rapor, riwayat, dan status pengerjaan tersimpan per akun. Prototipe ini hanya
+      memperlihatkan alurnya.
+    </p>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="loginEmail">Email</label>
+        <input id="loginEmail" type="email" placeholder="nama@email.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="loginPassword">Kata sandi</label>
+        <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn--wide">Masuk</button>
+      </div>
+    </form>
+
+    <div class="login-alt">
+      <button type="button" class="btn" id="googleLogin">
+        <span aria-hidden="true" style="font-family:var(--display);font-size:15px;font-weight:600">G</span>
+        Lanjutkan dengan Google
+      </button>
+    </div>
+
+    <p class="login-note" id="loginNote">
+      Prototipe visual — autentikasi tidak terhubung ke server. Tidak ada data yang dikirim.
+    </p>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   BedahSoal redesign prototype — interactions
+   Everything below is client-side only. No server, no storage.
+   ============================================================ */
+
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+/* ---------- tiny helpers ---------- */
+const pad = (n) => String(n).padStart(2, '0');
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const scrollBehavior = reducedMotion ? 'auto' : 'smooth';
+
+/* ---------- views / routing ---------- */
+const VIEWS = ['home', 'catalog', 'dashboard', 'exam'];
+let currentView = 'home';
+
+function closeMobileMenu() {
+  const menu = $('#mobileNav');
+  const toggle = $('#menuToggle');
+  if (!menu || !toggle) return;
+  menu.hidden = true;
+  toggle.setAttribute('aria-expanded', 'false');
+}
+
+function showView(name, options = {}) {
+  if (!VIEWS.includes(name)) name = 'home';
+  currentView = name;
+
+  $$('.view').forEach((view) => {
+    view.hidden = view.dataset.view !== name;
+  });
+
+  $$('.nav [data-view-link], .mobile-nav [data-view-link]').forEach((btn) => {
+    btn.classList.toggle('is-active', btn.dataset.viewLink === name);
+  });
+
+  if (name === 'exam') startExamTimer();
+  if (options.filter) setCatalogFilter(options.filter);
+
+  closeMobileMenu();
+  window.scrollTo({ top: 0, behavior: 'auto' });
+
+  try {
+    history.replaceState(null, '', '#' + name);
+  } catch (_) {
+    /* file:// preview can refuse history updates in some browsers */
+  }
+}
+
+document.addEventListener('click', (event) => {
+  const viewLink = event.target.closest('[data-view-link]');
+  if (viewLink) {
+    event.preventDefault();
+    showView(viewLink.dataset.viewLink);
+    return;
+  }
+
+  const catalogLink = event.target.closest('[data-goto-catalog]');
+  if (catalogLink) {
+    event.preventDefault();
+    setCatalogFilter(catalogLink.dataset.gotoCatalog);
+    showView('catalog');
+    return;
+  }
+
+  const loginTrigger = event.target.closest('[data-open-login]');
+  if (loginTrigger) {
+    event.preventDefault();
+    openModal($('#loginModal'));
+  }
+});
+
+/* ---------- mobile menu ---------- */
+$('#menuToggle')?.addEventListener('click', () => {
+  const menu = $('#mobileNav');
+  const toggle = $('#menuToggle');
+  const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+  toggle.setAttribute('aria-expanded', String(!isOpen));
+  menu.hidden = isOpen;
+});
+
+/* ---------- modals ---------- */
+let lastFocused = null;
+
+function openModal(modal) {
+  if (!modal) return;
+  lastFocused = document.activeElement;
+  modal.hidden = false;
+  document.body.style.overflow = 'hidden';
+  const focusTarget = modal.querySelector('button, input, [href]');
+  if (focusTarget) focusTarget.focus();
+}
+
+function closeModal(modal) {
+  if (!modal) return;
+  modal.hidden = true;
+  if (!$('#submitModal').hidden || !$('#loginModal').hidden) return;
+  document.body.style.overflow = '';
+  if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+}
+
+function closeAllModals() {
+  [$('#submitModal'), $('#loginModal')].forEach((modal) => {
+    if (modal && !modal.hidden) closeModal(modal);
+  });
+  document.body.style.overflow = '';
+}
+
+$$('[data-close-modal]').forEach((btn) => {
+  btn.addEventListener('click', () => closeModal(btn.closest('.modal')));
+});
+
+$$('.modal').forEach((modal) => {
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) closeModal(modal);
+  });
+});
+
+$('#loginBtn')?.addEventListener('click', () => openModal($('#loginModal')));
+$('#mobileLogin')?.addEventListener('click', () => openModal($('#loginModal')));
+
+$('#loginForm')?.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const note = $('#loginNote');
+  note.textContent = 'Demo prototipe: kredensial tidak dikirim ke mana pun. Tutup dialog untuk melanjutkan.';
+  note.style.color = 'var(--red-dark)';
+});
+
+$('#googleLogin')?.addEventListener('click', () => {
+  const note = $('#loginNote');
+  note.textContent = 'Demo prototipe: alur Google OAuth tidak disimulasikan di file ini.';
+  note.style.color = 'var(--red-dark)';
+});
+
+/* ---------- catalog filter + search ---------- */
+const catalogCards = $$('#catalogGrid .pack');
+const catalogSearch = $('#catalogSearch');
+const catalogCount = $('#catalogCount');
+const catalogEmpty = $('#catalogEmpty');
+let catalogFilter = 'all';
+
+function applyCatalogFilter() {
+  const query = (catalogSearch?.value || '').trim().toLowerCase();
+  let visible = 0;
+
+  catalogCards.forEach((card) => {
+    const matchesCategory = catalogFilter === 'all' || card.dataset.cat === catalogFilter;
+    const haystack = `${card.dataset.search || ''} ${card.textContent || ''}`.toLowerCase();
+    const matchesQuery = !query || haystack.includes(query);
+    const show = matchesCategory && matchesQuery;
+    card.hidden = !show;
+    if (show) visible += 1;
+  });
+
+  if (catalogCount) catalogCount.textContent = `Menampilkan ${visible} paket`;
+  if (catalogEmpty) catalogEmpty.hidden = visible !== 0;
+}
+
+function setCatalogFilter(filter) {
+  catalogFilter = filter || 'all';
+  $$('[data-filter]').forEach((btn) => {
+    btn.classList.toggle('is-active', btn.dataset.filter === catalogFilter);
+  });
+  applyCatalogFilter();
+}
+
+$$('[data-filter]').forEach((btn) => {
+  btn.addEventListener('click', () => setCatalogFilter(btn.dataset.filter));
+});
+
+catalogSearch?.addEventListener('input', applyCatalogFilter);
+
+/* ---------- dashboard filter ---------- */
+const dashRows = $$('.table-row[data-row-status]');
+const dashCount = $('#dashCount');
+const dashEmpty = $('#dashEmpty');
+
+$$('[data-dash-filter]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const filter = btn.dataset.dashFilter;
+    $$('[data-dash-filter]').forEach((b) => b.classList.toggle('is-active', b === btn));
+    let visible = 0;
+    dashRows.forEach((row) => {
+      const show = filter === 'all' || row.dataset.rowStatus === filter;
+      row.hidden = !show;
+      if (show) visible += 1;
+    });
+    if (dashCount) dashCount.textContent = `${visible} sesi`;
+    if (dashEmpty) dashEmpty.hidden = visible !== 0;
+  });
+});
+
+/* ============================================================
+   Exam demo
+   ============================================================ */
+const QUESTIONS = [
+  {
+    category: 'TIU',
+    topic: 'Analogi Kata',
+    prompt: 'KULMINASI : PUNCAK = DEGRADASI : ...',
+    context: 'Hubungan antar kata mengikuti pola makna yang sama. Pilih pasangan yang paling sepadan.',
+    options: [
+      { key: 'A', text: 'Pertumbuhan' },
+      { key: 'B', text: 'Penggabungan' },
+      { key: 'C', text: 'Pemulihan' },
+      { key: 'D', text: 'Pelepasan' },
+      { key: 'E', text: 'Kemerosotan' }
+    ],
+    correct: 'E',
+    explanation: 'Kulminasi bersinonim dengan puncak. Degradasi bersinonim dengan kemerosotan. Jadi jawabannya E.'
+  },
+  {
+    category: 'TIU',
+    topic: 'Silogisme Logika',
+    prompt: 'Semua analis data menguasai bahasa pemrograman Python. Beberapa auditor internal instansi X adalah analis data.',
+    context: 'Kesimpulan yang sah dan logis adalah…',
+    options: [
+      { key: 'A', text: 'Semua auditor internal instansi X menguasai Python' },
+      { key: 'B', text: 'Semua yang menguasai Python adalah auditor internal instansi X' },
+      { key: 'C', text: 'Beberapa auditor internal instansi X menguasai Python' },
+      { key: 'D', text: 'Tidak ada auditor internal instansi X yang menguasai Python' },
+      { key: 'E', text: 'Sebagian analis data bukan auditor internal instansi X' }
+    ],
+    correct: 'C',
+    explanation: 'Semua analis data menguasai Python. Karena sebagian auditor adalah analis data, maka sebagian auditor pasti menguasai Python. Jawabannya C.'
+  },
+  {
+    category: 'TIU',
+    topic: 'Deret Angka',
+    prompt: '3, 7, 15, 31, 63, x',
+    context: 'Pola barisan mengikuti operasi yang sama di setiap langkah. Nilai x adalah…',
+    options: [
+      { key: 'A', text: '120' },
+      { key: 'B', text: '125' },
+      { key: 'C', text: '127' },
+      { key: 'D', text: '128' },
+      { key: 'E', text: '130' }
+    ],
+    correct: 'C',
+    explanation: 'Setiap angka dikali 2 lalu ditambah 1: 3→7→15→31→63→127. Jawabannya C.'
+  },
+  {
+    category: 'TIU',
+    topic: 'Perbandingan Kuantitatif',
+    prompt: 'Sebuah pekerjaan selesai dalam 12 hari oleh 3 pekerja. Jika ditambah 1 pekerja dengan kecepatan yang sama, pekerjaan selesai dalam…',
+    context: 'Gunakan hubungan berbalik nilai antara jumlah pekerja dan waktu pengerjaan.',
+    options: [
+      { key: 'A', text: '8 hari' },
+      { key: 'B', text: '9 hari' },
+      { key: 'C', text: '10 hari' },
+      { key: 'D', text: '11 hari' },
+      { key: 'E', text: '12 hari' }
+    ],
+    correct: 'B',
+    explanation: 'Total pekerjaan = 3 × 12 = 36 hari-orang. Dengan 4 pekerja: 36 ÷ 4 = 9 hari. Jawabannya B.'
+  },
+  {
+    category: 'TWK',
+    topic: 'Bela Negara',
+    prompt: 'Sikap dan perilaku warga negara yang dijiwai kecintaan kepada NKRI berdasarkan Pancasila dan UUD 1945 disebut…',
+    context: '',
+    options: [
+      { key: 'A', text: 'Chauvinisme' },
+      { key: 'B', text: 'Bela negara' },
+      { key: 'C', text: 'Nasionalisme sempit' },
+      { key: 'D', text: 'Patriotisme pasif' },
+      { key: 'E', text: 'Primordialisme' }
+    ],
+    correct: 'B',
+    explanation: 'Definisi tersebut adalah bela negara, sesuai amanat Pasal 27 ayat (3) UUD 1945. Jawabannya B.'
+  },
+  {
+    category: 'TWK',
+    topic: 'Pilar Negara',
+    prompt: 'Dalam musyawarah desa terjadi perbedaan pendapat yang tajam. Sikap yang paling sesuai dengan nilai Pancasila adalah…',
+    context: '',
+    options: [
+      { key: 'A', text: 'Memaksakan pendapat mayoritas agar rapat cepat selesai' },
+      { key: 'B', text: 'Meninggalkan rapat karena tidak ada titik temu' },
+      { key: 'C', text: 'Mengutamakan musyawarah untuk mencapai mufakat' },
+      { key: 'D', text: 'Meminta kepala desa memutuskan secara sepihak' },
+      { key: 'E', text: 'Mengikuti pendapat tokoh tanpa memeriksa alasannya' }
+    ],
+    correct: 'C',
+    explanation: 'Sila keempat menuntut musyawarah untuk mencapai mufakat, bukan menang-menangan atau menghindari dialog. Jawabannya C.'
+  },
+  {
+    category: 'TWK',
+    topic: 'Integritas',
+    prompt: 'Seorang ASN menerima hadiah dari vendor setelah memenangkan tender. Sikap yang mencerminkan integritas adalah…',
+    context: '',
+    options: [
+      { key: 'A', text: 'Menerima karena sudah menjadi kebiasaan' },
+      { key: 'B', text: 'Menolak dan melaporkan ke pengawas internal' },
+      { key: 'C', text: 'Menerima diam-diam agar tidak diketahui' },
+      { key: 'D', text: 'Membagikan hadiah ke rekan satu tim' },
+      { key: 'E', text: 'Menunda laporan sampai tender berikutnya' }
+    ],
+    correct: 'B',
+    explanation: 'Integritas berarti menolak gratifikasi dan melaporkannya melalui jalur pengawasan internal. Jawabannya B.'
+  },
+  {
+    category: 'TKP',
+    topic: 'Pelayanan Publik',
+    prompt: 'Anda sedang menyelesaikan laporan akhir tahun yang mendesak. Seorang warga lansia datang dengan kebingungan memerlukan pelayanan darurat, sementara petugas loket sedang berhalangan. Sikap Anda…',
+    context: '',
+    options: [
+      { key: 'A', text: 'Mengabaikannya karena laporan dinas memiliki tenggat hari ini', score: 1 },
+      { key: 'B', text: 'Memintanya menunggu sampai petugas loket kembali', score: 2 },
+      { key: 'C', text: 'Mencari rekan yang sedang tidak sibuk untuk melayani', score: 3 },
+      { key: 'D', text: 'Menyapa, mendengarkan sebentar, lalu mengantarkannya ke petugas pengganti', score: 4 },
+      { key: 'E', text: 'Menyambutnya, segera melayani kebutuhan mendesaknya secara tuntas, lalu melanjutkan laporan', score: 5 }
+    ],
+    correct: 'E',
+    explanation: 'Orientasi pelayanan publik menempatkan kebutuhan mendesak warga di depan, tanpa mengabaikan tanggung jawab laporan. Jawaban terbaik: E (skor 5).'
+  },
+  {
+    category: 'TKP',
+    topic: 'Jejaring Kerja',
+    prompt: 'Anda memimpin tim lintas instansi. Salah satu anggota dari instansi lain sering terlambat mengirim data. Sikap Anda…',
+    context: '',
+    options: [
+      { key: 'A', text: 'Mengeluarkannya dari tim agar tidak menghambat', score: 1 },
+      { key: 'B', text: 'Menunggu sampai data dikirim tanpa menegur', score: 2 },
+      { key: 'C', text: 'Melaporkan ke atasannya tanpa berdiskusi', score: 3 },
+      { key: 'D', text: 'Mengirim pesan pengingat singkat setiap hari', score: 4 },
+      { key: 'E', text: 'Menghubungi langsung, mencari tahu kendalanya, dan menyepakati tenggat baru yang realistis', score: 5 }
+    ],
+    correct: 'E',
+    explanation: 'Jejaring kerja yang sehat dibangun dengan komunikasi langsung dan solusi, bukan eskalasi atau menunggu pasif. Jawaban terbaik: E (skor 5).'
+  },
+  {
+    category: 'TKP',
+    topic: 'Profesionalisme',
+    prompt: 'Anda menemukan data laporan bulanan belum lengkap, sementara atasan meminta laporan dikirim hari ini. Sikap Anda…',
+    context: '',
+    options: [
+      { key: 'A', text: 'Mengirim apa adanya dan menyalahkan tim', score: 1 },
+      { key: 'B', text: 'Menunda laporan tanpa memberi kabar', score: 2 },
+      { key: 'C', text: 'Mengisi data kosong dengan perkiraan', score: 3 },
+      { key: 'D', text: 'Meminta perpanjangan waktu tanpa solusi', score: 4 },
+      { key: 'E', text: 'Melengkapi data kritis, menandai bagian yang belum final, dan memberi tahu atasan secara transparan', score: 5 }
+    ],
+    correct: 'E',
+    explanation: 'Profesionalisme berarti transparan soal keterbatasan data sekaligus tetap mengirim bagian yang bisa dipertanggungjawabkan. Jawaban terbaik: E (skor 5).'
+  }
+];
+
+const EXAM_SECONDS = 99 * 60 + 42;
+const state = {
+  index: 0,
+  answers: {},
+  doubt: new Set(),
+  submitted: false,
+  reviewMode: false,
+  seconds: EXAM_SECONDS
+};
+
+let timerId = null;
+let examStarted = false;
+
+const examTimer = $('#examTimer');
+const examTimerText = $('#examTimerText');
+const examSub = $('#examSub');
+const sheetTimer = $('#sheetTimer');
+const qNumber = $('#qNumber');
+const qCategory = $('#qCategory');
+const qTopic = $('#qTopic');
+const qPrompt = $('#qPrompt');
+const qContext = $('#qContext');
+const qOptions = $('#qOptions');
+const qExplanation = $('#qExplanation');
+const qExplanationText = $('#qExplanationText');
+const doubtBtn = $('#doubtBtn');
+const doubtLabel = $('#doubtLabel');
+const prevBtn = $('#prevBtn');
+const nextBtn = $('#nextBtn');
+const qFootNote = $('#qFootNote');
+const sheetGrid = $('#sheetGrid');
+const answeredCount = $('#answeredCount');
+const doubtCount = $('#doubtCount');
+const emptyCount = $('#emptyCount');
+const submitBtn = $('#submitBtn');
+const submitBtn2 = $('#submitBtn2');
+const reviewBanner = $('#reviewBanner');
+const examLive = $('#examLive');
+const examResult = $('#examResult');
+const submitModal = $('#submitModal');
+const loginModal = $('#loginModal');
+
+function formatTime(totalSeconds) {
+  const safe = Math.max(0, totalSeconds);
+  const hours = Math.floor(safe / 3600);
+  const minutes = Math.floor((safe % 3600) / 60);
+  const seconds = safe % 60;
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}
+
+function updateTimerDisplay() {
+  const text = formatTime(state.seconds);
+  if (examTimerText) examTimerText.textContent = text;
+  if (sheetTimer) sheetTimer.textContent = text;
+  if (examTimer) {
+    examTimer.classList.toggle('is-warning', state.seconds <= 300);
+    examTimer.setAttribute('aria-label', `Sisa waktu ${text}`);
+  }
+}
+
+function startExamTimer() {
+  if (examStarted || state.submitted) return;
+  examStarted = true;
+  updateTimerDisplay();
+  timerId = window.setInterval(() => {
+    state.seconds = Math.max(0, state.seconds - 1);
+    updateTimerDisplay();
+    if (state.seconds === 0) {
+      window.clearInterval(timerId);
+      timerId = null;
+      submitExam(true);
+    }
+  }, 1000);
+}
+
+function getAnsweredCount() {
+  return Object.keys(state.answers).length;
+}
+
+function renderSheet() {
+  if (!sheetGrid) return;
+  sheetGrid.innerHTML = QUESTIONS.map((question, index) => {
+    const isAnswered = state.answers[index] !== undefined;
+    const isDoubt = state.doubt.has(index);
+    const isActive = index === state.index;
+    const classes = ['sheet-cell'];
+    if (isAnswered) classes.push('is-done');
+    if (isDoubt) classes.push('is-doubt');
+    if (isActive) classes.push('is-active');
+    const status = isDoubt ? 'ragu-ragu' : isAnswered ? 'terjawab' : 'belum dijawab';
+    return `<button type="button" class="${classes.join(' ')}" data-goto="${index}" aria-label="Soal ${index + 1}: ${status}${isActive ? ', sedang dibuka' : ''}" aria-current="${isActive ? 'true' : 'false'}">${index + 1}</button>`;
+  }).join('');
+
+  $$('[data-goto]', sheetGrid).forEach((btn) => {
+    btn.addEventListener('click', () => goToQuestion(Number(btn.dataset.goto)));
+  });
+
+  const answered = getAnsweredCount();
+  const doubt = state.doubt.size;
+  if (answeredCount) answeredCount.textContent = answered;
+  if (doubtCount) doubtCount.textContent = doubt;
+  if (emptyCount) emptyCount.textContent = QUESTIONS.length - answered;
+}
+
+function renderQuestion() {
+  const question = QUESTIONS[state.index];
+  if (!question) return;
+
+  qNumber.textContent = `Soal ${pad(state.index + 1)} / ${pad(QUESTIONS.length)}`;
+  qCategory.textContent = question.category;
+  qTopic.textContent = question.topic;
+  qPrompt.innerHTML = question.prompt;
+
+  if (question.context) {
+    qContext.hidden = false;
+    qContext.innerHTML = question.context;
+  } else {
+    qContext.hidden = true;
+    qContext.innerHTML = '';
+  }
+
+  const selected = state.answers[state.index];
+
+  qOptions.innerHTML = question.options.map((option) => {
+    const classes = ['opt'];
+    let mark = '';
+
+    if (state.reviewMode) {
+      if (option.key === question.correct) {
+        classes.push('is-correct');
+        mark = '✓';
+      } else if (option.key === selected) {
+        classes.push('is-wrong');
+        mark = '×';
+      }
+    } else if (option.key === selected) {
+      classes.push('is-selected');
+      mark = '✓';
+    }
+
+    return `<button type="button" class="${classes.join(' ')}" role="radio" aria-checked="${option.key === selected}" data-opt="${option.key}" ${state.reviewMode ? 'disabled' : ''}>
+      <span class="opt-key">${option.key}</span>
+      <span class="opt-text">${option.text}</span>
+      <span class="opt-mark" aria-hidden="true">${mark}</span>
+    </button>`;
+  }).join('');
+
+  $$('[data-opt]', qOptions).forEach((btn) => {
+    btn.addEventListener('click', () => chooseOption(btn.dataset.opt));
+  });
+
+  if (state.reviewMode) {
+    qExplanation.hidden = false;
+    qExplanationText.textContent = question.explanation;
+  } else {
+    qExplanation.hidden = true;
+    qExplanationText.textContent = '';
+  }
+
+  const isDoubt = state.doubt.has(state.index);
+  doubtBtn.classList.toggle('is-on', isDoubt);
+  doubtBtn.setAttribute('aria-pressed', String(isDoubt));
+  doubtLabel.textContent = isDoubt ? 'Ragu-ragu aktif' : 'Ragu-ragu';
+
+  prevBtn.disabled = state.index === 0;
+  nextBtn.disabled = state.index === QUESTIONS.length - 1;
+
+  reviewBanner.hidden = !state.reviewMode;
+  submitBtn.hidden = state.reviewMode;
+  submitBtn2.hidden = state.reviewMode;
+  qFootNote.textContent = state.reviewMode
+    ? 'Jawaban terkunci · pilih nomor untuk meninjau'
+    : 'Pilih A–E · ← → pindah · R ragu-ragu';
+
+  renderSheet();
+}
+
+function chooseOption(key) {
+  if (state.submitted || state.reviewMode) return;
+  state.answers[state.index] = key;
+  renderQuestion();
+}
+
+function toggleDoubt() {
+  if (state.submitted || state.reviewMode) return;
+  if (state.doubt.has(state.index)) {
+    state.doubt.delete(state.index);
+  } else {
+    state.doubt.add(state.index);
+  }
+  renderQuestion();
+}
+
+function goToQuestion(index) {
+  if (index < 0 || index >= QUESTIONS.length) return;
+  state.index = index;
+  renderQuestion();
+  const card = $('.q-card');
+  if (card && currentView === 'exam') {
+    const top = card.getBoundingClientRect().top + window.scrollY - 140;
+    window.scrollTo({ top: Math.max(0, top), behavior: scrollBehavior });
+  }
+}
+
+function openSubmitModal() {
+  if (state.submitted) return;
+  const answered = getAnsweredCount();
+  const doubt = state.doubt.size;
+  const empty = QUESTIONS.length - answered;
+
+  $('#modalAnswered').textContent = answered;
+  $('#modalDoubt').textContent = doubt;
+  $('#modalEmpty').textContent = empty;
+
+  const warning = $('#modalWarning');
+  if (empty > 0) {
+    warning.hidden = false;
+    warning.textContent = `Masih ada ${empty} soal yang belum dijawab${doubt > 0 ? ` dan ${doubt} soal yang ditandai ragu-ragu` : ''}.`;
+  } else if (doubt > 0) {
+    warning.hidden = false;
+    warning.textContent = `Semua soal terjawab, tetapi masih ada ${doubt} soal yang ditandai ragu-ragu.`;
+  } else {
+    warning.hidden = true;
+  }
+
+  openModal(submitModal);
+}
+
+function submitExam(auto = false) {
+  if (state.submitted) return;
+  state.submitted = true;
+  state.reviewMode = false;
+  if (timerId) {
+    window.clearInterval(timerId);
+    timerId = null;
+  }
+
+  let total = 0;
+  let twk = 0;
+  let tiu = 0;
+  let tkp = 0;
+
+  QUESTIONS.forEach((question, index) => {
+    const answer = state.answers[index];
+    if (!answer) return;
+    if (question.category === 'TKP') {
+      const option = question.options.find((item) => item.key === answer);
+      const score = option?.score || 0;
+      total += score;
+      tkp += score;
+    } else if (answer === question.correct) {
+      total += 5;
+      if (question.category === 'TWK') twk += 5;
+      else tiu += 5;
+    }
+  });
+
+  const percent = Math.round((total / 50) * 100);
+  const passed = percent >= 60;
+
+  $('#resultScore').textContent = total;
+  $('#resultTWK').textContent = twk;
+  $('#resultTIU').textContent = tiu;
+  $('#resultTKP').textContent = tkp;
+  $('#resultDesc').textContent = auto
+    ? `Waktu habis. Kamu menjawab ${getAnsweredCount()} dari 10 butir. Skor demo ${total}/50 (${percent}%). Bukan nilai akhir SKD.`
+    : `Kamu menjawab ${getAnsweredCount()} dari 10 butir. Skor demo ${total}/50 (${percent}%). Bukan nilai akhir SKD.`;
+
+  const stamp = $('#resultStamp');
+  stamp.textContent = passed ? 'Lulus simulasi' : 'Perlu latihan';
+  stamp.style.borderColor = passed ? 'var(--green)' : 'var(--red)';
+  stamp.style.color = passed ? 'var(--green)' : 'var(--red-dark)';
+
+  $('#resultTitle').innerHTML = passed
+    ? 'Kerja bagus.<br><em style="color:var(--red);font-weight:400">Tetap ada yang bocor.</em>'
+    : 'Belum cukup.<br><em style="color:var(--red);font-weight:400">Bagus, ada yang bisa dibedah.</em>';
+
+  closeAllModals();
+  examLive.hidden = true;
+  examResult.hidden = false;
+  examTimer.hidden = true;
+  submitBtn.hidden = true;
+  submitBtn2.hidden = true;
+  if (examSub) examSub.textContent = `Selesai · skor demo ${total}/50 · ${percent}%`;
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+function startReview() {
+  state.reviewMode = true;
+  state.index = 0;
+  examResult.hidden = true;
+  examLive.hidden = false;
+  renderQuestion();
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+function resetExam() {
+  if (timerId) {
+    window.clearInterval(timerId);
+    timerId = null;
+  }
+  state.index = 0;
+  state.answers = {};
+  state.doubt.clear();
+  state.submitted = false;
+  state.reviewMode = false;
+  state.seconds = EXAM_SECONDS;
+  examStarted = false;
+
+  examResult.hidden = true;
+  examLive.hidden = false;
+  examTimer.hidden = false;
+  submitBtn.hidden = false;
+  submitBtn2.hidden = false;
+  if (examSub) examSub.textContent = 'Mode demo · 10 butir contoh · timer berjalan saat ruang dibuka';
+  updateTimerDisplay();
+  renderQuestion();
+  startExamTimer();
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+/* exam events */
+doubtBtn?.addEventListener('click', toggleDoubt);
+prevBtn?.addEventListener('click', () => goToQuestion(state.index - 1));
+nextBtn?.addEventListener('click', () => goToQuestion(state.index + 1));
+submitBtn?.addEventListener('click', openSubmitModal);
+submitBtn2?.addEventListener('click', openSubmitModal);
+$('#confirmSubmit')?.addEventListener('click', () => submitExam(false));
+$('#reviewBtn')?.addEventListener('click', startReview);
+$('#retryBtn')?.addEventListener('click', resetExam);
+$('#reviewBackBtn')?.addEventListener('click', () => {
+  state.reviewMode = false;
+  examLive.hidden = true;
+  examResult.hidden = false;
+  window.scrollTo({ top: 0, behavior: 'auto' });
+});
+
+/* keyboard shortcuts */
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    closeAllModals();
+    closeMobileMenu();
+    return;
+  }
+
+  if (currentView !== 'exam') return;
+  if (state.submitted && !state.reviewMode) return;
+  if (!$('#submitModal').hidden || !$('#loginModal').hidden) return;
+
+  const tag = (event.target.tagName || '').toLowerCase();
+  if (['input', 'textarea', 'select'].includes(tag)) return;
+
+  const key = event.key.toUpperCase();
+
+  if (['A', 'B', 'C', 'D', 'E'].includes(key)) {
+    event.preventDefault();
+    chooseOption(key);
+  } else if (event.key === 'ArrowLeft') {
+    event.preventDefault();
+    goToQuestion(state.index - 1);
+  } else if (event.key === 'ArrowRight') {
+    event.preventDefault();
+    goToQuestion(state.index + 1);
+  } else if (key === 'R') {
+    event.preventDefault();
+    toggleDoubt();
+  }
+});
+
+/* ---------- reveal on scroll ---------- */
+if ('IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-in');
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+  );
+
+  $$('.reveal').forEach((element) => observer.observe(element));
+} else {
+  $$('.reveal').forEach((element) => element.classList.add('is-in'));
+}
+
+/* ---------- hash routing ---------- */
+window.addEventListener('hashchange', () => {
+  const name = (location.hash || '').replace('#', '');
+  if (VIEWS.includes(name) && name !== currentView) showView(name);
+});
+
+/* ---------- boot ---------- */
+updateTimerDisplay();
+renderQuestion();
+applyCatalogFilter();
+
+const initialView = (location.hash || '').replace('#', '');
+showView(VIEWS.includes(initialView) ? initialView : 'home');
+</script>
+</body>
+</html>

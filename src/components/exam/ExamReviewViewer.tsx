@@ -20,7 +20,9 @@ import {
   Layers,
   ChevronLeft,
   ChevronRight,
+  Trophy,
 } from 'lucide-react';
+import { LeaderboardView } from '@/components/leaderboard/LeaderboardView';
 
 interface ExamReviewViewerProps {
   review: ExamReviewDTO;
@@ -32,6 +34,7 @@ type FilterType = 'ALL' | 'WRONG' | 'CORRECT' | 'UNANSWERED';
 export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [filter, setFilter] = useState<FilterType>('ALL');
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 
   const filteredQuestions = useMemo(() => {
     return review.questions.filter((q) => {
@@ -104,6 +107,16 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
                   <span>{review.isPassed ? 'LULUS PASSING GRADE' : 'BELUM MEMENUHI PG'}</span>
                 </div>
               )}
+
+              {/* Tombol Papan Peringkat */}
+              <button
+                type="button"
+                onClick={() => setIsLeaderboardOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-colors cursor-pointer shadow-xs"
+              >
+                <Trophy className="w-3.5 h-3.5" />
+                <span>Peringkat</span>
+              </button>
 
               {onRetakeExam && (
                 <button
@@ -445,6 +458,16 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
           </aside>
         </div>
       </div>
+
+      {/* Modal Papan Peringkat Nasional */}
+      {isLeaderboardOpen && (
+        <LeaderboardView
+          tryoutId={review.tryoutId}
+          tryoutTitle={review.title}
+          isOpen={isLeaderboardOpen}
+          onClose={() => setIsLeaderboardOpen(false)}
+        />
+      )}
     </div>
   );
 }

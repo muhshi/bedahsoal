@@ -45,16 +45,22 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="login-modal-title"
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-sm p-4 sm:p-6 flex min-h-full items-center justify-center"
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="relative w-full max-w-md my-auto bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
+        className="min-h-full flex items-center justify-center p-4 sm:p-6"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
       >
-        {/* Header decoration */}
+        <div
+          className="relative w-full max-w-md my-8 bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header decoration */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-6 text-white relative">
           <button
             onClick={onClose}
@@ -143,5 +149,6 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }

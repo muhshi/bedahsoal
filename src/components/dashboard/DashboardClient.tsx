@@ -18,6 +18,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { UserNav } from '@/components/auth/UserNav';
+import { LeaderboardView } from '@/components/leaderboard/LeaderboardView';
 
 interface SessionItem {
   id: string;
@@ -57,6 +58,7 @@ interface DashboardClientProps {
 
 export function DashboardClient({ user, stats, sessions }: DashboardClientProps) {
   const [filter, setFilter] = useState<'ALL' | 'COMPLETED' | 'IN_PROGRESS'>('ALL');
+  const [leaderboardTarget, setLeaderboardTarget] = useState<{ tryoutId: string; title: string } | null>(null);
 
   const filteredSessions = sessions.filter((s) => {
     if (filter === 'ALL') return true;
@@ -341,7 +343,22 @@ export function DashboardClient({ user, stats, sessions }: DashboardClientProps)
                         </div>
                       )}
 
-                      <div>
+                      <div className="flex items-center gap-2">
+                        {isCompleted && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setLeaderboardTarget({
+                                tryoutId: session.tryout.id,
+                                title: session.tryout.title,
+                              })
+                            }
+                            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 active:scale-95 transition shadow-xs cursor-pointer"
+                          >
+                            <Trophy className="w-3.5 h-3.5 text-amber-600" />
+                            <span>Peringkat</span>
+                          </button>
+                        )}
                         {isCompleted ? (
                           <Link
                             href={`/review/${session.id}`}
@@ -385,6 +402,16 @@ export function DashboardClient({ user, stats, sessions }: DashboardClientProps)
           )}
         </div>
       </main>
+
+      {/* Modal Papan Peringkat */}
+      {leaderboardTarget && (
+        <LeaderboardView
+          tryoutId={leaderboardTarget.tryoutId}
+          tryoutTitle={leaderboardTarget.title}
+          isOpen={Boolean(leaderboardTarget)}
+          onClose={() => setLeaderboardTarget(null)}
+        />
+      )}
     </div>
   );
 }
