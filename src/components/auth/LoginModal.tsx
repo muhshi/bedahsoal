@@ -41,22 +41,33 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="login-modal-title"
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-sm p-4 sm:p-6 flex min-h-full items-center justify-center"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="relative w-full max-w-md my-auto bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header decoration */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-8 text-white relative">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-6 text-white relative">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition"
+            className="absolute top-4 right-4 p-2 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
             aria-label="Tutup Modal"
           >
             <X className="w-5 h-5" />
           </button>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md mb-2">
             <ShieldCheck className="w-3.5 h-3.5 text-blue-200" /> Akun BedahSoal
           </div>
-          <h2 className="text-2xl font-bold">Masuk ke Akun Anda</h2>
-          <p className="text-blue-100 text-sm mt-1">
+          <h2 id="login-modal-title" className="text-xl font-bold">Masuk ke Akun Anda</h2>
+          <p className="text-blue-100 text-xs mt-1">
             Simpan riwayat tryout, analisis kelemahan, dan akses bank soal lintas perangkat.
           </p>
         </div>

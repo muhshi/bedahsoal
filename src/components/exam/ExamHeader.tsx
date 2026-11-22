@@ -194,9 +194,15 @@ export function ExamHeader({
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs p-4 flex min-h-full items-center justify-center"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsConfirmOpen(false);
+          }}
         >
-          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div
+            className="w-full max-w-md my-auto bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
             <div className="p-5 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3">
