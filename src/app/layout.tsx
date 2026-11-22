@@ -1,11 +1,24 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Fraunces, Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/auth/SessionProvider";
 
-const plusJakarta = Plus_Jakarta_Sans({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -20,8 +33,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className="h-full scroll-smooth">
-      <body className={`${plusJakarta.className} min-h-full flex flex-col bg-slate-50 text-slate-900 antialiased`}>
+    <html
+      lang="id"
+      className={`h-full scroll-smooth ${fraunces.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
+    >
+      <body
+        className={`${manrope.className} min-h-full flex flex-col bg-[var(--paper)] text-[var(--ink)] antialiased`}
+      >
         <SessionProvider>{children}</SessionProvider>
       </body>
     </html>

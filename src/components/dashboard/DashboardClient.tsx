@@ -130,7 +130,7 @@ export function DashboardClient({ user, stats, sessions }: DashboardClientProps)
             >
               &larr; Beranda
             </Link>
-            <UserNav />
+            <UserNav compact />
           </div>
         </div>
       </header>

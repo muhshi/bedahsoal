@@ -1,7 +1,25 @@
-import { describe, it, expect } from 'vitest';
-import { PackageData } from '@/components/catalog/CategorizedCatalog';
+import { describe, it, expect, vi } from 'vitest';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
-describe('Categorized Catalog Grouping Logic', () => {
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    refresh: vi.fn(),
+  }),
+}));
+
+import {
+  PackageData,
+  CategorizedCatalog,
+  CATEGORY_TABS,
+  CATEGORIES,
+  getCategoryMeta,
+  filterPackagesByCategory,
+  groupPackagesByCategory,
+} from '@/components/catalog/CategorizedCatalog';
+
+describe('Categorized Catalog Grouping & Tab Logic', () => {
   const mockPackages: PackageData[] = [
     {
       id: 'pkg-skd-1',
@@ -21,7 +39,7 @@ describe('Categorized Catalog Grouping Logic', () => {
       description: 'Deskripsi SKD',
       examType: 'SKD_CPNS',
       price: 29000,
-      promoPrice: null,
+      promoPrice: 19000,
       isFree: false,
       tryouts: [{ id: 't2', title: 'SKD 110', durationMinutes: 100, totalQuestions: 110 }],
     },
@@ -60,18 +78,46 @@ describe('Categorized Catalog Grouping Logic', () => {
     },
   ];
 
-  it('correctly partitions packages by examType', () => {
-    const grouped = mockPackages.reduce<Record<string, PackageData[]>>((acc, pkg) => {
-      if (!acc[pkg.examType]) acc[pkg.examType] = [];
-      acc[pkg.examType].push(pkg);
-      return acc;
-    }, {});
+  it('defines the canonical Empat Meja Ujian category tabs', () => {
+    const tabLabels = CATEGORY_TABS.map((t) => t.label);
+    expect(tabLabels).toContain('00: SEMUA PAKET');
+    expect(tabLabels).toContain('01: SKD CPNS');
+    expect(tabLabels).toContain('02: TBS LPDP');
+    expect(tabLabels).toContain('03: UTBK-SNBT');
+    expect(tabLabels).toContain('04: OLIMPIADE');
+    expect(CATEGORY_TABS).toHaveLength(5);
+  });
+
+  it('returns appropriate category metadata from getCategoryMeta', () => {
+    const skd = getCategoryMeta('SKD_CPNS');
+    expect(skd.code).toBe('01');
+    expect(skd.trackIndex).toBe('01 / SKD');
+    expect(skd.accentColor).toBe('#23415c');
+
+    const lpdp = getCategoryMeta('LPDP_TBS');
+    expect(lpdp.code).toBe('02');
+    expect(lpdp.trackIndex).toBe('02 / LPDP');
+
+    const unknown = getCategoryMeta('CUSTOM_TRACK');
+    expect(unknown.code).toBe('99');
+  });
+
+  it('correctly partitions packages by examType using groupPackagesByCategory', () => {
+    const grouped = groupPackagesByCategory(mockPackages);
 
     expect(Object.keys(grouped)).toHaveLength(4);
     expect(grouped['SKD_CPNS']).toHaveLength(2);
     expect(grouped['LPDP_TBS']).toHaveLength(1);
     expect(grouped['UTBK_SNBT']).toHaveLength(1);
     expect(grouped['MATH_OLYMPIAD']).toHaveLength(1);
+  });
+
+  it('filters packages accurately based on selected category tab', () => {
+    expect(filterPackagesByCategory(mockPackages, 'ALL')).toHaveLength(5);
+    expect(filterPackagesByCategory(mockPackages, 'SKD_CPNS')).toHaveLength(2);
+    expect(filterPackagesByCategory(mockPackages, 'LPDP_TBS')).toHaveLength(1);
+    expect(filterPackagesByCategory(mockPackages, 'UTBK_SNBT')).toHaveLength(1);
+    expect(filterPackagesByCategory(mockPackages, 'MATH_OLYMPIAD')).toHaveLength(1);
   });
 
   it('calculates total questions per category properly', () => {
@@ -83,7 +129,7 @@ describe('Categorized Catalog Grouping Logic', () => {
     expect(skdQuestions).toBe(170);
   });
 
-  it('correctly identifies free and owned package status', () => {
+  it('correctly identifies free, owned, and discounted package status', () => {
     const userOwnedIds = new Set(['pkg-skd-2']);
 
     const checkIsOwned = (pkg: PackageData) => {
@@ -97,5 +143,64 @@ describe('Categorized Catalog Grouping Logic', () => {
     expect(checkIsOwned(mockPackages[1])).toBe(true); // in userOwnedIds
     expect(checkIsOwned(mockPackages[2])).toBe(false); // paid and not owned
     expect(checkIsOwned(mockPackages[3])).toBe(false); // paid and not owned
+  });
+
+  it('renders section header, mono subhead, and category tabs', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(CategorizedCatalog, {
+        packages: mockPackages,
+        userPackageIds: ['pkg-skd-2'],
+      })
+    );
+
+    // Section Header and Mono Subhead
+    expect(html).toContain('Katalog Paket');
+    expect(html).toContain('EMPAT MEJA UJIAN &amp; LATIHAN TERARAH');
+
+    // Category Tabs
+    expect(html).toContain('00: SEMUA PAKET');
+    expect(html).toContain('01: SKD CPNS');
+    expect(html).toContain('02: TBS LPDP');
+    expect(html).toContain('03: UTBK-SNBT');
+    expect(html).toContain('04: OLIMPIADE');
+
+    // Index card styling tokens
+    expect(html).toContain('bg-[#fbf8f0]');
+    expect(html).toContain('border-[#191713]');
+    expect(html).toContain('shadow-paper');
+
+    // Stamp badges
+    expect(html).toContain('GRATIS');
+    expect(html).toContain('DIMILIKI');
+
+    // Action buttons
+    expect(html).toContain('Mulai Ujian');
+    expect(html).toContain('Beli Paket');
+  });
+
+  it('renders promo stamp badge and strikethrough price when discounted and unowned', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(CategorizedCatalog, {
+        packages: [mockPackages[1]], // pkg-skd-2 with price 29000, promoPrice 19000, unowned
+        userPackageIds: [],
+      })
+    );
+
+    expect(html).toContain('PROMO');
+    expect(html).toContain('Rp 19.000');
+    expect(html).toContain('Rp 29.000');
+    expect(html).toContain('line-through');
+  });
+
+  it('renders empty state when no packages exist in catalog', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(CategorizedCatalog, {
+        packages: [],
+        userPackageIds: [],
+      })
+    );
+
+    expect(html).toContain('LEMBAR SOAL BELUM TERSEDIA');
+    expect(html).toContain('Belum ada paket pada meja ujian ini');
   });
 });

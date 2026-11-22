@@ -5,16 +5,7 @@ import { auth } from "@/auth";
 import { StartExamButton } from "@/components/exam/StartExamButton";
 import { UserNav } from "@/components/auth/UserNav";
 import { CategorizedCatalog, PackageData } from "@/components/catalog/CategorizedCatalog";
-import {
-  GraduationCap,
-  Sparkles,
-  Zap,
-  ShieldCheck,
-  Clock,
-  Calculator,
-  Award,
-  Layers,
-} from "lucide-react";
+import { InteractiveDocketCard } from "@/components/home/InteractiveDocketCard";
 
 async function PackageList() {
   let packages: Array<PackageData> = [];
@@ -64,19 +55,19 @@ function PackageListSkeleton() {
       {/* Pills skeleton */}
       <div className="flex justify-center gap-2">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-10 w-28 bg-slate-200 rounded-2xl" />
+          <div key={i} className="h-9 w-28 bg-[#ded4bf] border border-[#d2c8b2]" />
         ))}
       </div>
       {/* Banner skeleton */}
-      <div className="h-24 bg-slate-200 rounded-3xl" />
+      <div className="h-20 bg-[#eae3d2] border border-[#d2c8b2]" />
       {/* Grid skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="rounded-3xl border border-slate-200 bg-white p-6 h-72 space-y-4">
-            <div className="h-4 bg-slate-200 rounded w-1/4" />
-            <div className="h-6 bg-slate-200 rounded w-3/4" />
-            <div className="h-16 bg-slate-100 rounded w-full" />
-            <div className="h-8 bg-slate-200 rounded w-1/3 mt-6" />
+          <div key={i} className="border border-[#191713] bg-[#fbf8f0] p-6 h-72 space-y-4 shadow-paper">
+            <div className="h-4 bg-[#ded4bf] w-1/4" />
+            <div className="h-6 bg-[#ded4bf] w-3/4" />
+            <div className="h-16 bg-[#f3efe3] w-full" />
+            <div className="h-8 bg-[#ded4bf] w-1/3 mt-6" />
           </div>
         ))}
       </div>
@@ -85,125 +76,215 @@ function PackageListSkeleton() {
 }
 
 export default function HomePage() {
-
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 selection:bg-blue-500 selection:text-white">
-      {/* 1. Header / Navbar */}
-      <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-white/80 border-b border-slate-200/80 transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 font-bold text-xl text-slate-900 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
-              <GraduationCap className="w-5 h-5" />
-            </div>
-            <div className="flex flex-col">
-              <span className="leading-tight text-blue-900 font-extrabold tracking-tight">
-                Bedah<span className="text-blue-600">Soal</span>
-              </span>
-              <span className="text-[10px] text-slate-500 font-medium tracking-wider uppercase -mt-0.5">
-                CBT Multi-Exam Platform
-              </span>
-            </div>
-          </Link>
+    <div className="min-h-screen flex flex-col bg-[#f3efe3] text-[#191713] selection:bg-[#c4402a] selection:text-[#f3efe3]">
+      {/* 1. Header / Navbar with Paper Atelier Aesthetic */}
+      <UserNav />
 
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-            <a href="#katalog" className="hover:text-blue-600 transition-colors">
-              Katalog Tryout
-            </a>
-            <Link href="/dashboard" className="hover:text-blue-600 transition-colors">
-              Riwayat &amp; Statistik
-            </Link>
-            <a href="#keunggulan" className="hover:text-blue-600 transition-colors">
-              Keunggulan
-            </a>
-            <a href="#format" className="hover:text-blue-600 transition-colors">
-              Format Ujian
-            </a>
-          </nav>
+      {/* 2. Hero Section with Fraunces Serif Headline & Interactive Docket Card */}
+      <section className="relative overflow-hidden pt-12 pb-16 lg:pt-20 lg:pb-24 border-b border-[#d2c8b2]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
+            {/* Left Column: Editorial Headline & Subtitle */}
+            <div className="lg:col-span-7 space-y-6">
+              {/* Eyebrow Kicker */}
+              <div className="inline-flex items-center gap-2.5 font-mono text-[10px] sm:text-[11px] font-semibold tracking-[0.2em] uppercase text-[#4b463d]">
+                <span className="w-2 h-2 bg-[#c4402a] flex-none" />
+                <span>Simulasi CBT · SKD / LPDP / UTBK / OSN</span>
+              </div>
 
-          <div className="flex items-center gap-3">
-            <StartExamButton
-              tryoutId="tryout-tiu-60"
-              label="Coba Demo"
-              className="hidden sm:inline-flex px-3.5 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 active:scale-95 shadow-xs transition"
-              icon={<Sparkles className="w-3.5 h-3.5 text-amber-500" />}
-            />
-            <UserNav />
+              {/* Fraunces Headline */}
+              <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-[#191713] tracking-tight leading-[1.04] max-w-xl">
+                Ujian bukan soal tebak-tebakan.{" "}
+                <em className="italic text-[#c4402a] font-normal">Bedah soalnya.</em>
+              </h1>
+
+              {/* Descriptive Subtitle */}
+              <p className="text-base sm:text-lg text-[#4b463d] leading-relaxed max-w-xl font-sans">
+                Simulasi ujian dengan timer server, penilaian resmi, dan pembahasan yang menunjukkan
+                di mana logikamu patah — bukan sekadar angka di akhir layar.
+              </p>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex flex-wrap items-center gap-3.5">
+                <StartExamButton
+                  tryoutId="tryout-skd-110"
+                  label="Mulai simulasi gratis"
+                  className="inline-flex items-center justify-center gap-2.5 h-12 px-6 border border-[#191713] bg-[#191713] text-[#f3efe3] font-mono text-xs font-semibold tracking-[0.1em] uppercase hover:bg-[#c4402a] hover:border-[#c4402a] shadow-paper hover:shadow-[8px_8px_0px_#191713] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all cursor-pointer"
+                  icon={<span className="text-sm font-bold" aria-hidden="true">&rarr;</span>}
+                />
+                <a
+                  href="#katalog"
+                  className="inline-flex items-center justify-center gap-2 h-12 px-6 border border-[#191713] bg-transparent text-[#191713] font-mono text-xs font-semibold tracking-[0.1em] uppercase hover:bg-[#191713] hover:text-[#f3efe3] shadow-paper hover:shadow-[8px_8px_0px_#191713] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all cursor-pointer"
+                >
+                  Lihat katalog paket
+                </a>
+              </div>
+
+              {/* Micro Specification Badges */}
+              <div className="pt-6 border-t border-[#b9ac91] flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-[9.5px] uppercase tracking-[0.1em] text-[#7a7365]">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="text-[#c4402a]">✳</span>
+                  <strong className="text-[#191713] font-semibold">110 butir</strong> SKD standar BKN
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="text-[#c4402a]">✳</span>
+                  <strong className="text-[#191713] font-semibold">Timer server</strong> tidak bisa diakali
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="text-[#c4402a]">✳</span>
+                  <strong className="text-[#191713] font-semibold">Pembahasan</strong> per langkah
+                </span>
+              </div>
+            </div>
+
+            {/* Right Column: Interactive Live Simulation Teaser Card */}
+            <div className="lg:col-span-5">
+              <InteractiveDocketCard />
+            </div>
           </div>
         </div>
-      </header>
+      </section>
 
-      {/* 2. Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(45rem_50rem_at_top,theme(colors.blue.100),white)] opacity-60" />
+      {/* 3. Specifications Ticker Band */}
+      <div className="border-b border-[#b9ac91] bg-[#eae3d2] overflow-hidden py-3 select-none" aria-label="Spesifikasi platform">
+        <div className="flex items-center gap-8 whitespace-nowrap font-mono text-[10.5px] font-medium uppercase tracking-[0.15em] text-[#4b463d] animate-marquee">
+          <span>SKD CPNS — 110 butir</span>
+          <span className="text-[#c4402a]">✳</span>
+          <span>LPDP TBS — 40 butir</span>
+          <span className="text-[#c4402a]">✳</span>
+          <span>UTBK-SNBT — 45 butir</span>
+          <span className="text-[#c4402a]">✳</span>
+          <span>OSN Matematika — 25 butir</span>
+          <span className="text-[#c4402a]">✳</span>
+          <span>Timer server terauthorisasi</span>
+          <span className="text-[#c4402a]">✳</span>
+          <span>Pembahasan analitis per langkah</span>
+          <span className="text-[#c4402a]">✳</span>
+          <span>Zero answer leakage</span>
+          <span className="text-[#c4402a]">✳</span>
+          <span>SKD CPNS — 110 butir</span>
+          <span className="text-[#c4402a]">✳</span>
+          <span>LPDP TBS — 40 butir</span>
+          <span className="text-[#c4402a]">✳</span>
+          <span>UTBK-SNBT — 45 butir</span>
+          <span className="text-[#c4402a]">✳</span>
+          <span>OSN Matematika — 25 butir</span>
+        </div>
+      </div>
+
+      {/* 4. The 4 Integrity Pillars (Cara Kerja / Ledger Ujian Jujur) */}
+      <section id="keunggulan" className="py-16 sm:py-24 border-b border-[#d2c8b2] bg-[#f3efe3]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200/80 shadow-xs">
-              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-              <span>Engine CBT Polimorfik Modern &middot; SKD, Kedinasan, LPDP, Olimpiade</span>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div>
+              <div className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-[#c4402a]">
+                02 — Cara kerja
+              </div>
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#191713] mt-2 leading-[1.05]">
+                Ujian yang jujur.<br />
+                <em className="font-normal text-[#7a7365] not-italic">Nilai yang bisa dibela.</em>
+              </h2>
             </div>
-
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
-              Taklukkan Ujian Impian dengan{" "}
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Simulasi CBT Paling Akurat
-              </span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-normal">
-              Engine simulasi ujian berkecepatan tinggi (&lt;16 ms) tanpa reload, kalkulasi penilaian presisi resmi BKN
-              dan skor minus olimpiade, aman dari koneksi terputus, serta evaluasi kelemahan materi terarah.
+            <p className="text-sm text-[#4b463d] max-w-md leading-relaxed font-sans">
+              Empat hal yang kami anggap tidak bisa dikompromikan saat kamu sedang berlatih
+              untuk menghadapi ujian penentu masa depan.
             </p>
+          </div>
 
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <StartExamButton
-                tryoutId="tryout-skd-110"
-                label="Mulai Simulasi SKD (110 Soal BKN)"
-                className="w-full sm:w-auto px-6 py-3.5 text-base font-bold rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/25 hover:bg-blue-700 active:scale-95"
-                icon={<Sparkles className="w-5 h-5 text-amber-300" />}
-              />
-              <a
-                href="#katalog"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-base font-semibold rounded-xl bg-white text-slate-700 border border-slate-300/80 shadow-xs hover:bg-slate-50 transition-all"
-              >
-                <span>Lihat Katalog Paket</span>
-              </a>
+          {/* Editorial Ledger Grid */}
+          <div className="border-t border-[#191713] divide-y divide-[#b9ac91]">
+            {/* Pillar 1 */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 py-7 items-start">
+              <div className="md:col-span-2 font-serif text-3xl sm:text-4xl font-semibold text-[#c4402a] leading-none">
+                01
+              </div>
+              <div className="md:col-span-4">
+                <h3 className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-[#191713]">
+                  Soal yang tidak bocor.
+                </h3>
+              </div>
+              <div className="md:col-span-6">
+                <p className="text-sm text-[#4b463d] leading-relaxed font-sans">
+                  Kunci jawaban dan bobot nilai tidak pernah dikirim ke browser selama ujian berjalan.
+                  Yang kamu lihat hanya soal, pilihan, dan sisa waktu — integritas nilai terjaga murni.
+                </p>
+              </div>
             </div>
 
-            {/* Micro badges */}
-            <div className="pt-6 flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs text-slate-500 font-medium">
-              <div className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Zero Answer Leakage</span>
+            {/* Pillar 2 */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 py-7 items-start">
+              <div className="md:col-span-2 font-serif text-3xl sm:text-4xl font-semibold text-[#c4402a] leading-none">
+                02
               </div>
-              <div className="flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-blue-600" />
-                <span>Server-Authoritative Timer</span>
+              <div className="md:col-span-4">
+                <h3 className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-[#191713]">
+                  Waktu yang tidak bisa ditawar.
+                </h3>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Zap className="w-4 h-4 text-amber-500" />
-                <span>IndexedDB Offline Resilience</span>
+              <div className="md:col-span-6">
+                <p className="text-sm text-[#4b463d] leading-relaxed font-sans">
+                  Timer dikunci oleh server. Mengganti jam ponsel atau me-refresh halaman tidak
+                  menambah satu detik pun. Disiplin waktu dilatih persis seperti di bilik ujian CAT resmi.
+                </p>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Calculator className="w-4 h-4 text-indigo-500" />
-                <span>KaTeX Math Rendering</span>
+            </div>
+
+            {/* Pillar 3 */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 py-7 items-start">
+              <div className="md:col-span-2 font-serif text-3xl sm:text-4xl font-semibold text-[#c4402a] leading-none">
+                03
+              </div>
+              <div className="md:col-span-4">
+                <h3 className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-[#191713]">
+                  Nilai yang bisa dipertanggungjawabkan.
+                </h3>
+              </div>
+              <div className="md:col-span-6">
+                <p className="text-sm text-[#4b463d] leading-relaxed font-sans">
+                  Skor TWK, TIU, dan TKP dihitung mengikuti passing grade KepmenPANRB dan tie-breaker resmi BKN.
+                  Bukan rata-rata yang dibuat-buat, sehingga peta kesiapanmu terukur objektif.
+                </p>
+              </div>
+            </div>
+
+            {/* Pillar 4 */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 py-7 items-start">
+              <div className="md:col-span-2 font-serif text-3xl sm:text-4xl font-semibold text-[#c4402a] leading-none">
+                04
+              </div>
+              <div className="md:col-span-4">
+                <h3 className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-[#191713]">
+                  Pembahasan yang membedah.
+                </h3>
+              </div>
+              <div className="md:col-span-6">
+                <p className="text-sm text-[#4b463d] leading-relaxed font-sans">
+                  Setiap jawaban salah diurai: langkah mana yang patah, konsep mana yang perlu diulang,
+                  dan bagaimana cara berpikir yang benar. Belajar dari kekeliruan, bukan sekadar melihat kunci.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 3. Katalog Paket Tryout */}
-      <section id="katalog" className="py-16 bg-white border-y border-slate-200/80 scroll-mt-16">
+      {/* 5. Katalog Paket Tryout ("Empat Meja Ujian") */}
+      <section id="katalog" className="py-16 sm:py-24 border-b border-[#d2c8b2] scroll-mt-16">
         <div id="paket-ujian" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
             <div>
-              <span className="text-xs font-bold text-blue-600 tracking-wider uppercase">Pilihan Pembelajaran Multi-Ujian</span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Katalog Paket Soal Terkategori</h2>
-              <p className="text-sm text-slate-600 mt-1">
+              <span className="font-mono text-[10px] font-semibold tracking-[0.18em] uppercase text-[#c4402a]">
+                01 — Katalog Paket Ujian
+              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#191713] mt-1 tracking-tight">
+                Pilihan Meja &amp; Latihan Terarah
+              </h2>
+              <p className="text-sm text-[#4b463d] mt-1.5 max-w-xl font-sans">
                 Pilih jalur ujian target Anda: SKD CPNS, Beasiswa LPDP, UTBK-SNBT, atau Olimpiade Sains.
               </p>
             </div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg text-xs font-medium text-slate-600 self-start md:self-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#eae3d2] border border-[#b9ac91] font-mono text-[10px] font-semibold uppercase tracking-wider text-[#191713] self-start md:self-auto shadow-[2px_2px_0px_#ded4bf]">
               <span>Masa Akses Selamanya per Paket</span>
             </div>
           </div>
@@ -214,136 +295,71 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Keunggulan Platform */}
-      <section id="keunggulan" className="py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <span className="text-xs font-bold text-blue-600 tracking-wider uppercase">Teknologi Terdepan</span>
-            <h2 className="text-3xl font-extrabold text-slate-900 mt-1">Mengapa Memilih BedahSoal?</h2>
-            <p className="text-sm text-slate-600 mt-2">
-              Dirancang dengan standar industri untuk menghadirkan ketenangan dan akurasi saat Anda berlatih.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
-                <Zap className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900">Perpindahan 0 Milidetik (&lt; 16 ms)</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Navigasi antar nomor berjalan 60 FPS mulus di browser ponsel tanpa reload halaman berkat Zustand
-                in-memory client store.
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900">Zero Answer Leakage</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Kunci jawaban dan bobot nilai tidak pernah dikirim ke browser saat ujian berjalan. Kredibilitas nilai
-                terjaga 100% murni.
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
-                <Clock className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900">Server-Authoritative Timer</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Timer ujian dikunci oleh server. Mengubah jam ponsel atau me-refresh browser tidak akan menambah waktu
-                sedetik pun.
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
-                <Calculator className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900">KaTeX &amp; Figural Support</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Simbol matematika, pecahan, deret angka, dan gambar figural dirender tajam dan proporsional di semua
-                layar smartphone.
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
-                <Layers className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900">Engine Polimorfik Multi-Exam</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Mendukung berbagai skema penilaian: SKD CPNS (TWK/TIU/TKP), LPDP Tes Bakat Skolastik, hingga skor minus
-                Olimpiade Sains.
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
-                <Award className="w-5 h-5" />
-              </div>
-              <h3 className="text-base font-bold text-slate-900">Tie-Breaker Resmi BKN</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Urutan peringkat nasional dihitung ketat berdasar hierarki resmi: Total Skor &rarr; TKP &rarr; TIU
-                &rarr; TWK &rarr; Waktu Tercepat.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. CTA Demo Banner */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Siap Menguji Kemampuanmu Hari Ini?</h2>
-          <p className="text-blue-100 max-w-2xl mx-auto text-base">
-            Coba simulasi mandiri 60 butir soal TIU sekarang juga langsung di browser. Rasakan navigasi instan dan timer
-            real-time tanpa biaya.
+      {/* 6. Editorial CTA Band */}
+      <section className="bg-[#191713] text-[#f3efe3] py-16 sm:py-20 border-b border-[#191713] relative overflow-hidden">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 relative z-10">
+          <span className="font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-[#ded4bf]">
+            Mulai Tanpa Hambatan
+          </span>
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#f3efe3]">
+            Siap Menguji Kemampuanmu Hari Ini?
+          </h2>
+          <p className="text-[#ded4bf] max-w-2xl mx-auto text-sm sm:text-base leading-relaxed font-sans">
+            Coba simulasi mandiri butir soal TIU sekarang juga langsung di browser. Rasakan navigasi instan
+            dan timer real-time tanpa biaya.
           </p>
           <div className="pt-2">
             <StartExamButton
               tryoutId="tryout-skd-110"
               label="Buka CBT Player Sekarang"
-              className="px-8 py-3.5 text-base font-bold rounded-xl bg-white text-blue-700 shadow-xl hover:bg-blue-50 active:scale-95"
+              className="inline-flex items-center justify-center gap-2.5 h-12 px-8 border border-[#f3efe3] bg-[#f3efe3] text-[#191713] font-mono text-xs font-bold tracking-[0.1em] uppercase hover:bg-[#c4402a] hover:border-[#c4402a] hover:text-[#f3efe3] shadow-[4px_4px_0px_rgba(243,239,227,0.2)] transition-all cursor-pointer"
             />
           </div>
         </div>
       </section>
 
-      {/* 6. Footer */}
-      <footer className="mt-auto bg-slate-900 text-slate-400 py-12 border-t border-slate-800 text-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
-                BS
+      {/* 7. Editorial Paper Footer */}
+      <footer className="mt-auto bg-[#eae3d2] text-[#4b463d] py-12 border-t border-[#b9ac91] text-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-[#b9ac91]">
+            <Link href="/" className="inline-flex items-center gap-3">
+              <div className="w-8 h-8 bg-[#191713] text-[#f3efe3] flex items-center justify-center font-serif font-bold text-sm border border-[#191713]">
+                [B]
               </div>
-              <span className="text-white font-bold text-base">BedahSoal</span>
-            </div>
-            <div className="flex items-center gap-6">
-              <a href="#katalog" className="hover:text-white transition-colors">
-                Katalog
+              <div className="flex flex-col">
+                <span className="font-serif text-xl font-bold tracking-tight text-[#191713] leading-none">
+                  Bedah<em className="text-[#c4402a] not-italic font-normal">Soal</em>
+                </span>
+                <span className="font-mono text-[8px] uppercase tracking-[0.16em] text-[#7a7365] mt-0.5">
+                  Ruang Bedah Ujian
+                </span>
+              </div>
+            </Link>
+
+            <div className="flex flex-wrap items-center gap-6 font-mono text-[10.5px] uppercase tracking-[0.1em]">
+              <a href="#katalog" className="text-[#4b463d] hover:text-[#191713] transition-colors">
+                Katalog Paket
               </a>
-              <a href="#keunggulan" className="hover:text-white transition-colors">
-                Keunggulan
+              <a href="#keunggulan" className="text-[#4b463d] hover:text-[#191713] transition-colors">
+                Prinsip Ujian
               </a>
-              <Link href="/exam/session-demo-tiu" className="hover:text-white transition-colors">
-                Ujian Demo
+              <Link href="/dashboard" className="text-[#4b463d] hover:text-[#191713] transition-colors">
+                Rapor &amp; Riwayat
+              </Link>
+              <Link href="/exam/session-demo-tiu" className="text-[#c4402a] font-semibold hover:underline">
+                Ujian Demo &rarr;
               </Link>
             </div>
           </div>
 
-          <div className="border-t border-slate-800 pt-6 text-slate-500 text-[11px] leading-relaxed">
+          <div className="pt-2 font-mono text-[9px] text-[#7a7365] leading-relaxed space-y-2">
             <p>
-              <strong>Penafian Independen:</strong> Platform ini merupakan sarana simulasi belajar mandiri independen
-              dan tidak terafiliasi secara resmi dengan Badan Kepegawaian Negara (BKN) maupun Kementerian Pendayagunaan
-              Aparatur Negara dan Reformasi Birokrasi (PANRB). Nilai tryout adalah hasil simulasi dan tidak menjamin
-              kelulusan pada seleksi resmi pemerintah.
+              <strong className="text-[#191713] uppercase">Penafian Independen:</strong> Platform ini merupakan
+              sarana simulasi belajar mandiri independen dan tidak terafiliasi secara resmi dengan Badan Kepegawaian Negara
+              (BKN) maupun Kementerian Pendayagunaan Aparatur Negara dan Reformasi Birokrasi (PANRB). Nilai tryout adalah
+              hasil simulasi dan tidak menjamin kelulusan pada seleksi resmi pemerintah.
             </p>
-            <p className="mt-2">&copy; 2026 BedahSoal Platform. Seluruh hak cipta dilindungi.</p>
+            <p>&copy; 2026 BedahSoal Platform · Ruang Bedah Ujian CBT. Seluruh hak cipta dilindungi.</p>
           </div>
         </div>
       </footer>

@@ -29,7 +29,7 @@
 - Modify: `src/app/layout.tsx`
 - Test: `tests/design-tokens.test.ts`
 
-- [ ] **Step 1: Write verification test for design tokens and font variables**
+- [x] **Step 1: Write verification test for design tokens and font variables**
 
 ```typescript
 // tests/design-tokens.test.ts
@@ -56,7 +56,7 @@ describe('Editorial Paper Design Tokens', () => {
 });
 ```
 
-- [ ] **Step 2: Update `src/app/globals.css` with Paper & Ink tokens**
+- [x] **Step 2: Update `src/app/globals.css` with Paper & Ink tokens**
 
 ```css
 @import "tailwindcss";
@@ -104,7 +104,7 @@ describe('Editorial Paper Design Tokens', () => {
 }
 ```
 
-- [ ] **Step 3: Update `src/app/layout.tsx` to bind Google Fonts**
+- [x] **Step 3: Update `src/app/layout.tsx` to bind Google Fonts**
 
 ```typescript
 import { Fraunces, Manrope, JetBrains_Mono } from 'next/font/google';
@@ -128,12 +128,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 ```
 
-- [ ] **Step 4: Run tests and verify tokens**
+- [x] **Step 4: Run tests and verify tokens**
 
 Run: `npx vitest run tests/design-tokens.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: Commit Task 1**
+- [x] **Step 5: Commit Task 1**
 
 ```bash
 git add src/app/globals.css src/app/layout.tsx tests/design-tokens.test.ts
@@ -148,8 +148,8 @@ git commit -m "style(theme): configure paper & ink tokens, graph grid, and Fraun
 - Create: `src/components/ui/StampBadge.tsx`
 - Test: `tests/stamp-badge.test.ts`
 
-- [ ] **Step 1: Write test for StampBadge**
-- [ ] **Step 2: Implement StampBadge with rotated ink borders and monospace typography**
+- [x] **Step 1: Write test for StampBadge**
+- [x] **Step 2: Implement StampBadge with rotated ink borders and monospace typography**
 
 ```typescript
 // src/components/ui/StampBadge.tsx
@@ -179,7 +179,7 @@ export function StampBadge({ label, variant = 'red', rotate = -2, className = ''
 }
 ```
 
-- [ ] **Step 3: Commit Task 2**
+- [x] **Step 3: Commit Task 2**
 
 ```bash
 git add src/components/ui/StampBadge.tsx tests/stamp-badge.test.ts
@@ -194,10 +194,10 @@ git commit -m "feat(ui): implement retro exam StampBadge component"
 - Modify: `src/app/page.tsx`
 - Modify: `src/components/auth/UserNav.tsx`
 
-- [ ] **Step 1: Refactor `src/components/auth/UserNav.tsx` with paper aesthetic**
+- [x] **Step 1: Refactor `src/components/auth/UserNav.tsx` with paper aesthetic**
   - Brand logo with `[B]` serif mark and "Ruang Bedah Ujian" kicker.
   - Border-bottom 1px solid `var(--line)` and clean paper background.
-- [ ] **Step 2: Refactor Hero section in `src/app/page.tsx`**
+- [x] **Step 2: Refactor Hero section in `src/app/page.tsx`**
   - Main headline: *"Ujian bukan soal tebak-tebakan. Bedah soalnya."* in `font-serif` (Fraunces).
   - Subtitle: *"Simulasi ujian dengan timer server, penilaian resmi, dan pembahasan yang menunjukkan di mana logikamu patah — bukan sekadar angka di akhir layar."*
   - Interactive live simulation teaser card with animated timer (`01:39:42`) and real sample question preview.
@@ -206,8 +206,8 @@ git commit -m "feat(ui): implement retro exam StampBadge component"
     2. *Waktu yang tidak bisa ditawar* (Server authoritative timer).
     3. *Nilai yang bisa dipertanggungjawabkan* (Passing grade profile resmi BKN).
     4. *Pembahasan yang membedah* (Step-by-step logic breakdown).
-- [ ] **Step 3: Run `npm run build` to verify clean build**
-- [ ] **Step 4: Commit Task 3**
+- [x] **Step 3: Run `npm run build` to verify clean build**
+- [x] **Step 4: Commit Task 3**
 
 ```bash
 git add src/app/page.tsx src/components/auth/UserNav.tsx
@@ -222,19 +222,19 @@ git commit -m "feat(ui): adopt editorial paper hero and value pillars on landing
 - Modify: `src/components/catalog/CategorizedCatalog.tsx`
 - Modify: `tests/categorized-catalog.test.ts`
 
-- [ ] **Step 1: Refactor Category Tabs to "Empat Meja Ujian" index tabs**
+- [x] **Step 1: Refactor Category Tabs to "Empat Meja Ujian" index tabs**
   - 00: SEMUA PAKET
   - 01: SKD CPNS (110 Butir, Passing Grade BKN)
   - 02: TBS LPDP (Skolastik Magister & Doktor)
   - 03: UTBK-SNBT (TPS & Literasi)
   - 04: OLIMPIADE SAINS (Matematika & Isian)
-- [ ] **Step 2: Redesign Exam Cards into "Lembar Soal" index cards**
+- [x] **Step 2: Redesign Exam Cards into "Lembar Soal" index cards**
   - Paper white background (`bg-[#fbf8f0]`), 1px ink border (`border-[#191713]`), and hard paper shadow.
   - Category tag in monospaced kicker.
   - Duration and question count in monospaced badge.
   - Price tag in stamp style (e.g. `GRATIS` green stamp or `Rp 25.000` ink badge).
-- [ ] **Step 3: Run tests and `npm run build`**
-- [ ] **Step 4: Commit Task 4**
+- [x] **Step 3: Run tests and `npm run build`**
+- [x] **Step 4: Commit Task 4**
 
 ```bash
 git add src/components/catalog/CategorizedCatalog.tsx tests/categorized-catalog.test.ts
@@ -245,7 +245,7 @@ git commit -m "feat(catalog): transform tryout cards into editorial exam paper i
 
 ### Task 5: Production Deployment & Visual Regression Verification
 
-- [ ] **Step 1: Run full test suite (`npx vitest run`) and build (`npm run build`)**
+- [x] **Step 1: Run full test suite (`npx vitest run`) and build (`npm run build`)**
 - [ ] **Step 2: Push changes to GitHub `main`**
 - [ ] **Step 3: Deploy to production server via Tailscale (`bpsdemak@100.106.152.115`)**
 - [ ] **Step 4: Verify live UI on `https://bedahsoal.muhshi.my.id`**
