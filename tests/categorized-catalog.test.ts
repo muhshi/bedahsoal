@@ -82,4 +82,20 @@ describe('Categorized Catalog Grouping Logic', () => {
 
     expect(skdQuestions).toBe(170);
   });
+
+  it('correctly identifies free and owned package status', () => {
+    const userOwnedIds = new Set(['pkg-skd-2']);
+
+    const checkIsOwned = (pkg: PackageData) => {
+      if (pkg.isFree) return true;
+      const effectivePrice = pkg.promoPrice ?? pkg.price;
+      if (effectivePrice <= 0) return true;
+      return userOwnedIds.has(pkg.id) || !!pkg.isOwned;
+    };
+
+    expect(checkIsOwned(mockPackages[0])).toBe(true); // isFree = true
+    expect(checkIsOwned(mockPackages[1])).toBe(true); // in userOwnedIds
+    expect(checkIsOwned(mockPackages[2])).toBe(false); // paid and not owned
+    expect(checkIsOwned(mockPackages[3])).toBe(false); // paid and not owned
+  });
 });

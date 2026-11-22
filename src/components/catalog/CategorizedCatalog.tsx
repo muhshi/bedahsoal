@@ -1,19 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  BookOpen,
-  GraduationCap,
-  Sparkles,
-  Award,
-  Layers,
-  Clock,
-  ArrowRight,
-  CheckCircle2,
-  Calculator,
-  Compass,
-} from 'lucide-react';
+import { BookOpen, CheckCircle2, Lock } from 'lucide-react';
 import { StartExamButton } from '@/components/exam/StartExamButton';
+import { CheckoutModal } from '@/components/payment/CheckoutModal';
 
 export interface PackageData {
   id: string;
@@ -24,6 +14,7 @@ export interface PackageData {
   price: number;
   promoPrice: number | null;
   isFree: boolean;
+  isOwned?: boolean;
   tryouts: Array<{
     id: string;
     title: string;
@@ -32,8 +23,9 @@ export interface PackageData {
   }>;
 }
 
-interface CategorizedCatalogProps {
+export interface CategorizedCatalogProps {
   packages: PackageData[];
+  userPackageIds?: string[];
 }
 
 interface CategoryMeta {
@@ -99,8 +91,24 @@ const CATEGORIES: Record<string, CategoryMeta> = {
   },
 };
 
-export function CategorizedCatalog({ packages }: CategorizedCatalogProps) {
+export function CategorizedCatalog({ packages, userPackageIds = [] }: CategorizedCatalogProps) {
   const [activeTab, setActiveTab] = useState<string>('ALL');
+  const [selectedPackage, setSelectedPackage] = useState<PackageData | null>(null);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [ownedPackageIds, setOwnedPackageIds] = useState<Set<string>>(() => {
+    const initial = new Set<string>(userPackageIds);
+    packages.forEach((pkg) => {
+      if (pkg.isOwned) initial.add(pkg.id);
+    });
+    return initial;
+  });
+
+  const checkIsOwned = (pkg: PackageData) => {
+    if (pkg.isFree) return true;
+    const effectivePrice = pkg.promoPrice ?? pkg.price;
+    if (effectivePrice <= 0) return true;
+    return ownedPackageIds.has(pkg.id) || !!pkg.isOwned;
+  };
 
   // Group packages by category
   const groupedPackages = packages.reduce<Record<string, PackageData[]>>((acc, pkg) => {
@@ -211,83 +219,136 @@ export function CategorizedCatalog({ packages }: CategorizedCatalogProps) {
 
               {/* Grid of Packages for this Category */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {catPackages.map((pkg) => (
-                  <div
-                    key={pkg.id}
-                    className="relative rounded-3xl border border-slate-200/90 bg-white p-6 shadow-xs hover:shadow-lg hover:border-blue-400 transition-all duration-200 flex flex-col justify-between group"
-                  >
-                    <div className="space-y-4">
-                      {/* Top Badges */}
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold border ${meta.badgeClass}`}
-                        >
-                          {meta.emoji} {meta.shortName}
-                        </span>
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                            pkg.isFree
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-slate-100 text-slate-700'
-                          }`}
-                        >
-                          {pkg.isFree ? 'Gratis / Trial' : 'Paket Penuh'}
-                        </span>
+                {catPackages.map((pkg) => {
+                  const isOwned = checkIsOwned(pkg);
+                  const effectivePrice = pkg.promoPrice ?? pkg.price;
+                  const hasDiscount = pkg.promoPrice !== null && pkg.promoPrice < pkg.price;
+
+                  return (
+                    <div
+                      key={pkg.id}
+                      className="relative rounded-3xl border border-slate-200/90 bg-white p-6 shadow-xs hover:shadow-lg hover:border-blue-400 transition-all duration-200 flex flex-col justify-between group"
+                    >
+                      <div className="space-y-4">
+                        {/* Top Badges */}
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold border ${meta.badgeClass}`}
+                          >
+                            {meta.emoji} {meta.shortName}
+                          </span>
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                              pkg.isFree
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : isOwned
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            }`}
+                          >
+                            {pkg.isFree ? (
+                              'Gratis / Trial'
+                            ) : isOwned ? (
+                              <>
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>Sudah Dimiliki</span>
+                              </>
+                            ) : (
+                              'Paket Berbayar'
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Package Title */}
+                        <h4 className="text-lg font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors">
+                          {pkg.title}
+                        </h4>
+
+                        {/* Description */}
+                        <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
+                          {pkg.description ||
+                            'Paket simulasi komprehensif lengkap dengan pembahasan mendalam dan ranking.'}
+                        </p>
+
+                        {/* Tryouts List */}
+                        <div className="pt-3 border-t border-slate-100 space-y-2 text-xs text-slate-600">
+                          {pkg.tryouts.map((t) => (
+                            <div key={t.id} className="flex items-center justify-between">
+                              <span className="flex items-center gap-1.5 font-medium text-slate-700">
+                                <BookOpen className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                <span className="truncate max-w-[170px]">{t.title}</span>
+                              </span>
+                              <span className="font-bold text-slate-800 shrink-0">
+                                {t.totalQuestions} Soal ({t.durationMinutes} m)
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
 
-                      {/* Package Title */}
-                      <h4 className="text-lg font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors">
-                        {pkg.title}
-                      </h4>
-
-                      {/* Description */}
-                      <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
-                        {pkg.description ||
-                          'Paket simulasi komprehensif lengkap dengan pembahasan mendalam dan ranking.'}
-                      </p>
-
-                      {/* Tryouts List */}
-                      <div className="pt-3 border-t border-slate-100 space-y-2 text-xs text-slate-600">
-                        {pkg.tryouts.map((t) => (
-                          <div key={t.id} className="flex items-center justify-between">
-                            <span className="flex items-center gap-1.5 font-medium text-slate-700">
-                              <BookOpen className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                              <span className="truncate max-w-[170px]">{t.title}</span>
-                            </span>
-                            <span className="font-bold text-slate-800 shrink-0">
-                              {t.totalQuestions} Soal ({t.durationMinutes} m)
-                            </span>
+                      {/* Bottom CTA & Price */}
+                      <div className="pt-6 mt-6 border-t border-slate-100 flex items-center justify-between gap-3">
+                        <div>
+                          <span className="text-[11px] text-slate-500 block font-medium">Biaya Akses</span>
+                          <div className="flex items-baseline gap-1.5">
+                            {pkg.isFree ? (
+                              <span className="text-lg font-extrabold text-emerald-600">Gratis</span>
+                            ) : (
+                              <>
+                                {hasDiscount && (
+                                  <span className="text-xs text-slate-400 line-through">
+                                    Rp {pkg.price.toLocaleString('id-ID')}
+                                  </span>
+                                )}
+                                <span className="text-lg font-extrabold text-slate-900">
+                                  Rp {effectivePrice.toLocaleString('id-ID')}
+                                </span>
+                              </>
+                            )}
                           </div>
-                        ))}
+                        </div>
+
+                        {isOwned ? (
+                          <StartExamButton
+                            tryoutId={pkg.tryouts[0]?.id || 'tryout-tiu-60'}
+                            label="Mulai Simulasi"
+                            className="px-4 py-2.5 text-xs font-bold rounded-xl bg-blue-600 text-white hover:bg-blue-700 active:scale-95 shadow-sm transition cursor-pointer"
+                          />
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setSelectedPackage(pkg);
+                              setIsCheckoutOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 active:scale-95 shadow-sm hover:shadow transition cursor-pointer"
+                          >
+                            <Lock className="w-3.5 h-3.5 text-blue-200" />
+                            <span>Beli Paket</span>
+                            <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-semibold">
+                              Rp {effectivePrice.toLocaleString('id-ID')}
+                            </span>
+                          </button>
+                        )}
                       </div>
                     </div>
-
-                    {/* Bottom CTA & Price */}
-                    <div className="pt-6 mt-6 border-t border-slate-100 flex items-center justify-between">
-                      <div>
-                        <span className="text-[11px] text-slate-500 block font-medium">Biaya Akses</span>
-                        <span
-                          className={`text-lg font-extrabold ${
-                            pkg.isFree ? 'text-emerald-600' : 'text-slate-900'
-                          }`}
-                        >
-                          {pkg.isFree ? 'Gratis' : `Rp ${pkg.price.toLocaleString('id-ID')}`}
-                        </span>
-                      </div>
-
-                      <StartExamButton
-                        tryoutId={pkg.tryouts[0]?.id || 'tryout-tiu-60'}
-                        label="Mulai Ujian"
-                        className="px-4 py-2.5 text-xs font-bold rounded-xl bg-blue-600 text-white hover:bg-blue-700 active:scale-95 shadow-sm transition cursor-pointer"
-                      />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* Checkout Modal Integration */}
+      <CheckoutModal
+        key={selectedPackage?.id || 'checkout-modal'}
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        packageData={selectedPackage}
+        onPaymentSuccess={(packageId) => {
+          setOwnedPackageIds((prev) => new Set([...prev, packageId]));
+        }}
+      />
     </div>
   );
 }

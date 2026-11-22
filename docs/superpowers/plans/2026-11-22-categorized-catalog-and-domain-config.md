@@ -18,9 +18,9 @@
 - Remote Server: Update `/home/bpsdemak/apps/muhshi/bedahsoal/.env`
 - Remote Server: Restart Docker container `bedahsoal-cbt`
 
-- [ ] **Step 1: Update local `docker-compose.yml` and `.env.example` with `AUTH_URL`, `AUTH_TRUST_HOST`, and Google OAuth keys**
-- [ ] **Step 2: Update remote server `.env` on `10.133.21.24` with the credentials provided by user**
-- [ ] **Step 3: Restart remote container and verify healthcheck and OAuth providers endpoint**
+- [x] **Step 1: Update local `docker-compose.yml` and `.env.example` with `AUTH_URL`, `AUTH_TRUST_HOST`, and Google OAuth keys**
+- [x] **Step 2: Update remote server `.env` on `10.133.21.24` with the credentials provided by user**
+- [x] **Step 3: Restart remote container and verify healthcheck and OAuth providers endpoint**
 
 ---
 
@@ -31,15 +31,15 @@
 - Modify: `src/app/page.tsx`
 - Test: `tests/categorized-catalog.test.ts`
 
-- [ ] **Step 1: Create `src/components/catalog/CategorizedCatalog.tsx` with category tabs and partitioned sections**
-- [ ] **Step 2: Remove obsolete hardcoded placeholder cards from `src/app/page.tsx` and integrate `CategorizedCatalog`**
-- [ ] **Step 3: Write test verifying category grouping, counts, and rendering**
-- [ ] **Step 4: Run `npm test` and `npm run build` to verify clean build**
+- [x] **Step 1: Create `src/components/catalog/CategorizedCatalog.tsx` with category tabs and partitioned sections**
+- [x] **Step 2: Remove obsolete hardcoded placeholder cards from `src/app/page.tsx` and integrate `CategorizedCatalog`**
+- [x] **Step 3: Write test verifying category grouping, counts, and rendering**
+- [x] **Step 4: Run `npm test` and `npm run build` to verify clean build**
 
 ---
 
 ### Task 3: Deployment & Domain Verification
 
-- [ ] **Step 1: Commit and push changes to `main`**
-- [ ] **Step 2: Run deployment on remote server**
-- [ ] **Step 3: Verify `https://bedahsoal.muhshi.my.id` and Google OAuth callback readiness**
+- [x] **Step 1: Commit and push changes to `main`**
+- [x] **Step 2: Run deployment on remote server**
+- [x] **Step 3: Verify `https://bedahsoal.muhshi.my.id` and Google OAuth callback readiness**

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { db } from "@/lib/db";
+import { auth } from "@/auth";
 import { StartExamButton } from "@/components/exam/StartExamButton";
 import { UserNav } from "@/components/auth/UserNav";
 import { CategorizedCatalog, PackageData } from "@/components/catalog/CategorizedCatalog";
@@ -10,40 +11,51 @@ import {
   Zap,
   ShieldCheck,
   Clock,
-  ArrowRight,
-  BookOpen,
   Calculator,
   Award,
-  ChevronRight,
   Layers,
 } from "lucide-react";
 
 async function PackageList() {
   let packages: Array<PackageData> = [];
+  let userPackageIds: string[] = [];
 
   try {
-    packages = await db.package.findMany({
-      where: { isActive: true },
-      include: {
-        tryouts: {
-          select: {
-            id: true,
-            title: true,
-            durationMinutes: true,
-            totalQuestions: true,
+    const [fetchedPackages, session] = await Promise.all([
+      db.package.findMany({
+        where: { isActive: true },
+        include: {
+          tryouts: {
+            select: {
+              id: true,
+              title: true,
+              durationMinutes: true,
+              totalQuestions: true,
+            },
           },
         },
-      },
-      orderBy: [
-        { examType: "asc" },
-        { createdAt: "desc" },
-      ],
-    });
+        orderBy: [
+          { examType: "asc" },
+          { createdAt: "desc" },
+        ],
+      }),
+      auth().catch(() => null),
+    ]);
+
+    packages = fetchedPackages;
+
+    if (session?.user?.id) {
+      const userPackages = await db.userPackage.findMany({
+        where: { userId: session.user.id },
+        select: { packageId: true },
+      });
+      userPackageIds = userPackages.map((up) => up.packageId);
+    }
   } catch (err) {
     console.error("Failed to fetch packages from DB:", err);
   }
 
-  return <CategorizedCatalog packages={packages} />;
+  return <CategorizedCatalog packages={packages} userPackageIds={userPackageIds} />;
 }
 
 function PackageListSkeleton() {
