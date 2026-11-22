@@ -72,17 +72,17 @@ export function QuestionPalette({ className = '', onSelectQuestion }: QuestionPa
   const answers = useExamStore((state) => state.answers);
   const currentIndex = useExamStore((state) => state.currentIndex);
   const setCurrentIndex = useExamStore((state) => state.setCurrentIndex);
-  const getSubtests = useExamStore((state) => state.getSubtests);
 
-  const subtests = useMemo(() => getSubtests(), [getSubtests, questions]);
+  const subtests = useMemo(
+    () => Array.from(new Set(questions.map((question) => question.category))),
+    [questions]
+  );
   const [activeTab, setActiveTab] = useState<string>('Semua');
 
-  // Filtered list of questions based on active subtest tab
   const displayedQuestions = useMemo(() => {
     return filterQuestionsBySubtest(questions, activeTab);
   }, [questions, activeTab]);
 
-  // Global counts for all questions
   const stats = useMemo(() => {
     return calculatePaletteStats(questions, answers);
   }, [questions, answers]);
@@ -95,61 +95,67 @@ export function QuestionPalette({ className = '', onSelectQuestion }: QuestionPa
     }
   };
 
+  const tabClass = (isActive: boolean) =>
+    `whitespace-nowrap border px-2.5 py-1.5 font-mono text-[9px] font-bold uppercase tracking-wider transition-colors ${
+      isActive
+        ? 'border-ink bg-ink text-paper'
+        : 'border-line-strong bg-paper text-ink-2 hover:border-ink hover:text-ink'
+    }`;
+
   return (
     <aside
       aria-label="Navigasi Nomor Soal"
-      className={`flex flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 ${className}`}
+      className={`flex flex-col border border-ink bg-white shadow-paper ${className}`}
     >
-      {/* Title & Stats Summary */}
-      <div className="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-        <h3 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-2.5">
-          Nomor Soal
-        </h3>
+      {/* Title & stats summary */}
+      <div className="border-b border-line-strong bg-paper-2 px-4 py-3">
+        <p className="font-mono text-[8.5px] font-bold uppercase tracking-[0.18em] text-red-stamp">
+          Indeks Lembar Jawab
+        </p>
+        <h3 className="mt-1 font-serif text-lg font-bold text-ink">Nomor Soal</h3>
 
-        {/* Status Indicators Pill Bar */}
-        <div className="grid grid-cols-3 gap-2 text-center text-xs">
-          <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300">
-            <span className="font-extrabold text-base leading-none mb-0.5">{stats.answered}</span>
-            <span className="text-[11px] font-medium">Terjawab</span>
+        <div className="mt-3 grid grid-cols-3 gap-px border border-ink bg-ink text-center">
+          <div className="bg-white p-2">
+            <strong className="block font-serif text-lg font-bold leading-none text-ink">
+              {stats.answered}
+            </strong>
+            <span className="mt-1 block font-mono text-[8px] uppercase tracking-wider text-green-stamp">
+              Terjawab
+            </span>
           </div>
-          <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300">
-            <span className="font-extrabold text-base leading-none mb-0.5">{stats.doubt}</span>
-            <span className="text-[11px] font-medium">Ragu-ragu</span>
+          <div className="bg-white p-2">
+            <strong className="block font-serif text-lg font-bold leading-none text-ink">
+              {stats.doubt}
+            </strong>
+            <span className="mt-1 block font-mono text-[8px] uppercase tracking-wider text-amber-flag">
+              Ragu-ragu
+            </span>
           </div>
-          <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-            <span className="font-extrabold text-base leading-none mb-0.5">{stats.remaining}</span>
-            <span className="text-[11px] font-medium">Sisa</span>
+          <div className="bg-white p-2">
+            <strong className="block font-serif text-lg font-bold leading-none text-ink">
+              {stats.remaining}
+            </strong>
+            <span className="mt-1 block font-mono text-[8px] uppercase tracking-wider text-ink-3">
+              Sisa
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Dynamic Subtest Tabs (if exam has 2 or more subtest categories) */}
+      {/* Dynamic subtest tabs */}
       {subtests.length > 1 && (
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3 scrollbar-none">
-          <button
-            type="button"
-            onClick={() => setActiveTab('Semua')}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              activeTab === 'Semua'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-            }`}
-          >
+        <div className="scrollbar-none flex items-center gap-1.5 overflow-x-auto border-b border-line px-3 py-2.5">
+          <button type="button" onClick={() => setActiveTab('Semua')} className={tabClass(activeTab === 'Semua')}>
             Semua ({questions.length})
           </button>
           {subtests.map((subtest) => {
             const count = questions.filter((q) => q.category === subtest).length;
-            const isTabActive = activeTab === subtest;
             return (
               <button
                 key={subtest}
                 type="button"
                 onClick={() => setActiveTab(subtest)}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  isTabActive
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                }`}
+                className={tabClass(activeTab === subtest)}
               >
                 {subtest} ({count})
               </button>
@@ -158,36 +164,33 @@ export function QuestionPalette({ className = '', onSelectQuestion }: QuestionPa
         </div>
       )}
 
-      {/* Question Number Grid */}
+      {/* Question number grid */}
       <div
         tabIndex={0}
         aria-label="Daftar Tombol Nomor Soal"
-        className="flex-1 overflow-y-auto max-h-[calc(100vh-320px)] min-h-[180px] p-2.5 scroll-smooth focus:outline-none rounded-xl"
+        className="max-h-[calc(100vh-360px)] min-h-[180px] flex-1 overflow-y-auto p-3 focus:outline-none"
       >
         {displayedQuestions.length === 0 ? (
-          <p className="text-sm text-slate-400 py-6 text-center">Tidak ada soal pada subtes ini.</p>
+          <p className="py-6 text-center font-mono text-[10px] text-ink-3">
+            Tidak ada soal pada subtes ini.
+          </p>
         ) : (
-          <div className="grid grid-cols-5 gap-2 sm:gap-2.5">
+          <div className="grid grid-cols-5 gap-2">
             {displayedQuestions.map((q) => {
               const actualIndex = questions.findIndex((item) => item.id === q.id);
               const isActive = actualIndex === currentIndex;
               const status = getQuestionStatus(answers[q.id]);
 
-              // Color styles matching requirements
-              // Hijau = Terjawab, Kuning = Ragu-ragu, Abu = Belum, Border Biru = Aktif
               let statusClasses =
-                'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700';
-
+                'border border-line bg-paper text-ink-2 hover:border-ink hover:text-ink';
               if (status === 'doubt') {
-                statusClasses =
-                  'bg-amber-400 text-amber-950 font-semibold hover:bg-amber-500 border border-amber-500 shadow-xs';
+                statusClasses = 'border border-amber-flag bg-amber-flag text-ink hover:bg-amber-flag/80';
               } else if (status === 'answered') {
-                statusClasses =
-                  'bg-emerald-600 text-white hover:bg-emerald-700 border border-emerald-600 shadow-xs';
+                statusClasses = 'border border-ink bg-ink text-paper hover:bg-red-stamp';
               }
 
               const activeClasses = isActive
-                ? 'ring-2 ring-blue-600 ring-offset-2 dark:ring-offset-slate-900 border-2 border-blue-600 font-extrabold bg-blue-50/80 text-blue-900 dark:bg-blue-950/60 dark:text-blue-100 shadow-sm z-10'
+                ? 'border-2 border-red-stamp font-bold text-red-stamp shadow-[2px_2px_0px_#c4402a]'
                 : '';
 
               const statusLabel =
@@ -206,7 +209,7 @@ export function QuestionPalette({ className = '', onSelectQuestion }: QuestionPa
                   aria-label={`Soal nomor ${q.orderNumber}: ${statusLabel}${
                     isActive ? ', sedang dibuka' : ''
                   }`}
-                  className={`aspect-square w-full rounded-xl text-sm sm:text-base flex items-center justify-center font-semibold transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 ${statusClasses} ${activeClasses}`}
+                  className={`flex aspect-square w-full items-center justify-center font-mono text-xs transition-all sm:text-sm ${statusClasses} ${activeClasses}`}
                 >
                   {q.orderNumber}
                 </button>
@@ -216,24 +219,20 @@ export function QuestionPalette({ className = '', onSelectQuestion }: QuestionPa
         )}
       </div>
 
-      {/* Legend Information */}
-      <div className="border-t border-slate-100 dark:border-slate-800 pt-3 mt-3 flex flex-wrap items-center justify-between gap-y-1.5 text-[11px] text-slate-500 dark:text-slate-400">
-        <div className="flex items-center gap-1.5">
-          <span className="w-3.5 h-3.5 rounded-sm bg-emerald-600 inline-block" />
-          <span>Terjawab</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-3.5 h-3.5 rounded-sm bg-amber-400 inline-block" />
-          <span>Ragu-ragu</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-3.5 h-3.5 rounded-sm bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 inline-block" />
-          <span>Belum</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="w-3.5 h-3.5 rounded-sm border-2 border-blue-600 bg-white dark:bg-slate-900 inline-block" />
-          <span>Aktif</span>
-        </div>
+      {/* Legend */}
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-line bg-paper-2 px-4 py-3 font-mono text-[8px] uppercase tracking-wider text-ink-3">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-3 w-3 border border-ink bg-ink" /> Terjawab
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-3 w-3 border border-amber-flag bg-amber-flag" /> Ragu
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-3 w-3 border border-line bg-paper" /> Belum
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-block h-3 w-3 border-2 border-red-stamp bg-white" /> Aktif
+        </span>
       </div>
     </aside>
   );

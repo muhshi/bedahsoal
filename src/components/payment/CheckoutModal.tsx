@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  X,
   CheckCircle2,
   QrCode,
   Building2,
@@ -21,6 +20,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { PackageData } from '@/components/catalog/CategorizedCatalog';
+import { resolveExamUrl } from '@/lib/exam-navigation';
 
 export interface CheckoutModalProps {
   isOpen: boolean;
@@ -101,6 +101,7 @@ export function CheckoutModal({
   const [isUnauthorized, setIsUnauthorized] = useState(false);
 
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const redirectHandledRef = useRef(false);
 
   // Stop polling helper
   const stopPolling = useCallback(() => {
@@ -157,6 +158,8 @@ export function CheckoutModal({
         const data = await res.json();
         if (data.status === 'SUCCESS') {
           stopPolling();
+          redirectHandledRef.current = false;
+          setRedirectCountdown(3);
           setStep('SUCCESS');
           if (packageData) {
             onPaymentSuccess?.(packageData.id);
@@ -189,29 +192,52 @@ export function CheckoutModal({
     }
   }, [step, invoice?.merchantOrderId, checkStatus, stopPolling]);
 
+  // Start a real exam session after payment instead of linking to the tryout
+  // id (a tryout id is not a session id and would lead to a 404).
+  const redirectToExam = useCallback(async () => {
+    onClose();
+
+    const tryoutId = packageData?.tryouts[0]?.id;
+    if (!tryoutId) {
+      router.push('/dashboard');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/sessions/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tryoutId }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.sessionId) {
+        throw new Error(data.error || 'Gagal menyiapkan sesi ujian');
+      }
+
+      router.push(resolveExamUrl(data));
+    } catch {
+      router.push('/dashboard');
+    }
+  }, [packageData, onClose, router]);
+
   // Countdown timer on SUCCESS step before auto redirect
   useEffect(() => {
-    if (step === 'SUCCESS') {
-      const targetTryoutId = packageData?.tryouts[0]?.id;
-      const timer = setInterval(() => {
-        setRedirectCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            onClose();
-            if (targetTryoutId) {
-              router.push(`/exam/${targetTryoutId}`);
-            } else {
-              router.push('/dashboard');
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+    if (step !== 'SUCCESS') return;
 
-      return () => clearInterval(timer);
-    }
-  }, [step, packageData, onClose, router]);
+    const timer = setInterval(() => {
+      setRedirectCountdown((prev) => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [step]);
+
+  useEffect(() => {
+    if (step !== 'SUCCESS' || redirectCountdown > 0 || redirectHandledRef.current) return;
+
+    redirectHandledRef.current = true;
+    void redirectToExam();
+  }, [step, redirectCountdown, redirectToExam]);
 
   if (!isOpen || !packageData) return null;
 
@@ -223,6 +249,8 @@ export function CheckoutModal({
 
   // Initiate Payment
   const handleProceedPayment = async () => {
+    redirectHandledRef.current = false;
+    setRedirectCountdown(3);
     setStep('PROCESSING');
     setErrorMessage(null);
     setIsUnauthorized(false);
@@ -284,13 +312,7 @@ export function CheckoutModal({
   };
 
   const handleStartExamNow = () => {
-    onClose();
-    const targetTryoutId = packageData.tryouts[0]?.id;
-    if (targetTryoutId) {
-      router.push(`/exam/${targetTryoutId}`);
-    } else {
-      router.push('/dashboard');
-    }
+    void redirectToExam();
   };
 
   return (
@@ -298,7 +320,7 @@ export function CheckoutModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="checkout-modal-title"
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-sm"
+      className="fixed inset-0 z-200 overflow-y-auto bg-[#191713]/70 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -453,8 +475,8 @@ export function CheckoutModal({
                         <div
                           className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
                             isSelected
-                              ? 'border-blue-600 bg-blue-600 text-white'
-                              : 'border-slate-300 bg-white'
+                              ? 'border-ink bg-ink text-white'
+                              : 'border-line-strong bg-white'
                           }`}
                         >
                           {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
@@ -466,8 +488,8 @@ export function CheckoutModal({
               </div>
 
               {/* Security info */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center gap-2.5 text-[11px] text-slate-500">
-                <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
+              <div className="p-3  bg-paper border border-line flex items-center gap-2.5 text-[11px] text-ink-3">
+                <ShieldCheck className="w-4 h-4 text-red-stamp shrink-0" />
                 <span>Transaksi dienkripsi 256-bit SSL dan diproses langsung secara resmi oleh Duitku.</span>
               </div>
             </div>
@@ -476,10 +498,10 @@ export function CheckoutModal({
           {/* 4. STEP: PROCESSING */}
           {step === 'PROCESSING' && (
             <div className="py-12 flex flex-col items-center justify-center text-center space-y-4">
-              <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+              <Loader2 className="w-10 h-10 text-red-stamp animate-spin" />
               <div>
-                <h4 className="text-sm font-bold text-slate-900">Menghubungkan ke Gateway...</h4>
-                <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+                <h4 className="font-serif text-base font-bold text-ink">Menghubungkan ke Gateway...</h4>
+                <p className="text-xs text-ink-3 mt-1 max-w-xs mx-auto">
                   Sedang menyiapkan tagihan dan kode QRIS/VA resmi untuk Anda.
                 </p>
               </div>
@@ -488,44 +510,44 @@ export function CheckoutModal({
 
           {/* 5. STEP: WAITING_FOR_PAYMENT */}
           {step === 'WAITING_FOR_PAYMENT' && invoice && (
-            <div className="space-y-5 animate-in fade-in duration-200">
+            <div className="space-y-5 ">
               {/* Status Header Banner */}
-              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-between">
+              <div className="p-3.5  bg-amber-flag/10 border border-amber-flag/50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-flag opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-flag/100"></span>
                   </span>
-                  <span className="text-xs font-bold text-amber-800">
+                  <span className="text-xs font-bold text-amber-flag">
                     Menunggu Pembayaran
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-amber-700">
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-amber-flag">
                   <Clock className="w-3.5 h-3.5" />
                   <span>Cek otomatis tiap 3 detik</span>
                 </div>
               </div>
 
               {/* Order & Amount Details */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+              <div className="p-4  bg-paper border border-line space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Nomor Transaksi (Order ID):</span>
+                  <span className="text-ink-3">Nomor Transaksi (Order ID):</span>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-mono font-bold text-slate-800">
+                    <span className="font-mono font-bold text-ink">
                       {invoice.merchantOrderId}
                     </span>
                     <button
                       onClick={() => copyToClipboard(invoice.merchantOrderId)}
-                      className="p-1 rounded text-slate-400 hover:text-slate-700 transition"
+                      className="p-1 rounded text-ink-3 hover:text-ink-2 transition"
                       title="Salin Order ID"
                     >
-                      {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      {isCopied ? <Check className="w-3.5 h-3.5 text-green-stamp" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                 </div>
-                <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
-                  <span className="text-slate-500">Total Pembayaran:</span>
-                  <span className="text-base font-extrabold text-blue-700">
+                <div className="flex items-center justify-between pt-2 border-t border-line">
+                  <span className="text-ink-3">Total Pembayaran:</span>
+                  <span className="font-serif text-lg font-bold text-red-stamp">
                     Rp {invoice.amount.toLocaleString('id-ID')}
                   </span>
                 </div>
@@ -533,13 +555,13 @@ export function CheckoutModal({
 
               {/* QRIS Display */}
               {invoice.qrString && (
-                <div className="flex flex-col items-center justify-center p-6 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-4 text-center">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
-                    <QrCode className="w-3.5 h-3.5 text-blue-600" />
+                <div className="flex flex-col items-center justify-center p-6 bg-white  border border-line  space-y-4 text-center">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-paper-2 text-ink-2 text-xs font-bold">
+                    <QrCode className="w-3.5 h-3.5 text-red-stamp" />
                     <span>Scan QRIS di bawah ini</span>
                   </div>
 
-                  <div className="p-3 bg-white border-2 border-slate-800 rounded-2xl shadow-sm">
+                  <div className="p-3 bg-white border-2 border-ink  ">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
@@ -550,7 +572,7 @@ export function CheckoutModal({
                     />
                   </div>
 
-                  <p className="text-[11px] text-slate-500 max-w-xs leading-relaxed">
+                  <p className="text-[11px] text-ink-3 max-w-xs leading-relaxed">
                     Buka GoPay, OVO, Dana, BCA Mobile, atau aplikasi bank apa pun, lalu arahkan kamera untuk memindai QR di atas.
                   </p>
                 </div>
@@ -558,17 +580,17 @@ export function CheckoutModal({
 
               {/* Virtual Account Display */}
               {invoice.vaNumber && (
-                <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                  <span className="text-xs text-slate-500 block font-medium">
+                <div className="p-5 bg-white  border border-line  space-y-3">
+                  <span className="text-xs text-ink-3 block font-medium">
                     Nomor Rekening Virtual Account:
                   </span>
-                  <div className="flex items-center justify-between bg-slate-100 p-3 rounded-xl border border-slate-200">
-                    <span className="text-xl font-mono font-extrabold tracking-wider text-slate-900">
+                  <div className="flex items-center justify-between bg-paper-2 p-3  border border-line">
+                    <span className="text-xl font-mono font-extrabold tracking-wider text-ink">
                       {invoice.vaNumber}
                     </span>
                     <button
                       onClick={() => copyToClipboard(invoice.vaNumber!)}
-                      className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition cursor-pointer"
+                      className="flex items-center gap-1 text-xs font-bold px-3 py-1.5  bg-ink text-white hover:bg-red-dark transition cursor-pointer"
                     >
                       {isCopied ? (
                         <>
@@ -583,7 +605,7 @@ export function CheckoutModal({
                       )}
                     </button>
                   </div>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                  <p className="text-[11px] text-ink-3 leading-relaxed">
                     Gunakan menu Transfer &gt; Virtual Account pada ATM atau aplikasi mobile banking Anda dan masukkan nomor di atas.
                   </p>
                 </div>
@@ -594,7 +616,7 @@ export function CheckoutModal({
                 <button
                   onClick={() => checkStatus(invoice.merchantOrderId)}
                   disabled={isCheckingStatus}
-                  className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center justify-center gap-1.5 disabled:opacity-60 cursor-pointer shadow-xs"
+                  className="flex-1 py-2.5 px-4  border border-line bg-white hover:bg-paper text-ink-2 text-xs font-bold transition flex items-center justify-center gap-1.5 disabled:opacity-60 cursor-pointer "
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isCheckingStatus ? 'animate-spin' : ''}`} />
                   <span>{isCheckingStatus ? 'Memeriksa...' : 'Cek Status Sekarang'}</span>
@@ -605,7 +627,7 @@ export function CheckoutModal({
                     href={invoice.paymentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm text-center"
+                    className="flex-1 py-2.5 px-4  bg-ink hover:bg-red-dark text-white text-xs font-bold transition flex items-center justify-center gap-1.5  text-center"
                   >
                     <span>Buka Halaman Duitku</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -617,33 +639,33 @@ export function CheckoutModal({
 
           {/* 6. STEP: SUCCESS */}
           {step === 'SUCCESS' && (
-            <div className="py-8 flex flex-col items-center justify-center text-center space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="py-8 flex flex-col items-center justify-center text-center space-y-5 ">
               <div className="relative">
-                <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-lg shadow-emerald-500/20">
+                <div className="w-20 h-20 rounded-full bg-green-stamp/15 flex items-center justify-center text-green-stamp shadow-paper">
                   <CheckCircle2 className="w-10 h-10" />
                 </div>
-                <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-400 text-white flex items-center justify-center shadow">
+                <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-flag text-white flex items-center justify-center shadow">
                   <Sparkles className="w-3.5 h-3.5" />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <h4 className="text-xl font-extrabold text-slate-900">
-                  Pembayaran Berhasil Dikonfirmasi! 🎉
+                <h4 className="font-serif text-2xl font-bold text-ink">
+                  Pembayaran Berhasil Dikonfirmasi! 
                 </h4>
-                <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
-                  Selamat! Paket <span className="font-bold text-slate-900">{packageData.title}</span> telah aktif secara permanen di akun Anda.
+                <p className="text-xs text-ink-2 max-w-sm mx-auto leading-relaxed">
+                  Selamat! Paket <span className="font-bold text-ink">{packageData.title}</span> telah aktif secara permanen di akun Anda.
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium w-full">
+              <div className="p-3.5  bg-green-stamp/10 border border-green-stamp/40 text-green-stamp text-xs font-medium w-full">
                 <span>Mengalihkan otomatis ke simulasi dalam </span>
-                <span className="font-extrabold text-emerald-900 text-sm">{redirectCountdown}s</span>...
+                <span className="font-extrabold text-green-stamp text-sm">{redirectCountdown}s</span>...
               </div>
 
               <button
                 onClick={handleStartExamNow}
-                className="w-full py-3.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                className="w-full py-3.5 px-6  bg-green-stamp hover:bg-green-stamp text-white font-serif text-base font-bold shadow-paper transition flex items-center justify-center gap-2 cursor-pointer active:scale-95"
               >
                 <span>Mulai Simulasi Sekarang</span>
                 <ArrowRight className="w-4 h-4" />
@@ -654,16 +676,16 @@ export function CheckoutModal({
           {/* 7. STEP: ERROR */}
           {step === 'ERROR' && (
             <div className="py-8 flex flex-col items-center justify-center text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-rose-100 flex items-center justify-center text-rose-600">
+              <div className="w-16 h-16 rounded-full bg-red-stamp/15 flex items-center justify-center text-red-stamp">
                 <AlertCircle className="w-8 h-8" />
               </div>
               <div className="space-y-1">
-                <h4 className="text-base font-bold text-slate-900">Pembayaran Belum Berhasil</h4>
-                <p className="text-xs text-rose-600 max-w-sm mx-auto">{errorMessage}</p>
+                <h4 className="text-base font-bold text-ink">Pembayaran Belum Berhasil</h4>
+                <p className="text-xs text-red-stamp max-w-sm mx-auto">{errorMessage}</p>
               </div>
               <button
                 onClick={() => setStep('SELECT_PAYMENT')}
-                className="py-2.5 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+                className="py-2.5 px-6  bg-ink hover:bg-ink text-white text-xs font-bold transition  cursor-pointer"
               >
                 Coba Metode Lain
               </button>

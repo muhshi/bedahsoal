@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
 import { db } from '@/lib/db';
+import { mergeAnswersByTimestamp, parseAnsweredAt } from '@/lib/answer-merge';
+import { canAccessSession } from '@/lib/session-access';
 import { calculateExamScore } from '@/lib/scoring-engine';
 import {
   ExamType,
@@ -13,7 +16,11 @@ interface SubmittedAnswerPayload {
   selectedOptionId?: string | null;
   numericAnswer?: string | null;
   isDoubt?: boolean;
+  answeredAt?: string | null;
 }
+
+/** Auto-submit fires exactly at the deadline; allow a short grace window. */
+const LATE_SUBMIT_GRACE_MS = 5 * 60 * 1000;
 
 export async function POST(
   request: NextRequest,
@@ -41,6 +48,7 @@ export async function POST(
                 selectedOptionId: item.selectedOptionId ?? null,
                 numericAnswer: item.numericAnswer ?? null,
                 isDoubt: Boolean(item.isDoubt),
+                answeredAt: item.answeredAt ?? null,
               };
             }
           }
@@ -80,6 +88,17 @@ export async function POST(
       );
     }
 
+    let authenticatedUserId: string | undefined;
+    try {
+      authenticatedUserId = (await auth())?.user?.id;
+    } catch {
+      authenticatedUserId = undefined;
+    }
+
+    if (!canAccessSession(session.userId, authenticatedUserId)) {
+      return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 });
+    }
+
     // If session is already COMPLETED, return the saved scores idempotently
     if (session.status === 'COMPLETED') {
       return NextResponse.json({
@@ -93,27 +112,57 @@ export async function POST(
       });
     }
 
-    // Merge answers from database and submitted payload
-    const combinedAnswers: Record<
+    const deadlineMs = session.deadline
+      ? new Date(session.deadline).getTime()
+      : Number.POSITIVE_INFINITY;
+    if (deadlineMs < Date.now() - LATE_SUBMIT_GRACE_MS) {
+      return NextResponse.json(
+        { error: 'Waktu ujian telah habis' },
+        { status: 403 }
+      );
+    }
+
+    // Merge answers from database and submitted payload by answeredAt so a
+    // delayed offline sync cannot overwrite a newer answer on the server.
+    const serverAnswers: Record<
       string,
-      { selectedOptionId: string | null; numericAnswer: string | null; isDoubt: boolean }
+      {
+        selectedOptionId: string | null;
+        numericAnswer: string | null;
+        isDoubt: boolean;
+        answeredAt?: string | null;
+      }
     > = {};
 
     for (const ans of session.answers) {
-      combinedAnswers[ans.questionId] = {
+      serverAnswers[ans.questionId] = {
         selectedOptionId: ans.selectedOptionId,
         numericAnswer: ans.numericAnswer,
         isDoubt: ans.isDoubt,
+        answeredAt: ans.answeredAt?.toISOString?.() ?? null,
       };
     }
 
+    const clientAnswers: Record<
+      string,
+      {
+        selectedOptionId: string | null;
+        numericAnswer: string | null;
+        isDoubt: boolean;
+        answeredAt?: string | null;
+      }
+    > = {};
+
     for (const [qId, ans] of Object.entries(submittedAnswers)) {
-      combinedAnswers[qId] = {
+      clientAnswers[qId] = {
         selectedOptionId: ans.selectedOptionId ?? null,
         numericAnswer: ans.numericAnswer ?? null,
         isDoubt: Boolean(ans.isDoubt),
+        answeredAt: ans.answeredAt ?? null,
       };
     }
+
+    const combinedAnswers = mergeAnswersByTimestamp(serverAnswers, clientAnswers);
 
     // Prepare QuestionScoringItem and UserAnswerItem arrays for scoring engine
     const questionScoringItems: QuestionScoringItem[] = [];
@@ -242,6 +291,11 @@ export async function POST(
 
         if (isNaN(scoreAwarded)) scoreAwarded = 0;
 
+        const answerTimestamp = parseAnsweredAt(ans.answeredAt);
+        const answeredAt = Number.isFinite(answerTimestamp)
+          ? new Date(answerTimestamp).toISOString()
+          : now.toISOString();
+
         await tx.examAnswer.upsert({
           where: {
             examSessionId_questionId: {
@@ -254,7 +308,7 @@ export async function POST(
             numericAnswer: ans.numericAnswer,
             isDoubt: ans.isDoubt,
             scoreAwarded,
-            answeredAt: now,
+            answeredAt,
           },
           create: {
             examSessionId: session.id,
@@ -263,7 +317,7 @@ export async function POST(
             numericAnswer: ans.numericAnswer,
             isDoubt: ans.isDoubt,
             scoreAwarded,
-            answeredAt: now,
+            answeredAt,
           },
         });
       }

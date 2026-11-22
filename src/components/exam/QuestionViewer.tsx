@@ -60,9 +60,9 @@ export function QuestionViewer({ className = '' }: QuestionViewerProps) {
 
   if (!currentQuestion) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 min-h-[400px]">
-        <HelpCircle className="w-12 h-12 text-slate-400 mb-3" />
-        <p className="text-slate-600 dark:text-slate-400 font-medium">
+      <div className="flex min-h-[400px] flex-col items-center justify-center border border-ink bg-paper p-12 text-center">
+        <HelpCircle className="mb-3 h-12 w-12 text-ink-3" aria-hidden="true" />
+        <p className="font-mono text-xs uppercase tracking-wider text-ink-2">
           Tidak ada soal yang tersedia saat ini.
         </p>
       </div>
@@ -74,89 +74,82 @@ export function QuestionViewer({ className = '' }: QuestionViewerProps) {
   const isLastQuestion = currentIndex >= questions.length - 1;
   const isNumeric = currentQuestion.questionType === 'NUMERIC_INPUT';
 
+  const doubtButtonClass = `inline-flex min-h-11 items-center gap-2 border px-3 font-mono text-[10px] font-bold uppercase tracking-wider transition-colors ${
+    isDoubt
+      ? 'border-amber-flag bg-amber-flag text-ink'
+      : 'border-amber-flag bg-white text-amber-flag hover:bg-amber-flag/10'
+  }`;
+
   return (
     <article
       aria-label={`Soal nomor ${currentIndex + 1}`}
-      className={`bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between min-h-[550px] overflow-hidden ${className}`}
+      className={`flex min-h-[550px] flex-col justify-between overflow-hidden border border-ink bg-white shadow-paper ${className}`}
     >
-      {/* Top Bar: Question Meta & Doubt Toggle */}
-      <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <span className="font-bold text-slate-900 dark:text-white text-base sm:text-lg">
+      {/* Question meta & doubt toggle */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-paper-2 px-5 py-4">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <span className="font-serif text-xl font-bold text-ink sm:text-2xl">
             Soal No. {currentIndex + 1}
           </span>
-          <span className="text-slate-400 dark:text-slate-500 text-sm">
-            / {questions.length}
-          </span>
+          <span className="font-mono text-xs text-ink-3">/ {questions.length}</span>
 
-          {/* Subtest / Category Badge */}
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+          <span className="inline-flex items-center border border-ink bg-ink px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-paper">
             {currentQuestion.category}
           </span>
 
-          {/* Subtopic Badge */}
           {currentQuestion.subTopic && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            <span className="inline-flex items-center border border-line-strong bg-paper px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-ink-2">
               {currentQuestion.subTopic}
             </span>
           )}
 
-          {/* Question Type Badge */}
           {isNumeric && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-              <Hash className="w-3 h-3" />
+            <span className="inline-flex items-center gap-1 border border-blue-ink px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-blue-ink">
+              <Hash className="h-3 w-3" aria-hidden="true" />
               Isian Singkat
             </span>
           )}
         </div>
 
-        {/* Quick Doubt Toggle */}
         <button
           type="button"
           onClick={() => toggleDoubt(currentQuestion.id)}
           aria-pressed={isDoubt}
-          className={`min-h-[44px] px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-2 border transition-colors touch-manipulation ${
-            isDoubt
-              ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-600 shadow-xs'
-              : 'bg-white hover:bg-amber-50 text-amber-700 border-amber-300 dark:bg-slate-800 dark:text-amber-400 dark:border-amber-700/80 dark:hover:bg-amber-950/30'
-          }`}
+          className={doubtButtonClass}
         >
-          <Flag className={`w-4 h-4 ${isDoubt ? 'fill-current' : ''}`} />
-          {isDoubt ? 'Ragu-Ragu Aktif' : 'Tandai Ragu-Ragu'}
+          <Flag className={`h-4 w-4 ${isDoubt ? 'fill-current' : ''}`} aria-hidden="true" />
+          {isDoubt ? 'Ragu-ragu Aktif' : 'Tandai Ragu-ragu'}
         </button>
       </div>
 
-      {/* Main Content Area: Question Text, Image & Answers */}
-      <div className="p-5 sm:p-7 flex-1 overflow-y-auto">
-        {/* Question Text with KaTeX */}
-        <div className="text-slate-900 dark:text-slate-100 text-base sm:text-lg leading-relaxed mb-6 font-normal">
+      {/* Question body */}
+      <div className="flex-1 overflow-y-auto p-5 sm:p-7">
+        <div className="mb-6 font-serif text-base leading-relaxed text-ink sm:text-lg">
           <MathRenderer content={currentQuestion.text} />
         </div>
 
-        {/* Question Image if present */}
         {currentQuestion.imageUrl && (
           <div className="my-5 flex justify-center">
-            <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-2 max-w-full">
+            <div className="max-w-full border border-line bg-paper p-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={currentQuestion.imageUrl}
                 alt={`Ilustrasi Soal ${currentIndex + 1}`}
-                className="max-h-80 sm:max-h-96 w-auto object-contain rounded-lg"
+                className="h-auto max-h-80 w-auto max-w-full object-contain sm:max-h-96"
                 loading="lazy"
               />
             </div>
           </div>
         )}
 
-        {/* Polymorphic Answer Input Area */}
         <div className="mt-8">
           {isNumeric ? (
-            /* NUMERIC INPUT: Short Answer for Math Olympiad */
-            <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/70 rounded-xl p-5 sm:p-6 max-w-xl">
+            <div className="max-w-xl border border-ink bg-paper p-5 sm:p-6">
               <label
                 htmlFor="olympiad-numeric-input"
-                className="block text-sm sm:text-base font-semibold text-slate-800 dark:text-slate-200 mb-2"
+                className="mb-2 block font-mono text-[10px] font-bold uppercase tracking-wider text-ink"
               >
-                Jawaban Isian Singkat:
+                Jawaban Isian Singkat
               </label>
               <div className="flex items-center gap-3">
                 <input
@@ -166,7 +159,7 @@ export function QuestionViewer({ className = '' }: QuestionViewerProps) {
                   value={currentAnswer?.numericAnswer ?? ''}
                   onChange={handleNumericChange}
                   placeholder="Ketik angka jawaban..."
-                  className="w-full text-2xl sm:text-3xl font-mono font-bold text-center tracking-wider px-4 py-3 bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/20 text-slate-900 dark:text-white transition-all shadow-inner"
+                  className="w-full border-2 border-ink bg-white px-4 py-3 text-center font-mono text-2xl font-bold tracking-wider text-ink outline-none focus:border-red-stamp sm:text-3xl"
                   autoComplete="off"
                 />
                 {currentAnswer?.numericAnswer && (
@@ -174,18 +167,17 @@ export function QuestionViewer({ className = '' }: QuestionViewerProps) {
                     type="button"
                     onClick={handleClearNumeric}
                     aria-label="Hapus jawaban angka"
-                    className="p-3 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0"
+                    className="flex-none border border-ink p-3 text-ink-3 hover:border-red-stamp hover:text-red-stamp"
                   >
-                    <X className="w-6 h-6" />
+                    <X className="h-6 w-6" aria-hidden="true" />
                   </button>
                 )}
               </div>
-              <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-                Ketikkan angka jawaban akhir Anda (contoh: 42, -5, 3.14). Pastikan format sesuai dengan instruksi soal.
+              <p className="mt-3 font-mono text-[10px] leading-relaxed text-ink-3">
+                Ketikkan angka jawaban akhir (contoh: 42, -5, 3.14) sesuai instruksi soal.
               </p>
             </div>
           ) : (
-            /* MULTIPLE CHOICE: Responsive Touch Targets >= 44px with KaTeX & Badge */
             <div
               role="radiogroup"
               aria-label={`Pilihan jawaban untuk soal nomor ${currentIndex + 1}`}
@@ -204,44 +196,41 @@ export function QuestionViewer({ className = '' }: QuestionViewerProps) {
                     role="radio"
                     aria-checked={isSelected}
                     onClick={() => selectOption(currentQuestion.id, option.id)}
-                    className={`w-full min-h-[48px] p-3.5 sm:p-4 rounded-xl border text-left flex items-start gap-3 sm:gap-4 transition-all touch-manipulation group ${
+                    className={`group flex min-h-12 w-full items-start gap-3 border p-3.5 text-left transition-all sm:gap-4 sm:p-4 ${
                       isSelected
-                        ? 'border-blue-500 bg-blue-50/70 dark:bg-blue-950/40 dark:border-blue-500 ring-2 ring-blue-500/20 shadow-xs'
-                        : 'border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50/60 dark:hover:bg-slate-800/40'
+                        ? 'border-ink bg-paper-2 shadow-[3px_3px_0px_#ded4bf]'
+                        : 'border-line bg-white hover:border-ink hover:bg-paper'
                     }`}
                   >
-                    {/* Letter Badge: A, B, C, D, E */}
                     <span
-                      className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center font-bold text-sm sm:text-base shrink-0 transition-colors ${
+                      className={`flex h-8 w-8 flex-none items-center justify-center border font-mono text-sm font-bold transition-colors sm:h-9 sm:w-9 sm:text-base ${
                         isSelected
-                          ? 'bg-blue-600 text-white shadow-xs'
-                          : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 group-hover:bg-blue-100 dark:group-hover:bg-slate-700 group-hover:text-blue-800 dark:group-hover:text-white'
+                          ? 'border-ink bg-ink text-paper'
+                          : 'border-line-strong bg-paper text-ink-2 group-hover:border-ink group-hover:bg-ink group-hover:text-paper'
                       }`}
                     >
                       {option.key}
                     </span>
 
-                    {/* Option Text with KaTeX Formula Support */}
-                    <div className="flex-1 min-w-0 pt-1 text-slate-800 dark:text-slate-200 text-sm sm:text-base leading-relaxed">
+                    <div className="min-w-0 flex-1 pt-1 font-serif text-sm leading-relaxed text-ink sm:text-base">
                       <MathRenderer content={option.text} />
 
-                      {/* Optional Option Image */}
                       {option.imageUrl && (
                         <div className="mt-2.5">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={option.imageUrl}
                             alt={`Pilihan ${option.key}`}
-                            className="max-h-40 rounded-lg border border-slate-200 dark:border-slate-700 object-contain"
+                            className="max-h-40 border border-line object-contain"
                             loading="lazy"
                           />
                         </div>
                       )}
                     </div>
 
-                    {/* Selected Checkmark Indicator */}
                     {isSelected && (
-                      <span className="self-center shrink-0 text-blue-600 dark:text-blue-400">
-                        <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
+                      <span className="self-center text-red-stamp" aria-hidden="true">
+                        <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6" />
                       </span>
                     )}
                   </button>
@@ -252,36 +241,31 @@ export function QuestionViewer({ className = '' }: QuestionViewerProps) {
         </div>
       </div>
 
-      {/* Navigation Footer: Prev, Doubt, Next */}
-      <footer className="px-5 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 flex items-center justify-between gap-3 flex-wrap">
+      {/* Navigation footer */}
+      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-paper-2 px-5 py-4">
         <button
           type="button"
           onClick={goToPrevQuestion}
           disabled={isFirstQuestion}
           aria-label="Soal sebelumnya"
-          className={`min-h-[44px] min-w-[120px] px-4 py-2.5 rounded-lg border font-medium text-sm flex items-center justify-center gap-2 transition-all touch-manipulation ${
+          className={`inline-flex min-h-11 min-w-[120px] items-center justify-center gap-2 border px-4 font-mono text-[10px] font-bold uppercase tracking-wider transition-all ${
             isFirstQuestion
-              ? 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700'
-              : 'bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 border-slate-300 dark:border-slate-700 shadow-xs active:scale-98'
+              ? 'cursor-not-allowed border-line bg-paper text-ink-3 opacity-60'
+              : 'border-ink bg-white text-ink hover:bg-ink hover:text-paper active:scale-98'
           }`}
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           Sebelumnya
         </button>
 
-        {/* Center doubt status button on larger screens */}
         <button
           type="button"
           onClick={() => toggleDoubt(currentQuestion.id)}
           aria-pressed={isDoubt}
-          className={`sm:inline-flex hidden min-h-[44px] px-4 py-2.5 rounded-lg text-sm font-semibold items-center gap-2 border transition-all touch-manipulation ${
-            isDoubt
-              ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-600 shadow-xs'
-              : 'bg-white hover:bg-amber-50 text-amber-700 border-amber-300 dark:bg-slate-800 dark:text-amber-400 dark:border-amber-700/80 dark:hover:bg-amber-950/30'
-          }`}
+          className={`hidden min-h-11 items-center gap-2 border px-4 font-mono text-[10px] font-bold uppercase tracking-wider transition-colors sm:inline-flex ${doubtButtonClass}`}
         >
-          <Flag className={`w-4 h-4 ${isDoubt ? 'fill-current' : ''}`} />
-          {isDoubt ? 'Ragu-Ragu Aktif' : 'Ragu-Ragu'}
+          <Flag className={`h-4 w-4 ${isDoubt ? 'fill-current' : ''}`} aria-hidden="true" />
+          {isDoubt ? 'Ragu-ragu Aktif' : 'Ragu-ragu'}
         </button>
 
         <button
@@ -289,16 +273,18 @@ export function QuestionViewer({ className = '' }: QuestionViewerProps) {
           onClick={goToNextQuestion}
           disabled={isLastQuestion}
           aria-label="Soal selanjutnya"
-          className={`min-h-[44px] min-w-[120px] px-4 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all touch-manipulation ${
+          className={`inline-flex min-h-11 min-w-[120px] items-center justify-center gap-2 border px-4 font-mono text-[10px] font-bold uppercase tracking-wider transition-all ${
             isLastQuestion
-              ? 'opacity-40 cursor-not-allowed bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
-              : 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs hover:shadow active:scale-98'
+              ? 'cursor-not-allowed border-line bg-paper text-ink-3 opacity-60'
+              : 'border-ink bg-ink text-paper shadow-paper hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-red-stamp active:translate-x-0 active:translate-y-0'
           }`}
         >
           Selanjutnya
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </button>
       </footer>
     </article>
   );
 }
+
+export default QuestionViewer;

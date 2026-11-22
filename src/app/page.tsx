@@ -1,11 +1,21 @@
 import Link from "next/link";
-import { Suspense } from "react";
+import { Fragment, Suspense } from "react";
 import { db } from "@/lib/db";
 import { auth } from "@/auth";
 import { StartExamButton } from "@/components/exam/StartExamButton";
 import { UserNav } from "@/components/auth/UserNav";
 import { CategorizedCatalog, PackageData } from "@/components/catalog/CategorizedCatalog";
 import { InteractiveDocketCard } from "@/components/home/InteractiveDocketCard";
+
+const TICKER_ITEMS = [
+  "SKD CPNS — 110 butir",
+  "LPDP TBS — 40 butir",
+  "UTBK-SNBT — 45 butir",
+  "OSN Matematika — 25 butir",
+  "Timer server terauthorisasi",
+  "Pembahasan analitis per langkah",
+  "Zero answer leakage",
+];
 
 async function PackageList() {
   let packages: Array<PackageData> = [];
@@ -148,28 +158,21 @@ export default function HomePage() {
 
       {/* 3. Specifications Ticker Band */}
       <div className="border-b border-[#b9ac91] bg-[#eae3d2] overflow-hidden py-3 select-none" aria-label="Spesifikasi platform">
-        <div className="flex items-center gap-8 whitespace-nowrap font-mono text-[10.5px] font-medium uppercase tracking-[0.15em] text-[#4b463d] animate-marquee">
-          <span>SKD CPNS — 110 butir</span>
-          <span className="text-[#c4402a]">✳</span>
-          <span>LPDP TBS — 40 butir</span>
-          <span className="text-[#c4402a]">✳</span>
-          <span>UTBK-SNBT — 45 butir</span>
-          <span className="text-[#c4402a]">✳</span>
-          <span>OSN Matematika — 25 butir</span>
-          <span className="text-[#c4402a]">✳</span>
-          <span>Timer server terauthorisasi</span>
-          <span className="text-[#c4402a]">✳</span>
-          <span>Pembahasan analitis per langkah</span>
-          <span className="text-[#c4402a]">✳</span>
-          <span>Zero answer leakage</span>
-          <span className="text-[#c4402a]">✳</span>
-          <span>SKD CPNS — 110 butir</span>
-          <span className="text-[#c4402a]">✳</span>
-          <span>LPDP TBS — 40 butir</span>
-          <span className="text-[#c4402a]">✳</span>
-          <span>UTBK-SNBT — 45 butir</span>
-          <span className="text-[#c4402a]">✳</span>
-          <span>OSN Matematika — 25 butir</span>
+        <div className="flex w-max animate-marquee">
+          {[0, 1].map((group) => (
+            <div
+              key={group}
+              aria-hidden={group === 1 ? true : undefined}
+              className="flex shrink-0 items-center gap-8 pr-8 font-mono text-[10.5px] font-medium uppercase tracking-[0.15em] text-[#4b463d]"
+            >
+              {TICKER_ITEMS.map((item) => (
+                <Fragment key={item}>
+                  <span>{item}</span>
+                  <span className="text-[#c4402a]">✳</span>
+                </Fragment>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -346,9 +349,11 @@ export default function HomePage() {
               <Link href="/dashboard" className="text-[#4b463d] hover:text-[#191713] transition-colors">
                 Rapor &amp; Riwayat
               </Link>
-              <Link href="/exam/session-demo-tiu" className="text-[#c4402a] font-semibold hover:underline">
-                Ujian Demo &rarr;
-              </Link>
+              <StartExamButton
+                tryoutId="tryout-tiu-60"
+                label="Ujian Demo →"
+                className="text-[#c4402a] font-semibold hover:underline"
+              />
             </div>
           </div>
 

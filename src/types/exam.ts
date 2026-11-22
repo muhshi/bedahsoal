@@ -36,7 +36,12 @@ export interface ExamSessionInitDTO {
   questions: ClientQuestionDTO[];
   initialAnswers?: Record<
     string,
-    { selectedOptionId?: string | null; numericAnswer?: string | null; isDoubt: boolean }
+    {
+      selectedOptionId?: string | null;
+      numericAnswer?: string | null;
+      isDoubt: boolean;
+      answeredAt?: string;
+    }
   >;
 }
 

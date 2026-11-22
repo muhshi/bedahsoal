@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronRight, Loader2, Play } from 'lucide-react';
+import { ChevronRight, Loader2 } from 'lucide-react';
 
 interface StartExamButtonProps {
   tryoutId: string;
@@ -17,6 +17,7 @@ export function StartExamButton({
   icon,
 }: StartExamButtonProps) {
   const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleStartExam = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -24,6 +25,8 @@ export function StartExamButton({
 
     try {
       setIsPending(true);
+      setError(null);
+
       const res = await fetch('/api/sessions/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -31,36 +34,44 @@ export function StartExamButton({
       });
 
       const data = await res.json();
-      if (res.ok && data.examUrl) {
-        window.location.href = data.examUrl;
-      } else {
-        // Fallback to direct navigation if server returned error
-        window.location.href = `/exam/session-demo-tiu`;
+      if (!res.ok || !data.examUrl) {
+        throw new Error(data.error || 'Sesi ujian tidak dapat dibuat.');
       }
-    } catch {
-      window.location.href = `/exam/session-demo-tiu`;
+
+      window.location.href = data.examUrl;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal menyiapkan sesi ujian.');
+      setIsPending(false);
     }
   };
 
   return (
-    <button
-      onClick={handleStartExam}
-      disabled={isPending}
-      className={`inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60 transition-all ${className}`}
-    >
-      {isPending ? (
-        <>
-          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          <span>Menyiapkan Ujian...</span>
-        </>
-      ) : (
-        <>
-          {icon}
-          <span>{label}</span>
-          {!icon && <ChevronRight className="w-4 h-4" />}
-        </>
+    <span className="inline-flex flex-col items-stretch">
+      <button
+        type="button"
+        onClick={handleStartExam}
+        disabled={isPending}
+        className={`inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60 transition-all ${className}`}
+      >
+        {isPending ? (
+          <>
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <span>Menyiapkan Ujian...</span>
+          </>
+        ) : (
+          <>
+            {icon}
+            <span>{label}</span>
+            {!icon && <ChevronRight className="w-4 h-4" />}
+          </>
+        )}
+      </button>
+      {error && (
+        <span role="alert" className="mt-2 font-mono text-[10px] text-red-stamp">
+          {error}
+        </span>
       )}
-    </button>
+    </span>
   );
 }
 

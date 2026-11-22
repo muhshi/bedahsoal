@@ -32,7 +32,12 @@ interface ExamStore {
     questions: ClientQuestionDTO[];
     initialAnswers?: Record<
       string,
-      { selectedOptionId?: string | null; numericAnswer?: string | null; isDoubt: boolean }
+      {
+        selectedOptionId?: string | null;
+        numericAnswer?: string | null;
+        isDoubt: boolean;
+        answeredAt?: string;
+      }
     >;
   }) => void;
   setCurrentIndex: (index: number) => void;
@@ -79,7 +84,7 @@ export const useExamStore = create<ExamStore>((set, get) => ({
         selectedOptionId: ans.selectedOptionId ?? null,
         numericAnswer: ans.numericAnswer ?? null,
         isDoubt: ans.isDoubt,
-        answeredAt: new Date().toISOString(),
+        answeredAt: ans.answeredAt ?? new Date().toISOString(),
       };
     }
 

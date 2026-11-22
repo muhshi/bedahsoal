@@ -51,7 +51,7 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
   return (
     <div className="min-h-screen bg-[var(--paper,#f3efe3)] text-[var(--ink,#191713)] flex flex-col selection:bg-[#c4402a] selection:text-white">
       {/* 1. Sticky Navigation Bar */}
-      <header className="sticky top-0 z-40 bg-[#f3efe3]/95 backdrop-blur-md border-b border-[#d2c8b2]">
+      <header className="sticky top-0 z-60 bg-[#f3efe3]/95 backdrop-blur-md border-b border-[#d2c8b2]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link

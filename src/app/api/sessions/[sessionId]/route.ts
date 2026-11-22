@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
 import { db } from '@/lib/db';
+import { canAccessSession } from '@/lib/session-access';
 import { ClientQuestionDTO, ExamSessionInitDTO, QuestionType } from '@/types/exam';
 
 export async function GET(
@@ -56,6 +58,7 @@ export async function GET(
             selectedOptionId: true,
             numericAnswer: true,
             isDoubt: true,
+            answeredAt: true,
           },
         },
       },
@@ -66,6 +69,17 @@ export async function GET(
         { error: 'Sesi ujian tidak ditemukan' },
         { status: 404 }
       );
+    }
+
+    let authenticatedUserId: string | undefined;
+    try {
+      authenticatedUserId = (await auth())?.user?.id;
+    } catch {
+      authenticatedUserId = undefined;
+    }
+
+    if (!canAccessSession(session.userId, authenticatedUserId)) {
+      return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 });
     }
 
     // Check if session has already been completed
@@ -105,7 +119,12 @@ export async function GET(
     // Map initial user answers
     const initialAnswers: Record<
       string,
-      { selectedOptionId?: string | null; numericAnswer?: string | null; isDoubt: boolean }
+      {
+        selectedOptionId?: string | null;
+        numericAnswer?: string | null;
+        isDoubt: boolean;
+        answeredAt?: string;
+      }
     > = {};
 
     for (const ans of session.answers) {
@@ -113,6 +132,7 @@ export async function GET(
         selectedOptionId: ans.selectedOptionId,
         numericAnswer: ans.numericAnswer,
         isDoubt: ans.isDoubt,
+        answeredAt: ans.answeredAt?.toISOString?.() ?? new Date(0).toISOString(),
       };
     }
 

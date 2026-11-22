@@ -57,7 +57,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="login-modal-title"
-      className="fixed inset-0 z-50 overflow-y-auto bg-[#191713]/65 backdrop-blur-sm p-4 sm:p-6 flex min-h-screen items-center justify-center"
+      className="fixed inset-0 z-200 overflow-y-auto bg-[#191713]/65 backdrop-blur-sm p-4 sm:p-6 flex min-h-screen items-center justify-center"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

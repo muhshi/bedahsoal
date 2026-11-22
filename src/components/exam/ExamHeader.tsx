@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useExamStore } from '@/stores/use-exam-store';
 import { calculatePaletteStats } from './QuestionPalette';
 import {
@@ -11,6 +11,7 @@ import {
   HelpCircle,
   XCircle,
   Menu,
+  Loader2,
 } from 'lucide-react';
 
 export function calculateRemainingMs(
@@ -59,23 +60,22 @@ export function ExamHeader({
   const answers = useExamStore((state) => state.answers);
   const currentIndex = useExamStore((state) => state.currentIndex);
   const isSubmitting = useExamStore((state) => state.isSubmitting);
-  const setSubmitting = useExamStore((state) => state.setSubmitting);
 
   const [remainingMs, setRemainingMs] = useState<number>(() =>
     calculateRemainingMs(deadline, serverTimeOffsetMs)
   );
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isConfirmSubmitting, setIsConfirmSubmitting] = useState(false);
+  const hasTimedUpRef = useRef(false);
 
-  // Active question and subtest info
   const currentQuestion = questions[currentIndex];
   const activeCategory = currentQuestion?.category || 'Umum';
 
-  // Statistics for submission confirmation
   const stats = useMemo(() => {
     return calculatePaletteStats(questions, answers);
   }, [questions, answers]);
 
-  // Synchronized countdown timer interval
+  // Synchronized countdown timer; time-up fires only once.
   useEffect(() => {
     if (!deadline) return;
 
@@ -83,7 +83,8 @@ export function ExamHeader({
       const ms = calculateRemainingMs(deadline, serverTimeOffsetMs);
       setRemainingMs(ms);
 
-      if (ms <= 0) {
+      if (ms <= 0 && !hasTimedUpRef.current) {
+        hasTimedUpRef.current = true;
         onTimeUp?.();
       }
     };
@@ -96,224 +97,211 @@ export function ExamHeader({
   // Close confirmation modal on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isConfirmOpen && !isSubmitting) {
+      if (e.key === 'Escape' && isConfirmOpen && !isSubmitting && !isConfirmSubmitting) {
         setIsConfirmOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isConfirmOpen, isSubmitting]);
+  }, [isConfirmOpen, isSubmitting, isConfirmSubmitting]);
 
   const handleConfirmSubmit = useCallback(async () => {
-    if (isSubmitting) return;
-    setSubmitting(true);
+    if (isSubmitting || isConfirmSubmitting) return;
+    setIsConfirmSubmitting(true);
     try {
-      if (onSubmit) {
-        await onSubmit();
-      }
-    } finally {
-      setSubmitting(false);
+      if (onSubmit) await onSubmit();
       setIsConfirmOpen(false);
+    } finally {
+      setIsConfirmSubmitting(false);
     }
-  }, [isSubmitting, setSubmitting, onSubmit]);
+  }, [isSubmitting, isConfirmSubmitting, onSubmit]);
 
   const formattedTime = formatRemainingTime(remainingMs);
   const isWarning = isTimerWarning(remainingMs);
+  const isBusy = isSubmitting || isConfirmSubmitting;
 
   return (
     <>
       <header
         aria-label="Header Ujian"
-        className={`w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-xs sticky top-0 z-30 px-4 py-3 sm:px-6 ${className}`}
+        className={`sticky top-0 z-60 w-full border-b border-line-strong bg-paper/95 px-4 py-3 backdrop-blur-md sm:px-6 ${className}`}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 flex-wrap">
-          {/* Left: Exam Title & Subtest Badge */}
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
+          {/* Left: Exam identity */}
+          <div className="flex min-w-0 items-center gap-3">
             {onTogglePalette && (
               <button
                 type="button"
                 onClick={onTogglePalette}
                 aria-label="Buka palet nomor soal"
-                className="lg:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex h-10 w-10 flex-none items-center justify-center border border-ink text-ink hover:bg-ink hover:text-paper lg:hidden"
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="h-5 w-5" aria-hidden="true" />
               </button>
             )}
 
             <div className="min-w-0">
-              <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate">
+              <p className="font-mono text-[8.5px] font-bold uppercase tracking-[0.18em] text-red-stamp">
+                Ruang Ujian · Lembar {questions.length > 0 ? currentIndex + 1 : 0}
+              </p>
+              <h1 className="truncate font-serif text-lg font-bold tracking-tight text-ink sm:text-xl">
                 {title || 'Ujian CBT'}
               </h1>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+              <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-[9px] uppercase tracking-wider">
+                <span className="inline-flex items-center border border-ink bg-ink px-1.5 py-0.5 font-semibold text-paper">
                   {activeCategory}
                 </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
-                  Soal {questions.length > 0 ? currentIndex + 1 : 0} dari {questions.length}
+                <span className="text-ink-3">
+                  Butir {questions.length > 0 ? currentIndex + 1 : 0} / {questions.length}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Right: Server-Authoritative Timer & Submit Button */}
+          {/* Right: Server-authoritative timer & submit */}
           <div className="flex items-center gap-2.5 sm:gap-4">
-            {/* Countdown Timer */}
             <div
               aria-label={`Sisa waktu: ${formattedTime}`}
               role="timer"
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border font-mono text-sm sm:text-base font-bold transition-colors ${
+              className={`flex items-center gap-2 border px-3 py-1.5 font-mono text-sm font-bold sm:text-base ${
                 isWarning
-                  ? 'bg-red-50 text-red-600 border-red-400 dark:bg-red-950/60 dark:text-red-400 dark:border-red-600 animate-pulse'
-                  : 'bg-slate-100 text-slate-800 border-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700'
+                  ? 'border-red-stamp bg-red-stamp/10 text-red-stamp'
+                  : 'border-ink bg-white text-ink'
               }`}
             >
               <Clock
-                className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                  isWarning ? 'text-red-500' : 'text-slate-500 dark:text-slate-400'
+                className={`h-4 w-4 sm:h-5 sm:w-5 ${
+                  isWarning ? 'text-red-stamp' : 'text-ink-3'
                 }`}
+                aria-hidden="true"
               />
               <span>{formattedTime}</span>
             </div>
 
-            {/* Selesai Ujian Button */}
             <button
               type="button"
               onClick={() => setIsConfirmOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 min-h-[44px]"
+              disabled={isBusy}
+              className="inline-flex min-h-11 items-center gap-2 border border-ink bg-ink px-3.5 font-mono text-[10px] font-bold uppercase tracking-[0.12em] text-paper shadow-paper transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-red-stamp disabled:opacity-50 sm:px-4"
             >
-              <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <Send className="h-4 w-4" aria-hidden="true" />
               <span>Selesai Ujian</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Confirmation Dialog Modal */}
+      {/* Confirmation dialog */}
       {isConfirmOpen && (
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-modal-title"
-          className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs"
+          className="fixed inset-0 z-200 overflow-y-auto bg-ink/65 backdrop-blur-sm"
           onClick={(e) => {
-            if (e.target === e.currentTarget) setIsConfirmOpen(false);
+            if (e.target === e.currentTarget && !isBusy) setIsConfirmOpen(false);
           }}
         >
           <div
-            className="min-h-full flex items-center justify-center p-4"
+            className="flex min-h-full items-center justify-center p-4"
             onClick={(e) => {
-              if (e.target === e.currentTarget) setIsConfirmOpen(false);
+              if (e.target === e.currentTarget && !isBusy) setIsConfirmOpen(false);
             }}
           >
             <div
-              className="w-full max-w-md my-8 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+              className="my-8 w-full max-w-md border border-ink bg-paper shadow-paper-lg"
               onClick={(e) => e.stopPropagation()}
             >
-            {/* Modal Header */}
-            <div className="p-5 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-950 flex items-center justify-center text-amber-600 dark:text-amber-400">
-                  <AlertTriangle className="w-5 h-5" />
+              <div className="flex items-start gap-3 border-b border-line-strong bg-paper-2 p-5">
+                <div className="flex h-10 w-10 flex-none items-center justify-center border border-amber-flag bg-amber-flag/10 text-amber-flag">
+                  <AlertTriangle className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div>
-                  <h2
-                    id="confirm-modal-title"
-                    className="text-lg font-bold text-slate-900 dark:text-white"
-                  >
-                    Konfirmasi Selesai Ujian
+                  <p className="font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-red-stamp">
+                    Konfirmasi Akhir
+                  </p>
+                  <h2 id="confirm-modal-title" className="mt-1 font-serif text-xl font-bold text-ink">
+                    Selesaikan Sesi Ujian?
                   </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Periksa kembali status pengerjaan soal Anda.
+                  <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-ink-3">
+                    Periksa kembali status pengerjaan Anda.
                   </p>
                 </div>
               </div>
-            </div>
 
-            {/* Modal Body: Stats Breakdown */}
-            <div className="p-5 space-y-4">
-              <div className="grid grid-cols-3 gap-2.5 text-center">
-                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
-                  <div className="flex items-center justify-center gap-1 text-emerald-700 dark:text-emerald-400 mb-1">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span className="text-xs font-semibold">Dijawab</span>
+              <div className="space-y-4 p-5">
+                <div className="grid grid-cols-3 gap-px border border-ink bg-ink">
+                  <div className="bg-white p-3 text-center">
+                    <span className="inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-wider text-green-stamp">
+                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" /> Dijawab
+                    </span>
+                    <strong className="mt-2 block font-serif text-2xl font-bold text-ink">
+                      {stats.answered}
+                    </strong>
                   </div>
-                  <span className="text-xl font-extrabold text-emerald-800 dark:text-emerald-300">
-                    {stats.answered}
-                  </span>
+                  <div className="bg-white p-3 text-center">
+                    <span className="inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-wider text-amber-flag">
+                      <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" /> Ragu
+                    </span>
+                    <strong className="mt-2 block font-serif text-2xl font-bold text-ink">
+                      {stats.doubt}
+                    </strong>
+                  </div>
+                  <div className="bg-white p-3 text-center">
+                    <span className="inline-flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-wider text-ink-3">
+                      <XCircle className="h-3.5 w-3.5" aria-hidden="true" /> Kosong
+                    </span>
+                    <strong className="mt-2 block font-serif text-2xl font-bold text-ink">
+                      {stats.remaining}
+                    </strong>
+                  </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
-                  <div className="flex items-center justify-center gap-1 text-amber-700 dark:text-amber-400 mb-1">
-                    <HelpCircle className="w-4 h-4" />
-                    <span className="text-xs font-semibold">Ragu-ragu</span>
+                {(stats.remaining > 0 || stats.doubt > 0) && (
+                  <div className="border-l-2 border-amber-flag bg-amber-flag/10 p-3 font-mono text-[10px] leading-relaxed text-ink-2">
+                    <p className="font-bold uppercase tracking-wider text-amber-flag">Perhatian:</p>
+                    <ul className="mt-1 list-inside list-disc space-y-0.5">
+                      {stats.remaining > 0 && <li>Masih ada {stats.remaining} butir belum dijawab.</li>}
+                      {stats.doubt > 0 && <li>Masih ada {stats.doubt} butir ditandai ragu-ragu.</li>}
+                    </ul>
                   </div>
-                  <span className="text-xl font-extrabold text-amber-800 dark:text-amber-300">
-                    {stats.doubt}
-                  </span>
-                </div>
+                )}
 
-                <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center justify-center gap-1 text-slate-600 dark:text-slate-400 mb-1">
-                    <XCircle className="w-4 h-4" />
-                    <span className="text-xs font-semibold">Kosong</span>
-                  </div>
-                  <span className="text-xl font-extrabold text-slate-700 dark:text-slate-200">
-                    {stats.remaining}
-                  </span>
-                </div>
+                <p className="font-mono text-[10px] leading-relaxed text-ink-2">
+                  Setelah dikumpulkan, jawaban tidak dapat diubah lagi. Penilaian dilakukan sesuai
+                  aturan resmi.
+                </p>
               </div>
 
-              {/* Warning Notice if unanswered or doubts exist */}
-              {(stats.remaining > 0 || stats.doubt > 0) && (
-                <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-xs text-amber-800 dark:text-amber-300">
-                  <p className="font-semibold mb-0.5">Perhatian:</p>
-                  <ul className="list-disc list-inside space-y-0.5">
-                    {stats.remaining > 0 && (
-                      <li>Masih ada {stats.remaining} nomor soal yang belum dijawab.</li>
-                    )}
-                    {stats.doubt > 0 && (
-                      <li>Masih ada {stats.doubt} nomor soal yang ditandai ragu-ragu.</li>
-                    )}
-                  </ul>
-                </div>
-              )}
-
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                Apakah Anda yakin ingin menyelesaikan sesi ujian ini sekarang? Setelah dikumpulkan,
-                jawaban Anda tidak dapat diubah lagi.
-              </p>
-            </div>
-
-            {/* Modal Actions */}
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => setIsConfirmOpen(false)}
-                className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 min-h-[44px]"
-              >
-                Lanjutkan Mengerjakan
-              </button>
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={handleConfirmSubmit}
-                className="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 min-h-[44px] flex items-center gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Menyimpan...</span>
-                  </>
-                ) : (
-                  <span>Ya, Kumpulkan</span>
-                )}
-              </button>
+              <div className="flex flex-col gap-2.5 border-t border-line bg-paper-2 p-4 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  disabled={isBusy}
+                  onClick={() => setIsConfirmOpen(false)}
+                  className="inline-flex min-h-11 items-center justify-center border border-ink bg-white px-4 font-mono text-[10px] font-bold uppercase tracking-wider text-ink hover:bg-paper disabled:opacity-50"
+                >
+                  Lanjutkan Mengerjakan
+                </button>
+                <button
+                  type="button"
+                  disabled={isBusy}
+                  onClick={handleConfirmSubmit}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 border border-ink bg-ink px-4 font-mono text-[10px] font-bold uppercase tracking-wider text-paper shadow-paper hover:bg-red-stamp disabled:opacity-50"
+                >
+                  {isBusy ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      Menyimpan...
+                    </>
+                  ) : (
+                    'Ya, Kumpulkan'
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
     </>
   );
 }

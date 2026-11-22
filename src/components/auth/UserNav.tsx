@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { LogOut, LayoutDashboard, BookOpen, ChevronDown, Menu, X } from 'lucide-react';
 import { LoginModal } from './LoginModal';
+import { StartExamButton } from '@/components/exam/StartExamButton';
 
 export interface UserNavProps {
   /** If true, only renders the auth button / user dropdown without the outer header */
@@ -102,7 +103,7 @@ export function UserNav({
 
         {/* Brutalist Paper Dropdown Menu */}
         {isDropdownOpen && (
-          <div className="absolute right-0 mt-2 w-64 bg-[#fbf8f0] border border-[#191713] shadow-[8px_8px_0px_#ded4bf] py-2 z-50">
+          <div className="absolute right-0 mt-2 w-64 bg-[#fbf8f0] border border-[#191713] shadow-[8px_8px_0px_#ded4bf] py-2 z-70">
             <div className="px-4 py-3 border-b border-[#d2c8b2] bg-[#f3efe3]">
               <p className="font-mono text-[8.5px] uppercase tracking-[0.16em] text-[#7a7365]">
                 Peserta Terdaftar
@@ -167,7 +168,7 @@ export function UserNav({
   return (
     <>
       <header
-        className={`sticky top-0 z-40 w-full bg-[#f3efe3]/95 backdrop-blur-md border-b border-[#d2c8b2] transition-all ${className}`}
+        className={`sticky top-0 z-60 w-full bg-[#f3efe3]/95 backdrop-blur-md border-b border-[#d2c8b2] transition-all ${className}`}
       >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
         {/* Brand Link with [B] Serif Brand Mark & 'Ruang Bedah Ujian' Kicker */}
@@ -198,8 +199,8 @@ export function UserNav({
           >
             Beranda
           </Link>
-          <a
-            href="#katalog"
+          <Link
+            href="/#katalog"
             className={`px-3 py-2 border-b-2 transition-colors ${
               activeTab === 'catalog'
                 ? 'border-b-[#c4402a] text-[#191713] font-semibold'
@@ -207,7 +208,7 @@ export function UserNav({
             }`}
           >
             Katalog
-          </a>
+          </Link>
           <Link
             href="/dashboard"
             className={`px-3 py-2 border-b-2 transition-colors ${
@@ -218,23 +219,22 @@ export function UserNav({
           >
             Rapor
           </Link>
-          <a
-            href="#keunggulan"
+          <Link
+            href="/#keunggulan"
             className="px-3 py-2 border-b-2 border-b-transparent hover:text-[#191713] transition-colors"
           >
             Prinsip Ujian
-          </a>
+          </Link>
         </nav>
 
         {/* Action Buttons & Auth */}
         <div className="flex items-center gap-2.5">
-          <Link
-            href="/exam/session-demo-tiu"
+          <StartExamButton
+            tryoutId="tryout-tiu-60"
+            label="Mulai"
             className="hidden sm:inline-flex items-center justify-center gap-1.5 h-9 px-3.5 border border-[#191713] bg-[#191713] text-[#f3efe3] font-mono text-[10.5px] font-semibold tracking-[0.1em] uppercase hover:bg-[#c4402a] hover:border-[#c4402a] transition-all shadow-[2px_2px_0px_#d2c8b2] hover:translate-x-[-1px] hover:translate-y-[-1px]"
-          >
-            <span>Mulai</span>
-            <span aria-hidden="true">&rarr;</span>
-          </Link>
+            icon={<span aria-hidden="true">&rarr;</span>}
+          />
 
           {renderAuthAction()}
 
@@ -261,13 +261,13 @@ export function UserNav({
           >
             Beranda
           </Link>
-          <a
-            href="#katalog"
+          <Link
+            href="/#katalog"
             onClick={() => setIsMobileMenuOpen(false)}
             className="block py-2.5 px-3 border-b border-[#d2c8b2]/60 text-[#4b463d] hover:text-[#191713]"
           >
             Katalog Paket
-          </a>
+          </Link>
           <Link
             href="/dashboard"
             onClick={() => setIsMobileMenuOpen(false)}
@@ -275,13 +275,13 @@ export function UserNav({
           >
             Rapor &amp; Riwayat
           </Link>
-          <Link
-            href="/exam/session-demo-tiu"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block py-2.5 px-3 text-[#c4402a] font-bold"
-          >
-            Ruang Ujian Demo &rarr;
-          </Link>
+          <div className="px-3 py-2.5 text-[#c4402a] font-bold">
+            <StartExamButton
+              tryoutId="tryout-tiu-60"
+              label="Ruang Ujian Demo →"
+              className="w-full justify-between font-bold"
+            />
+          </div>
           {!session?.user ? (
             <button
               type="button"

@@ -4,6 +4,13 @@ import { GET } from '../src/app/api/sessions/[sessionId]/route';
 import { POST } from '../src/app/api/sessions/[sessionId]/submit/route';
 import { db } from '../src/lib/db';
 
+const { mockTx } = vi.hoisted(() => ({
+  mockTx: {
+    examAnswer: { upsert: vi.fn() },
+    examSession: { update: vi.fn() },
+  },
+}));
+
 vi.mock('../src/lib/db', () => ({
   db: {
     examSession: {
@@ -13,13 +20,7 @@ vi.mock('../src/lib/db', () => ({
     examAnswer: {
       upsert: vi.fn(),
     },
-    $transaction: vi.fn(async (cb: (tx: any) => Promise<any>) => {
-      const tx = {
-        examAnswer: { upsert: vi.fn() },
-        examSession: { update: vi.fn() },
-      };
-      return cb(tx);
-    }),
+    $transaction: vi.fn(async (cb: (tx: any) => Promise<any>) => cb(mockTx)),
   },
 }));
 
@@ -65,7 +66,7 @@ describe('Sessions API Routes', () => {
         mode: 'SIMULASI',
         status: 'IN_PROGRESS',
         startedAt: new Date('2026-11-22T08:00:00Z'),
-        deadline: new Date('2026-11-22T09:40:00Z'),
+        deadline: new Date(Date.now() + 60 * 60 * 1000),
         tryout: {
           title: 'Simulasi Akbar CPNS 2026',
           questions: [
@@ -100,6 +101,7 @@ describe('Sessions API Routes', () => {
             selectedOptionId: 'opt1',
             numericAnswer: null,
             isDoubt: false,
+            answeredAt: new Date('2026-11-22T08:05:00Z'),
           },
         ],
       };
@@ -132,6 +134,7 @@ describe('Sessions API Routes', () => {
           selectedOptionId: 'opt1',
           numericAnswer: null,
           isDoubt: false,
+          answeredAt: '2026-11-22T08:05:00.000Z',
         },
       });
     });
@@ -158,7 +161,7 @@ describe('Sessions API Routes', () => {
         tryoutId: 'tryout-skd',
         status: 'IN_PROGRESS',
         startedAt: new Date('2026-11-22T08:00:00Z'),
-        deadline: new Date('2026-11-22T09:40:00Z'),
+        deadline: new Date(Date.now() + 60 * 60 * 1000),
         tryout: {
           examType: 'SKD_CPNS',
           passingGradeProfile: {
@@ -230,7 +233,7 @@ describe('Sessions API Routes', () => {
         tryoutId: 'tryout-olympiad',
         status: 'IN_PROGRESS',
         startedAt: new Date('2026-11-22T08:00:00Z'),
-        deadline: new Date('2026-11-22T09:40:00Z'),
+        deadline: new Date(Date.now() + 60 * 60 * 1000),
         tryout: {
           examType: 'MATH_OLYMPIAD',
           scoringScheme: {
@@ -284,6 +287,88 @@ describe('Sessions API Routes', () => {
       expect(data.success).toBe(true);
       expect(data.totalScore).toBe(3); // 4 - 1 = 3
       expect(data.subtestScores).toEqual({ Aljabar: 4, Geometri: -1 });
+    });
+
+    it('rejects a submission well after the deadline', async () => {
+      vi.mocked(db.examSession.findUnique).mockResolvedValueOnce({
+        id: 'sess-expired',
+        status: 'IN_PROGRESS',
+        deadline: new Date(Date.now() - 60 * 60 * 1000),
+        answers: [],
+        tryout: { examType: 'SKD_CPNS', questions: [], passingGradeProfile: null },
+      } as any);
+
+      const req = new NextRequest('http://localhost:3000/api/sessions/sess-expired/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers: {} }),
+      });
+
+      const response = await POST(req, {
+        params: Promise.resolve({ sessionId: 'sess-expired' }),
+      });
+
+      expect(response.status).toBe(403);
+      expect((await response.json()).error).toBe('Waktu ujian telah habis');
+      expect(db.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('keeps the newer timestamped answer when merging cached and server answers', async () => {
+      const serverAnsweredAt = new Date(Date.now() + 60_000).toISOString();
+      const clientAnsweredAt = new Date(Date.now() - 60_000).toISOString();
+
+      vi.mocked(db.examSession.findUnique).mockResolvedValueOnce({
+        id: 'sess-merge',
+        status: 'IN_PROGRESS',
+        deadline: new Date(Date.now() + 60 * 60 * 1000),
+        answers: [
+          {
+            questionId: 'q1',
+            selectedOptionId: 'opt-newer',
+            numericAnswer: null,
+            isDoubt: false,
+            answeredAt: new Date(serverAnsweredAt),
+          },
+        ],
+        tryout: {
+          examType: 'SKD_CPNS',
+          passingGradeProfile: null,
+          questions: [
+            {
+              id: 'q1',
+              category: 'TWK',
+              options: [
+                { id: 'opt-newer', key: 'A', score: 5 },
+                { id: 'opt-stale', key: 'B', score: 0 },
+              ],
+            },
+          ],
+        },
+      } as any);
+
+      const req = new NextRequest('http://localhost:3000/api/sessions/sess-merge/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answers: {
+            q1: {
+              selectedOptionId: 'opt-stale',
+              numericAnswer: null,
+              isDoubt: false,
+              answeredAt: clientAnsweredAt,
+            },
+          },
+        }),
+      });
+
+      const response = await POST(req, {
+        params: Promise.resolve({ sessionId: 'sess-merge' }),
+      });
+
+      expect(response.status).toBe(200);
+      const upsertArgs = mockTx.examAnswer.upsert.mock.calls[0][0] as any;
+      expect(upsertArgs.update.selectedOptionId).toBe('opt-newer');
+      expect(upsertArgs.update.answeredAt).toBe(serverAnsweredAt);
     });
   });
 });

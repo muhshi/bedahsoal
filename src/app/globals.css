@@ -1,10 +1,17 @@
 @import "tailwindcss";
 
+/* Font tokens reference variables injected by next/font on <html>. `inline` is
+   required here: a plain @theme would emit a self-referencing --font-* variable
+   on :root and shadow the font class, making font-serif/font-mono fall back. */
+@theme inline {
+  --font-sans: var(--font-manrope);
+  --font-display: var(--font-fraunces);
+  --font-serif: var(--font-fraunces);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
 @theme {
-  --font-sans: var(--font-sans);
-  --font-display: var(--font-display);
-  --font-serif: var(--font-display);
-  --font-mono: var(--font-mono);
+  --animate-marquee: marquee 38s linear infinite;
 
   --color-paper: var(--paper);
   --color-paper-2: var(--paper-2);
@@ -47,6 +54,18 @@
       linear-gradient(rgba(25, 23, 19, 0.026) 1px, transparent 1px),
       linear-gradient(90deg, rgba(25, 23, 19, 0.026) 1px, transparent 1px);
     background-size: 56px 56px;
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
   }
 }
 

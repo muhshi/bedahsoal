@@ -299,7 +299,7 @@ export function CategorizedCatalog({ packages, userPackageIds = [] }: Categorize
                   return (
                     <article
                       key={pkg.id}
-                      className="relative flex flex-col justify-between bg-[#fbf8f0] border border-[#191713] p-5 sm:p-6 shadow-paper hover:shadow-paper-hover transition-all duration-150 group"
+                      className="relative flex flex-col justify-between bg-[#fbf8f0] border border-[#191713] p-5 sm:p-6 shadow-paper shadow-paper-hover transition-all duration-150 group"
                     >
                       {/* Left accent line for track color */}
                       <div

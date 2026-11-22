@@ -365,7 +365,7 @@ export function DashboardClient({ user, stats, sessions }: DashboardClientProps)
 
                         {isCompleted ? (
                           <Link
-                            href={`/review/${session.id}`}
+                            href={`/exam/${session.id}`}
                             className="inline-flex items-center gap-1 px-3 py-1.5 border border-[#191713] bg-[#191713] text-[#f3efe3] font-mono text-[10px] font-semibold uppercase tracking-wider hover:bg-[#c4402a] hover:border-[#c4402a] transition"
                           >
                             <span>Bahas</span>

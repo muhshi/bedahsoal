@@ -5,7 +5,7 @@ import { ExamMode } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
-    let body: any = {};
+    let body: Record<string, unknown> = {};
     try {
       body = await request.json();
     } catch {
@@ -15,7 +15,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { tryoutId, userName, mode } = body;
+    const tryoutId = typeof body.tryoutId === 'string' ? body.tryoutId : null;
+    const userName = typeof body.userName === 'string' ? body.userName : undefined;
+    const mode = typeof body.mode === 'string' ? body.mode : undefined;
 
     if (!tryoutId) {
       return NextResponse.json(
@@ -24,7 +26,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Verify tryout exists
+    // 1. Verify tryout exists and is still published
     const tryout = await db.tryout.findUnique({
       where: { id: tryoutId },
     });
@@ -33,6 +35,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Tryout tidak ditemukan' },
         { status: 404 }
+      );
+    }
+
+    if (tryout.isActive === false) {
+      return NextResponse.json(
+        { error: 'Tryout ini tidak tersedia' },
+        { status: 403 }
       );
     }
 
@@ -62,7 +71,46 @@ export async function POST(request: NextRequest) {
       userId = user.id;
     }
 
-    // 3. Create fresh ExamSession with server-authoritative timer
+    // 3. Enforce package entitlement for paid tryouts
+    if (tryout.packageId && db.package && db.userPackage) {
+      const pkg = await db.package.findUnique({
+        where: { id: tryout.packageId },
+        select: { id: true, isFree: true, price: true, isActive: true },
+      });
+
+      if (pkg && (pkg.isActive === false || (!pkg.isFree && pkg.price > 0))) {
+        if (pkg.isActive === false) {
+          return NextResponse.json(
+            { error: 'Paket ini tidak tersedia' },
+            { status: 403 }
+          );
+        }
+
+        const entitlement = await db.userPackage.findUnique({
+          where: {
+            userId_packageId: { userId, packageId: pkg.id },
+          },
+          select: { id: true },
+        });
+
+        if (!entitlement) {
+          return NextResponse.json(
+            { error: 'Paket belum dimiliki. Selesaikan pembayaran terlebih dahulu.' },
+            { status: 403 }
+          );
+        }
+      }
+    }
+
+    // 4. Determine attempt number. Only the first simulation attempt is ranked.
+    const previousAttempts =
+      typeof db.examSession.count === 'function'
+        ? await db.examSession.count({
+            where: { userId, tryoutId: tryout.id },
+          })
+        : 0;
+    const attemptNumber = previousAttempts + 1;
+
     const startedAt = new Date();
     const durationMinutes = tryout.durationMinutes || 60;
     const deadline = new Date(startedAt.getTime() + durationMinutes * 60 * 1000);
@@ -73,6 +121,8 @@ export async function POST(request: NextRequest) {
         userId,
         tryoutId: tryout.id,
         mode: examMode,
+        attemptNumber,
+        rankEligible: examMode === 'SIMULASI' && attemptNumber === 1,
         status: 'IN_PROGRESS',
         startedAt,
         deadline,

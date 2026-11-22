@@ -16,6 +16,7 @@ vi.mock('@/lib/db', () => ({
     },
     examSession: {
       create: vi.fn(),
+      count: vi.fn(),
     },
   },
 }));
@@ -23,6 +24,7 @@ vi.mock('@/lib/db', () => ({
 describe('Session Lifecycle: POST /api/sessions/start', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(db.examSession.count).mockResolvedValue(0);
   });
 
   it('should return 400 when tryoutId is missing', async () => {
@@ -82,5 +84,47 @@ describe('Session Lifecycle: POST /api/sessions/start', () => {
     expect(body.success).toBe(true);
     expect(body.sessionId).toBe('session-unique-abc123xyz');
     expect(body.examUrl).toBe('/exam/session-unique-abc123xyz');
+
+    const createArgs = vi.mocked(db.examSession.create).mock.calls[0][0] as any;
+    expect(createArgs.data).toMatchObject({
+      userId: 'user-demo-1',
+      tryoutId: 'tryout-tiu-60',
+      mode: 'SIMULASI',
+      status: 'IN_PROGRESS',
+      attemptNumber: 1,
+      rankEligible: true,
+    });
+    expect(new Date(createArgs.data.deadline).getTime()).toBeGreaterThan(
+      new Date(createArgs.data.startedAt).getTime()
+    );
+  });
+
+  it('marks a second simulation attempt as not rank eligible', async () => {
+    vi.mocked(db.tryout.findUnique).mockResolvedValueOnce({
+      id: 'tryout-tiu-60',
+      title: 'Simulasi TIU',
+      durationMinutes: 60,
+      totalQuestions: 60,
+    } as any);
+    vi.mocked(db.user.upsert).mockResolvedValueOnce({ id: 'user-demo-1' } as any);
+    vi.mocked(db.examSession.count).mockResolvedValueOnce(1);
+    vi.mocked(db.examSession.create).mockResolvedValueOnce({
+      id: 'session-second-attempt',
+      tryoutId: 'tryout-tiu-60',
+      userId: 'user-demo-1',
+      status: 'IN_PROGRESS',
+    } as any);
+
+    const req = new NextRequest('http://localhost:3000/api/sessions/start', {
+      method: 'POST',
+      body: JSON.stringify({ tryoutId: 'tryout-tiu-60' }),
+    });
+
+    const res = await startSessionHandler(req);
+    expect(res.status).toBe(201);
+
+    const createArgs = vi.mocked(db.examSession.create).mock.calls[0][0] as any;
+    expect(createArgs.data.attemptNumber).toBe(2);
+    expect(createArgs.data.rankEligible).toBe(false);
   });
 });

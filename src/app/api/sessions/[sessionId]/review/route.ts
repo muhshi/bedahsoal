@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
 import { db } from '@/lib/db';
+import { canAccessSession } from '@/lib/session-access';
 import { ExamReviewDTO, QuestionReviewDTO, QuestionType } from '@/types/exam';
 
 export async function GET(
@@ -40,6 +42,17 @@ export async function GET(
         { error: 'Sesi ujian tidak ditemukan' },
         { status: 404 }
       );
+    }
+
+    let authenticatedUserId: string | undefined;
+    try {
+      authenticatedUserId = (await auth())?.user?.id;
+    } catch {
+      authenticatedUserId = undefined;
+    }
+
+    if (!canAccessSession(session.userId, authenticatedUserId)) {
+      return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 });
     }
 
     // Zero Leakage Guard: Only permit review when exam session is COMPLETED

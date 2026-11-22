@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, use, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, use, Suspense, useRef } from 'react';
 import { useExamStore } from '@/stores/use-exam-store';
 import { ExamHeader } from '@/components/exam/ExamHeader';
 import { QuestionViewer } from '@/components/exam/QuestionViewer';
@@ -8,6 +8,8 @@ import { QuestionPalette } from '@/components/exam/QuestionPalette';
 import { ExamSessionInitDTO, ExamReviewDTO } from '@/types/exam';
 import { ExamReviewViewer } from '@/components/exam/ExamReviewViewer';
 import { ExamStartConfirmation } from '@/components/exam/ExamStartConfirmation';
+import { StampBadge } from '@/components/ui/StampBadge';
+import { mergeAnswersByTimestamp } from '@/lib/answer-merge';
 import { get, set as idbSet } from 'idb-keyval';
 import {
   Wifi,
@@ -16,12 +18,10 @@ import {
   X,
   AlertCircle,
   Loader2,
-  CheckCircle2,
   Award,
   ArrowRight,
-  BookOpen,
   RotateCcw,
-  Sparkles,
+  BookOpen,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -29,15 +29,28 @@ interface ExamPageProps {
   params: Promise<{ sessionId: string }>;
 }
 
+type StoredAnswer = {
+  selectedOptionId?: string | null;
+  numericAnswer?: string | null;
+  isDoubt?: boolean;
+  answeredAt?: string;
+};
+
 function ExamLoadingScreen() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
-      <div className="flex flex-col items-center max-w-sm text-center">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
-        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-paper px-4">
+      <div className="border border-ink bg-white p-8 text-center shadow-paper">
+        <div
+          className="mx-auto mb-4 h-10 w-10 animate-spin border-2 border-ink border-t-red-stamp"
+          aria-hidden="true"
+        />
+        <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-red-stamp">
+          Berkas 01 / Sesi Ujian
+        </p>
+        <h2 className="mt-2 font-serif text-2xl font-bold text-ink">
           Mempersiapkan Sesi Ujian...
         </h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-ink-3">
           Mengambil butir soal dengan proteksi Zero Answer Leakage.
         </p>
       </div>
@@ -51,12 +64,15 @@ function ExamPlayer({ params }: ExamPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isMobilePaletteOpen, setIsMobilePaletteOpen] = useState(false);
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline, setIsOnline] = useState(() =>
+    typeof navigator === 'undefined' ? true : navigator.onLine
+  );
   const [isSavedLocally, setIsSavedLocally] = useState(true);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isReviewMode, setIsReviewMode] = useState(false);
   const [reviewData, setReviewData] = useState<ExamReviewDTO | null>(null);
   const [isLoadingReview, setIsLoadingReview] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
   const [sessionTryoutId, setSessionTryoutId] = useState<string | null>(null);
   const [isConfirmedStart, setIsConfirmedStart] = useState(false);
   const [examMeta, setExamMeta] = useState<{
@@ -72,12 +88,12 @@ function ExamPlayer({ params }: ExamPageProps) {
     submittedAt?: string;
   } | null>(null);
 
+  const submitInFlightRef = useRef(false);
+  const timeUpTriggeredRef = useRef(false);
   const answers = useExamStore((state) => state.answers);
 
-  // Online / Offline network event monitoring
+  // Online / offline network event monitoring
   useEffect(() => {
-    setIsOnline(navigator.onLine);
-
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
@@ -94,6 +110,24 @@ function ExamPlayer({ params }: ExamPageProps) {
   useEffect(() => {
     let isMounted = true;
 
+    async function readCachedAnswers(): Promise<Record<string, StoredAnswer> | null> {
+      try {
+        const cached = await get<Record<string, StoredAnswer>>(
+          `cbt_session_${sessionId}_answers`
+        );
+        if (cached && typeof cached === 'object') return cached;
+      } catch {
+        // IndexedDB read error fallback
+      }
+
+      try {
+        const raw = localStorage.getItem(`cbt_session_${sessionId}_answers`);
+        return raw ? (JSON.parse(raw) as Record<string, StoredAnswer>) : null;
+      } catch {
+        return null;
+      }
+    }
+
     async function loadExamSession() {
       try {
         setIsLoading(true);
@@ -102,7 +136,7 @@ function ExamPlayer({ params }: ExamPageProps) {
         const res = await fetch(`/api/sessions/${sessionId}`);
         const data = await res.json();
 
-        // If session has already been completed, gracefully display completion & review options
+        // If session has already been completed, show result and review options
         if (data.isCompleted) {
           if (isMounted) {
             setSessionTryoutId(data.tryoutId || null);
@@ -122,36 +156,52 @@ function ExamPlayer({ params }: ExamPageProps) {
         }
 
         const initDTO = data as ExamSessionInitDTO;
+        const serverAnswers = initDTO.initialAnswers || {};
+        const cachedAnswers = await readCachedAnswers();
+
+        // Merge per question using answeredAt so a stale local cache cannot
+        // overwrite a newer answer saved on the server.
+        const mergedAnswers = mergeAnswersByTimestamp(
+          serverAnswers as Record<string, StoredAnswer>,
+          (cachedAnswers ?? {}) as Record<string, StoredAnswer>
+        );
+
+        // The store requires an explicit isDoubt boolean for every answer.
+        const normalizedAnswers: Record<
+          string,
+          {
+            selectedOptionId?: string | null;
+            numericAnswer?: string | null;
+            isDoubt: boolean;
+            answeredAt?: string;
+          }
+        > = {};
+        for (const [questionId, answer] of Object.entries(mergedAnswers)) {
+          normalizedAnswers[questionId] = {
+            selectedOptionId: answer.selectedOptionId,
+            numericAnswer: answer.numericAnswer,
+            isDoubt: Boolean(answer.isDoubt),
+            answeredAt: answer.answeredAt,
+          };
+        }
+
         if (isMounted) {
           setSessionTryoutId(initDTO.tryoutId);
-          const durMinutes = Math.max(
-            Math.round(
-              (new Date(initDTO.deadline).getTime() - new Date(initDTO.startedAt).getTime()) / 60000
-            ),
-            60
-          );
           setExamMeta({
             title: initDTO.title,
-            durationMinutes: durMinutes,
+            durationMinutes: Math.max(
+              1,
+              Math.round(
+                (new Date(initDTO.deadline).getTime() - new Date(initDTO.startedAt).getTime()) /
+                  60000
+              )
+            ),
             totalQuestions: initDTO.questions.length,
             examType: initDTO.questions[0]?.category || 'SKD_CPNS',
           });
-        }
 
-        // Check if there are local offline answers cached in IndexedDB
-        let mergedAnswers = initDTO.initialAnswers || {};
-        try {
-          const cachedAnswers = await get(`cbt_session_${sessionId}_answers`);
-          if (cachedAnswers && typeof cachedAnswers === 'object') {
-            mergedAnswers = { ...mergedAnswers, ...cachedAnswers };
-          }
-        } catch {
-          // IndexedDB read error fallback
-        }
-
-        if (isMounted) {
-          // If user is resuming an active exam with saved answers, bypass confirmation screen
-          if (Object.keys(mergedAnswers).length > 0) {
+          // Resuming an exam with saved answers bypasses the briefing screen.
+          if (Object.keys(normalizedAnswers).length > 0) {
             setIsConfirmedStart(true);
           }
 
@@ -163,7 +213,7 @@ function ExamPlayer({ params }: ExamPageProps) {
             deadline: initDTO.deadline,
             serverTime: initDTO.serverTime,
             questions: initDTO.questions,
-            initialAnswers: mergedAnswers,
+            initialAnswers: normalizedAnswers,
           });
           setIsLoading(false);
         }
@@ -189,46 +239,36 @@ function ExamPlayer({ params }: ExamPageProps) {
   useEffect(() => {
     if (!sessionId || isLoading) return;
 
-    let timeoutId: NodeJS.Timeout;
-    try {
+    const timeoutId = setTimeout(async () => {
       setIsSavedLocally(false);
-      timeoutId = setTimeout(async () => {
+      try {
+        await idbSet(`cbt_session_${sessionId}_answers`, answers);
+        setIsSavedLocally(true);
+      } catch {
+        // Fallback to localStorage if IndexedDB is blocked
         try {
-          await idbSet(`cbt_session_${sessionId}_answers`, answers);
+          localStorage.setItem(
+            `cbt_session_${sessionId}_answers`,
+            JSON.stringify(answers)
+          );
           setIsSavedLocally(true);
         } catch {
-          // Fallback to localStorage if IndexedDB is blocked
-          try {
-            localStorage.setItem(
-              `cbt_session_${sessionId}_answers`,
-              JSON.stringify(answers)
-            );
-            setIsSavedLocally(true);
-          } catch {
-            // Local storage full or unavailable
-          }
+          // Local storage full or unavailable
         }
-      }, 300);
-    } catch {
-      // Ignore sync error
-    }
+      }
+    }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [sessionId, answers, isLoading]);
 
-  // Keyboard Navigation: Arrow Left/Right, Keys A-E, Key R for Doubt
+  // Keyboard navigation is only active while the exam is actually in progress
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Do not trigger hotkeys if user is currently typing in an input or textarea
-      const target = e.target as HTMLElement | null;
-      if (target && ['INPUT', 'TEXTAREA'].includes(target.tagName)) {
-        return;
-      }
+    if (!isConfirmedStart || isSubmitted || isReviewMode || loadError || isLoading) return;
 
-      // Ignore modifier keys
-      if (e.ctrlKey || e.metaKey || e.altKey) {
-        return;
-      }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && ['INPUT', 'TEXTAREA'].includes(target.tagName)) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
 
       const store = useExamStore.getState();
       if (!store.questions || store.questions.length === 0) return;
@@ -243,9 +283,7 @@ function ExamPlayer({ params }: ExamPageProps) {
         store.goToNextQuestion();
       } else if (e.key.toLowerCase() === 'r') {
         e.preventDefault();
-        if (currentQ) {
-          store.toggleDoubt(currentQ.id);
-        }
+        if (currentQ) store.toggleDoubt(currentQ.id);
       } else if (['a', 'b', 'c', 'd', 'e'].includes(e.key.toLowerCase())) {
         if (currentQ && currentQ.questionType === 'MULTIPLE_CHOICE') {
           const letter = e.key.toUpperCase();
@@ -262,12 +300,13 @@ function ExamPlayer({ params }: ExamPageProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isConfirmedStart, isSubmitted, isReviewMode, loadError, isLoading]);
 
   // Load review data and switch to review mode
   const handleOpenReview = useCallback(async () => {
     try {
       setIsLoadingReview(true);
+      setReviewError(null);
       const res = await fetch(`/api/sessions/${sessionId}/review`);
       const data = await res.json();
       if (!res.ok) {
@@ -276,8 +315,9 @@ function ExamPlayer({ params }: ExamPageProps) {
       setReviewData(data as ExamReviewDTO);
       setIsReviewMode(true);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan memuat pembahasan';
-      alert(msg);
+      setReviewError(
+        err instanceof Error ? err.message : 'Terjadi kesalahan memuat pembahasan'
+      );
     } finally {
       setIsLoadingReview(false);
     }
@@ -285,12 +325,16 @@ function ExamPlayer({ params }: ExamPageProps) {
 
   // Retake exam: create fresh session for this tryout
   const handleRetakeExam = useCallback(async () => {
+    if (!sessionTryoutId) {
+      setReviewError('Tryout asal tidak diketahui. Silakan pilih paket dari katalog.');
+      return;
+    }
+
     try {
-      const tryoutId = sessionTryoutId || 'tryout-tiu-60';
       const res = await fetch('/api/sessions/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tryoutId }),
+        body: JSON.stringify({ tryoutId: sessionTryoutId }),
       });
       const data = await res.json();
       if (!res.ok || !data.sessionId) {
@@ -298,15 +342,21 @@ function ExamPlayer({ params }: ExamPageProps) {
       }
       window.location.href = data.examUrl || `/exam/${data.sessionId}`;
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan sistem';
-      alert(msg);
+      setReviewError(err instanceof Error ? err.message : 'Terjadi kesalahan sistem');
     }
   }, [sessionTryoutId]);
 
-  // Submit Handler
+  // Submit Handler — guarded against duplicate and late submissions
   const handleSubmitExam = useCallback(async () => {
+    if (submitInFlightRef.current || isSubmitted) return;
+    const store = useExamStore.getState();
+    if (store.isSubmitting) return;
+
+    submitInFlightRef.current = true;
+    store.setSubmitting(true);
+
     try {
-      const currentAnswers = useExamStore.getState().answers;
+      const currentAnswers = store.answers;
 
       const res = await fetch(`/api/sessions/${sessionId}/submit`, {
         method: 'POST',
@@ -322,10 +372,18 @@ function ExamPlayer({ params }: ExamPageProps) {
       setSubmitResult(data);
       setIsSubmitted(true);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan submit';
-      alert(msg);
+      setReviewError(err instanceof Error ? err.message : 'Terjadi kesalahan submit');
+    } finally {
+      useExamStore.getState().setSubmitting(false);
+      submitInFlightRef.current = false;
     }
-  }, [sessionId]);
+  }, [sessionId, isSubmitted]);
+
+  const handleTimeUp = useCallback(() => {
+    if (timeUpTriggeredRef.current) return;
+    timeUpTriggeredRef.current = true;
+    void handleSubmitExam();
+  }, [handleSubmitExam]);
 
   // If in Review Mode, render the full review viewer
   if (isReviewMode && reviewData) {
@@ -340,25 +398,31 @@ function ExamPlayer({ params }: ExamPageProps) {
   // Error Screen
   if (loadError) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
-        <div className="max-w-md w-full p-6 bg-white dark:bg-slate-900 rounded-2xl border border-red-200 dark:border-red-900/60 shadow-lg text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+      <div className="flex min-h-screen items-center justify-center bg-paper px-4">
+        <div className="w-full max-w-md border border-ink bg-white p-8 text-center shadow-paper-lg">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center border border-red-stamp bg-red-stamp/10 text-red-stamp">
+            <AlertCircle className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-red-stamp">
+            Berkas bermasalah
+          </p>
+          <h2 className="mt-2 font-serif text-2xl font-bold text-ink">
             Gagal Memuat Ujian
           </h2>
-          <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">
+          <p className="mt-2 font-mono text-[11px] leading-relaxed text-ink-2">
             {loadError}
           </p>
-          <div className="flex flex-col gap-2">
-            <button
-              onClick={handleRetakeExam}
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors"
+          <div className="mt-6 flex flex-col gap-3">
+            <Link
+              href="/#katalog"
+              className="inline-flex min-h-11 items-center justify-center gap-2 border border-ink bg-ink px-5 font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-paper hover:bg-red-stamp"
             >
-              Mulai Sesi Ujian Baru
-            </button>
+              Kembali ke Katalog
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
             <Link
               href="/"
-              className="inline-flex items-center justify-center px-5 py-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 text-xs font-medium transition-colors"
+              className="font-mono text-[10px] uppercase tracking-wider text-ink-3 hover:text-ink"
             >
               Kembali ke Beranda
             </Link>
@@ -368,98 +432,115 @@ function ExamPlayer({ params }: ExamPageProps) {
     );
   }
 
-  // Completion / Submission Success Modal
+  // Completion / Submission Success
   if (isSubmitted && submitResult) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
-        <div className="max-w-lg w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl p-6 sm:p-8 text-center animate-in fade-in zoom-in duration-200">
-          <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-5 shadow-xs">
-            <CheckCircle2 className="w-10 h-10" />
+      <div className="flex min-h-screen justify-center bg-paper px-4 py-8 sm:py-12">
+        <div className="h-fit w-full max-w-2xl border border-ink bg-white p-6 shadow-paper-lg sm:p-9">
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line-strong pb-6">
+            <div>
+              <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-red-stamp">
+                Lembar Hasil / Selesai Dinilai
+              </p>
+              <h2 className="mt-2 font-serif text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+                Ujian Telah Selesai
+              </h2>
+              <p className="mt-2 font-mono text-[10px] uppercase leading-relaxed tracking-wider text-ink-3">
+                Seluruh jawaban telah dinilai oleh server secara otomatis.
+              </p>
+            </div>
+            <StampBadge label="TERKIRIM" variant="green" rotate={-4} />
           </div>
 
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
-            Ujian Telah Selesai!
-          </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-            Seluruh jawaban Anda telah dinilai oleh server secara otomatis.
-          </p>
-
-          {/* Score Badge */}
-          <div className="p-5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/80 mb-6">
-            <span className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">
-              Total Skor Akhir
-            </span>
-            <div className="text-4xl sm:text-5xl font-mono font-extrabold text-blue-600 dark:text-blue-400 mt-1 mb-2">
-              {submitResult.totalScore}
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <div className="border border-ink bg-paper p-5 shadow-[2px_2px_0px_#ded4bf] sm:col-span-1">
+              <span className="block font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-ink-3">
+                Total Skor Akhir
+              </span>
+              <strong className="mt-2 block font-serif text-5xl font-bold leading-none tracking-tight text-ink">
+                {submitResult.totalScore}
+              </strong>
+              {submitResult.isPassed !== undefined && (
+                <span
+                  className={`mt-4 inline-flex items-center gap-1.5 border px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-wider ${
+                    submitResult.isPassed
+                      ? 'border-green-stamp text-green-stamp'
+                      : 'border-amber-flag text-amber-flag'
+                  }`}
+                >
+                  <Award className="h-3.5 w-3.5" aria-hidden="true" />
+                  {submitResult.isPassed ? 'Lulus Passing Grade' : 'Belum Memenuhi'}
+                </span>
+              )}
             </div>
 
-            {/* Passing status if evaluated */}
-            {submitResult.isPassed !== undefined && (
-              <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-                  submitResult.isPassed
-                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                    : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                }`}
-              >
-                <Award className="w-3.5 h-3.5" />
-                {submitResult.isPassed ? 'LULUS PASSING GRADE' : 'BELUM MEMENUHI PASSING GRADE'}
+            <div className="border border-line bg-paper-2 p-5 sm:col-span-2">
+              <span className="block font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-ink-3">
+                Rekap per Subtes
               </span>
-            )}
-
-            {/* Subtest Scores Breakdown */}
-            {submitResult.subtestScores && (
-              <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 grid grid-cols-3 gap-2">
-                {Object.entries(submitResult.subtestScores).map(([subtest, score]) => (
-                  <div key={subtest} className="text-center">
-                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate">
-                      {subtest}
+              {submitResult.subtestScores &&
+              Object.keys(submitResult.subtestScores).length > 0 ? (
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  {Object.entries(submitResult.subtestScores).map(([subtest, score]) => (
+                    <div key={subtest} className="border border-line bg-white p-3 text-center">
+                      <div className="truncate font-mono text-[9px] uppercase tracking-wider text-ink-3">
+                        {subtest}
+                      </div>
+                      <div className="mt-1 font-serif text-xl font-bold text-ink">{score}</div>
                     </div>
-                    <div className="text-lg font-bold font-mono text-slate-800 dark:text-slate-200">
-                      {score}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-4 font-mono text-[10px] text-ink-3">
+                  Rekap per subtes tidak tersedia untuk sesi ini.
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-3">
+          {reviewError && (
+            <p role="alert" className="mt-5 border border-red-stamp bg-red-stamp/5 p-3 font-mono text-[10px] text-red-stamp">
+              {reviewError}
+            </p>
+          )}
+
+          <div className="mt-8 flex flex-col gap-3 border-t border-line-strong pt-6 sm:flex-row">
             <button
+              type="button"
               onClick={handleOpenReview}
               disabled={isLoadingReview}
-              className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all shadow-md shadow-blue-500/25 active:scale-95 disabled:opacity-50"
+              className="inline-flex min-h-12 flex-1 items-center justify-center gap-2.5 border border-ink bg-ink px-6 font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-paper shadow-paper transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-red-stamp disabled:opacity-50"
             >
               {isLoadingReview ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
               ) : (
-                <Sparkles className="w-4 h-4 text-amber-300" />
+                <BookOpen className="h-4 w-4" aria-hidden="true" />
               )}
-              <span>Lihat Pembahasan &amp; Kunci Jawaban</span>
+              Lihat Pembahasan &amp; Kunci Jawaban
             </button>
-
             <button
+              type="button"
               onClick={handleRetakeExam}
-              className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-xs transition-colors"
+              className="inline-flex min-h-12 items-center justify-center gap-2 border border-ink bg-transparent px-6 font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-ink hover:bg-paper-2"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Ulangi Ujian Ini (Sesi Baru)</span>
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              Ulangi Ujian
             </button>
-
-            <Link
-              href="/"
-              className="w-full inline-flex items-center justify-center gap-2 px-5 py-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 text-xs font-medium transition-colors"
-            >
-              <span>Kembali ke Katalog Beranda</span>
-            </Link>
           </div>
+
+          <Link
+            href="/dashboard"
+            className="mt-5 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-ink-3 hover:text-ink"
+          >
+            Lihat rapor lengkap <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </Link>
         </div>
       </div>
     );
   }
 
   // Pre-Exam Confirmation Screen
-  if (!isConfirmedStart && examMeta && !isSubmitted) {
+  if (!isConfirmedStart && examMeta) {
     return (
       <ExamStartConfirmation
         title={examMeta.title}
@@ -472,94 +553,76 @@ function ExamPlayer({ params }: ExamPageProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100/70 dark:bg-slate-950 select-none">
-      {/* 1. Exam Header (Sticky top) */}
+    <div className="flex min-h-screen select-none flex-col bg-paper">
+      {/* 1. Exam Header */}
       <ExamHeader
         onSubmit={handleSubmitExam}
-        onTimeUp={handleSubmitExam}
+        onTimeUp={handleTimeUp}
         onTogglePalette={() => setIsMobilePaletteOpen((prev) => !prev)}
       />
 
-      {/* 2. Network & Storage Status Sub-bar */}
-      <div className="bg-slate-200/80 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-1.5 text-xs">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-          {/* Offline / Online banner */}
+      {/* 2. Network & storage status sub-bar */}
+      <div className="border-b border-line bg-paper-2 px-4 py-1.5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.12em]">
           <div className="flex items-center gap-2">
             {isOnline ? (
-              <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
-                <Wifi className="w-3.5 h-3.5" />
-                Terhubung (Online)
+              <span className="inline-flex items-center gap-1.5 font-semibold text-green-stamp">
+                <Wifi className="h-3.5 w-3.5" aria-hidden="true" />
+                Terhubung · jawaban tersimpan otomatis
               </span>
             ) : (
-              <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-bold animate-pulse">
-                <WifiOff className="w-3.5 h-3.5" />
-                Mode Offline (Jawaban disimpan di memori lokal)
+              <span className="inline-flex items-center gap-1.5 font-bold text-amber-flag">
+                <WifiOff className="h-3.5 w-3.5" aria-hidden="true" />
+                Mode offline · jawaban disimpan di perangkat
               </span>
             )}
           </div>
-
-          {/* Local storage sync indicator */}
-          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-            <Database className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-            <span>
-              {isSavedLocally ? 'Tersimpan di perangkat' : 'Menyimpan...'}
-            </span>
+          <div className="inline-flex items-center gap-1.5 text-ink-3">
+            <Database className="h-3.5 w-3.5" aria-hidden="true" />
+            {isSavedLocally ? 'Tersimpan di perangkat' : 'Menyimpan...'}
           </div>
         </div>
       </div>
 
-      {/* 3. Main Fullscreen CBT Layout */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Center / Left: Polymorphic Question Viewer */}
-        <section
-          aria-label="Lembar Soal Ujian"
-          className="lg:col-span-8 xl:col-span-9 w-full"
-        >
+      {/* 3. Main CBT layout */}
+      <main className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 items-start gap-5 p-3 sm:p-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:p-6">
+        <section aria-label="Lembar Soal Ujian" className="w-full min-w-0">
           <QuestionViewer />
         </section>
 
-        {/* Right: Desktop Sticky Question Palette */}
         <aside
           aria-label="Palet Soal Desktop"
-          className="hidden lg:block lg:col-span-4 xl:col-span-3 sticky top-20"
+          className="sticky top-24 hidden lg:block"
         >
           <QuestionPalette />
         </aside>
       </main>
 
-      {/* 4. Mobile Drawer for Question Palette */}
+      {/* 4. Mobile palette drawer */}
       {isMobilePaletteOpen && (
         <div
           role="dialog"
           aria-modal="true"
           aria-label="Palet Soal Mobile"
-          className="lg:hidden fixed inset-0 z-50 flex justify-end"
+          className="fixed inset-0 z-180 flex justify-end lg:hidden"
         >
-          {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-ink/65 backdrop-blur-sm"
             onClick={() => setIsMobilePaletteOpen(false)}
           />
-
-          {/* Drawer Sheet */}
-          <div className="relative w-full max-w-xs sm:max-w-sm bg-white dark:bg-slate-900 h-full p-4 shadow-2xl flex flex-col z-10 overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 mb-3">
-              <h2 className="font-bold text-slate-900 dark:text-white text-base">
-                Navigasi Soal
-              </h2>
+          <div className="relative z-10 flex h-full w-full max-w-xs flex-col overflow-y-auto border-l border-ink bg-paper p-4 shadow-paper-lg sm:max-w-sm">
+            <div className="mb-3 flex items-center justify-between border-b border-line pb-3">
+              <h2 className="font-serif text-lg font-bold text-ink">Navigasi Soal</h2>
               <button
                 type="button"
                 onClick={() => setIsMobilePaletteOpen(false)}
                 aria-label="Tutup navigasi soal"
-                className="p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="flex h-9 w-9 items-center justify-center border border-ink text-ink hover:bg-ink hover:text-paper"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
-
-            <QuestionPalette
-              onSelectQuestion={() => setIsMobilePaletteOpen(false)}
-            />
+            <QuestionPalette onSelectQuestion={() => setIsMobilePaletteOpen(false)} />
           </div>
         </div>
       )}

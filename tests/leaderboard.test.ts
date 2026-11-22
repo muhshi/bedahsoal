@@ -155,6 +155,16 @@ describe('Leaderboard Engine & Privacy (Official BKN Tie-Breaker)', () => {
       });
 
       expect(res.status).toBe(200);
+
+      const findManyArgs = vi.mocked(db.examSession.findMany).mock.calls[0][0] as any;
+      expect(findManyArgs.where).toMatchObject({
+        tryoutId: 't1',
+        mode: 'SIMULASI',
+        status: 'COMPLETED',
+        attemptNumber: 1,
+        rankEligible: true,
+      });
+
       const data = await res.json();
       expect(data.totalParticipants).toBe(2);
       expect(data.leaderboard[0].rank).toBe(1);

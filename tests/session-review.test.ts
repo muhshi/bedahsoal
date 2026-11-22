@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET as getReviewHandler } from '@/app/api/sessions/[sessionId]/review/route';
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
+import { auth } from '@/auth';
+
+vi.mock('@/auth', () => ({
+  auth: vi.fn(),
+}));
 
 vi.mock('@/lib/db', () => ({
   db: {
@@ -41,6 +46,23 @@ describe('Review API: GET /api/sessions/[sessionId]/review', () => {
     expect(res.status).toBe(403);
     const body = await res.json();
     expect(body.error).toContain('Pembahasan hanya dapat diakses setelah sesi ujian selesai');
+  });
+
+  it('should reject a different authenticated user', async () => {
+    vi.mocked(auth).mockResolvedValueOnce({ user: { id: 'other-user' } } as any);
+    vi.mocked(db.examSession.findUnique).mockResolvedValueOnce({
+      id: 'private-session',
+      userId: 'owner-user',
+      status: 'COMPLETED',
+    } as any);
+
+    const req = new NextRequest('http://localhost:3000/api/sessions/private-session/review');
+    const res = await getReviewHandler(req, {
+      params: Promise.resolve({ sessionId: 'private-session' }),
+    });
+
+    expect(res.status).toBe(403);
+    expect((await res.json()).error).toBe('Akses ditolak');
   });
 
   it('should return full ExamReviewDTO with options, explanations, and scores when COMPLETED', async () => {

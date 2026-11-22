@@ -22,9 +22,12 @@ describe('Editorial Paper Design Tokens', () => {
     expect(css).toContain('--amber-flag:');
     expect(css).toContain('--blue-ink:');
 
-    // Required font tokens
-    expect(css).toContain('--font-display:');
-    expect(css).toContain('--font-mono:');
+    // Font tokens must be inlined so next/font variables are not shadowed on :root
+    expect(css).toContain('@theme inline');
+    expect(css).toContain('--font-display: var(--font-fraunces)');
+    expect(css).toContain('--font-serif: var(--font-fraunces)');
+    expect(css).toContain('--font-mono: var(--font-jetbrains-mono)');
+    expect(css).not.toMatch(/--font-(display|sans|mono):\s*var\(--font-\1\)/);
 
     // Shadow utilities
     expect(css).toContain('.shadow-paper');
@@ -37,8 +40,8 @@ describe('Editorial Paper Design Tokens', () => {
     expect(layout).toContain('Fraunces');
     expect(layout).toContain('JetBrains_Mono');
     expect(layout).toContain('Manrope');
-    expect(layout).toContain('--font-display');
-    expect(layout).toContain('--font-sans');
-    expect(layout).toContain('--font-mono');
+    expect(layout).toContain('--font-fraunces');
+    expect(layout).toContain('--font-manrope');
+    expect(layout).toContain('--font-jetbrains-mono');
   });
 });

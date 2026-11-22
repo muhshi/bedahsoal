@@ -3,7 +3,6 @@ import { Metadata } from 'next';
 import { db } from '@/lib/db';
 import { auth } from '@/auth';
 import { DashboardClient } from '@/components/dashboard/DashboardClient';
-import { Loader2 } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Dashboard & Riwayat Ujian - BedahSoal',
@@ -74,11 +73,16 @@ async function DashboardContent() {
 
 function DashboardSkeleton() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6">
-      <div className="flex flex-col items-center max-w-sm text-center">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
-        <h2 className="text-lg font-bold text-slate-800">Memuat Dashboard...</h2>
-        <p className="text-sm text-slate-500 mt-1">Mengambil data riwayat tryout dan statistik ujian Anda.</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-paper p-6">
+      <div className="flex flex-col items-center max-w-sm text-center border border-ink bg-white p-8 shadow-paper">
+        <div className="w-10 h-10 mb-4 border-2 border-ink border-t-red-stamp animate-spin" aria-hidden="true" />
+        <p className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-red-stamp">
+          Arsip 00 / Rapor
+        </p>
+        <h2 className="font-serif text-2xl font-bold text-ink mt-2">Memuat Dashboard...</h2>
+        <p className="font-mono text-xs text-ink-3 mt-1 uppercase tracking-wider">
+          Mengambil data riwayat tryout dan statistik ujian Anda.
+        </p>
       </div>
     </div>
   );

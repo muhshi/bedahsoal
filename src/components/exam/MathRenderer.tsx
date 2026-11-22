@@ -40,7 +40,7 @@ export function MathRenderer({ content, className = '' }: MathRendererProps) {
 
   return (
     <div
-      className={`prose max-w-none text-slate-800 dark:text-slate-100 ${className}`}
+      className={`max-w-none font-serif text-[15px] leading-relaxed text-ink sm:text-base [&_p:not(:last-child)]:mb-2 [&_.katex-display]:overflow-x-auto [&_.katex-display]:py-2 ${className}`}
       dangerouslySetInnerHTML={{ __html: renderedContent }}
     />
   );
