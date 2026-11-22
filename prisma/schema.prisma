@@ -1,0 +1,293 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  EXPIRED
+  FAILED
+  REFUNDED
+}
+
+enum EntitlementSource {
+  PURCHASE
+  FREE_PROMO
+  ADMIN_GRANT
+}
+
+enum ExamMode {
+  SIMULASI
+  LATIHAN
+}
+
+enum ExamStatus {
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+}
+
+enum QuestionCategory {
+  TWK
+  TIU
+  TKP
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String?
+  avatarUrl     String?
+  role          Role           @default(USER)
+  isNamePublic  Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  userPackages  UserPackage[]
+  transactions  Transaction[]
+  examSessions  ExamSession[]
+  bookmarks     Bookmark[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Package {
+  id           String        @id @default(cuid())
+  title        String
+  slug         String        @unique
+  description  String?       @db.Text
+  price        Int           @default(0)
+  promoPrice   Int?
+  isFree       Boolean       @default(false)
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  tryouts      Tryout[]
+  userPackages UserPackage[]
+  transactions Transaction[]
+
+  @@map("packages")
+}
+
+model UserPackage {
+  id         String            @id @default(cuid())
+  userId     String
+  packageId  String
+  source     EntitlementSource @default(PURCHASE)
+  grantedAt  DateTime          @default(now())
+
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package    Package           @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, packageId])
+  @@map("user_packages")
+}
+
+model Transaction {
+  id               String            @id @default(cuid())
+  userId           String
+  packageId        String
+  merchantOrderId  String            @unique
+  duitkuReference  String?
+  amount           Int
+  paymentMethod    String?
+  status           TransactionStatus @default(PENDING)
+  paymentUrl       String?           @db.Text
+  expiredAt        DateTime?
+  paidAt           DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  package          Package           @relation(fields: [packageId], references: [id], onDelete: Restrict)
+
+  @@map("transactions")
+}
+
+model PassingGradeProfile {
+  id        String   @id @default(cuid())
+  name      String
+  minTWK    Int      @default(65)
+  minTIU    Int      @default(80)
+  minTKP    Int      @default(166)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tryouts   Tryout[]
+
+  @@map("passing_grade_profiles")
+}
+
+model Tryout {
+  id                   String               @id @default(cuid())
+  packageId            String
+  passingGradeProfileId String?
+  title                String
+  durationMinutes      Int                  @default(100)
+  totalQuestions       Int                  @default(110)
+  isActive             Boolean              @default(true)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  package              Package              @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  passingGradeProfile  PassingGradeProfile? @relation(fields: [passingGradeProfileId], references: [id], onDelete: SetNull)
+  questions            Question[]
+  examSessions         ExamSession[]
+
+  @@map("tryouts")
+}
+
+model Question {
+  id                  String           @id @default(cuid())
+  tryoutId            String
+  orderNumber         Int
+  category            QuestionCategory
+  subTopic            String?
+  text                String           @db.Text
+  imageUrl            String?
+  explanation         String?          @db.Text
+  explanationImageUrl String?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  tryout              Tryout           @relation(fields: [tryoutId], references: [id], onDelete: Cascade)
+  options             Option[]
+  examAnswers         ExamAnswer[]
+  bookmarks           Bookmark[]
+
+  @@unique([tryoutId, orderNumber])
+  @@map("questions")
+}
+
+model Option {
+  id         String   @id @default(cuid())
+  questionId String
+  key        String   // "A", "B", "C", "D", "E"
+  text       String   @db.Text
+  imageUrl   String?
+  score      Int      @default(0) // TWK/TIU: 0 or 5. TKP: 1 to 5. (Server only!)
+
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, key])
+  @@map("options")
+}
+
+model ExamSession {
+  id                    String      @id @default(cuid())
+  userId                String
+  tryoutId              String
+  mode                  ExamMode    @default(SIMULASI)
+  attemptNumber         Int         @default(1)
+  status                ExamStatus  @default(IN_PROGRESS)
+  rankEligible          Boolean     @default(false)
+  startedAt             DateTime    @default(now())
+  deadline              DateTime
+  submittedAt           DateTime?
+  scoreTWK              Int         @default(0)
+  scoreTIU              Int         @default(0)
+  scoreTKP              Int         @default(0)
+  totalScore            Int         @default(0)
+  isPassed              Boolean     @default(false)
+  passingGradeSnapshot  Json?
+
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tryout                Tryout      @relation(fields: [tryoutId], references: [id], onDelete: Cascade)
+  answers               ExamAnswer[]
+
+  @@map("exam_sessions")
+}
+
+model ExamAnswer {
+  id               String      @id @default(cuid())
+  examSessionId    String
+  questionId       String
+  selectedOptionId String?
+  scoreAwarded     Int         @default(0)
+  isDoubt          Boolean     @default(false)
+  answeredAt       DateTime    @default(now())
+
+  examSession      ExamSession @relation(fields: [examSessionId], references: [id], onDelete: Cascade)
+  question         Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([examSessionId, questionId])
+  @@map("exam_answers")
+}
+
+model Bookmark {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+  @@map("bookmarks")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  admin     User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+}

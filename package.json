@@ -1,6 +1,7 @@
 {
-  "name": "tmp-next-scaffold",
-  "version": "0.1.0",
+  "name": "cat-skd-platform",
+  "version": "1.0.0",
+  "description": "Platform CBT Tryout SKD CPNS & Kedinasan (SaaS PWA)",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,17 +10,24 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "idb-keyval": "^6.3.0",
+    "katex": "^0.19.1",
+    "lucide-react": "^1.77.0",
     "next": "16.4.6",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "zustand": "^5.1.0"
   },
   "devDependencies": {
+    "@prisma/client": "^6.19.3",
     "@tailwindcss/turbopack": "4.3.3",
+    "@types/katex": "^0.16.8",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
+    "prisma": "^6.19.3",
     "tailwindcss": "4.3.3",
     "typescript": "^5"
   }

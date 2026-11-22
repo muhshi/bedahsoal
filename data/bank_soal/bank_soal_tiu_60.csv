@@ -1,0 +1,175 @@
+ID,Kategori,Soal,Opsi A,Opsi B,Opsi C,Opsi D,Opsi E,Kunci,Pembahasan
+1,Kemampuan Verbal - Analogi Kata,INSULIN : PANKREAS = ...,Empedu : Hati,Adrenalin : Otak,Air Liur : Lambung,Glukosa : Ginjal,Hemoglobin : Paru-paru,A,"Hubungan: [Hormon/Zat] diproduksi oleh [Organ Tubuh]. Insulin dihasilkan pankreas, empedu dihasilkan hati."
+2,Kemampuan Verbal - Analogi Kata,APOTEKER : OBAT = ...,Dokter : Pasien,Montir : Kunci Pas,Koki : Restoran,Penulis : Buku,Sutradara : Aktor,D,"Hubungan: [Profesi] menghasilkan produk karya fisik [Objek]. Apoteker membuat obat, penulis membuat buku."
+3,Kemampuan Verbal - Analogi Kata,KERING : KEMARAU = ...,Hangat : Dingin,Banjir : Hujan,Gelap : Lampu,Badai : Angin,Siang : Malam,B,"Hubungan: [Kondisi lingkungan/akibat] terjadi pada saat [Fenomena cuaca/penyebab]. Kering akibat kemarau, banjir akibat hujan."
+4,Kemampuan Verbal - Analogi Kata,MIKROSKOP : BAKTERI = ...,Stetoskop : Denyut Nadi,Termometer : Udara,Teleskop : Bintang,Barometer : Tekanan,Kacamata : Wajah,C,"Hubungan: [Alat optik] untuk melihat [Objek yang tak tampak mata telanjang]. Mikroskop untuk melihat bakteri, teleskop untuk melihat bintang di kejauhan."
+5,Kemampuan Verbal - Analogi Kata,GIGI : KUNYAH = ...,Mata : Silau,Paru-paru : Bernapas,Tangan : Cincin,Hidung : Parfum,Telinga : Anting,B,"Hubungan: [Organ tubuh] dan [Fungsi biologis utamanya]. Gigi untuk mengunyah, paru-paru untuk bernapas."
+6,Kemampuan Verbal - Analogi Kata,SARUNG TANGAN : PETINJU = ...,Helm : Pengendara Motor,Sepatu : Pelari,Topi : Petani,Rompi : Polisi,Jubah : Hakim,A,"Hubungan: [Perlengkapan proteksi wajib] digunakan oleh [Subjek]. Sarung tangan melindungi petinju, helm melindungi pengendara motor."
+7,Kemampuan Verbal - Analogi Kata,HAUS : AIR = ...,Lapar : Makanan,Ngantuk : Begadang,Lelah : Kerja,Gelap : Malam,Kenyang : Nasi,A,"Hubungan: [Kondisi kekurangan fisik] membutuhkan [Asupan pemenuhan]. Haus butuh air, lapar butuh makanan."
+8,Kemampuan Verbal - Analogi Kata,MENDUNG : HUJAN = ...,Matahari : Panas,Senja : Gelap,Mendidih : Menguap,Angin : Debu,Api : Asap,C,"Hubungan: [Kondisi awal/pemicu fisik] sebelum terjadinya [Fase peristiwa lanjutan]. Mendung tanda akan hujan, cairan mendidih tanda akan menguap."
+9,Kemampuan Verbal - Analogi Kata,ANEMIA : ZAT BESI = ...,Rabun : Vitamin C,Gondok : Yodium,Sariawan : Kalsium,Osteoporosis : Vitamin A,Flu : Protein,B,"Hubungan: [Penyakit defisiensi] akibat kekurangan [Unsur/Zat nutrisi]. Anemia karena kurang zat besi, gondok karena kurang yodium."
+10,Kemampuan Verbal - Analogi Kata,KALENDER : TANGGAL = ...,Peta : Wilayah,Kamus : Kata,Jam : Detik,Termometer : Raksa,Buku : Sampul,C,"Hubungan: [Instrumen penunjuk waktu] dan [Satuan ukuran penunjuknya]. Kalender menunjukkan tanggal, jam menunjukkan detik/menit."
+11,Kemampuan Verbal - Silogisme,"Semua mamalia bernapas dengan paru-paru.
+Ikan paus adalah hewan mamalia.
+
+Kesimpulan yang sah adalah...",Ikan paus bernapas dengan insang saat menyelam.,Ikan paus bernapas dengan paru-paru.,Semua hewan yang bernapas dengan paru-paru adalah ikan paus.,Sebagian ikan paus bukan mamalia.,Hewan laut bernapas dengan paru-paru.,B,Modus Ponens: Semua A adalah B. C adalah A. Kesimpulan: C adalah B. Ikan paus bernapas dengan paru-paru.
+12,Kemampuan Verbal - Silogisme,"Semua siswa yang lulus tes CPNS adalah pekerja keras.
+Sebagian warga desa Makmur lulus tes CPNS.
+
+Kesimpulan yang sah adalah...",Semua warga desa Makmur adalah pekerja keras.,Sebagian warga desa Makmur adalah pekerja keras.,Warga desa Makmur yang tidak lulus tes bukan pekerja keras.,Semua pekerja keras tinggal di desa Makmur.,Tidak ada warga desa Makmur yang menjadi pekerja keras.,B,Semua A adalah B + Sebagian C adalah A → Sebagian C adalah B. Sebagian warga desa Makmur adalah pekerja keras.
+13,Kemampuan Verbal - Silogisme,"Jika harga BBM naik atau tarif dasar listrik naik, maka biaya produksi meningkat.
+Saat ini biaya produksi pabrik tidak meningkat.
+
+Kesimpulan yang tepat adalah...",Harga BBM tidak naik dan tarif dasar listrik tidak naik.,Harga BBM tidak naik atau tarif dasar listrik tidak naik.,"Harga BBM naik, namun tarif dasar listrik turun.","Tarif dasar listrik naik, namun harga BBM turun.",Pabrik mendapatkan subsidi dari pemerintah.,A,Modus Tollens: (p ∨ q) → r. Diketahui ~r. Maka ~(p ∨ q) ≡ ~p ∧ ~q (Hukum De Morgan). BBM tidak naik DAN listrik tidak naik.
+14,Kemampuan Verbal - Silogisme,"Semua peserta tes yang memperoleh nilai di atas passing grade berhak mengikuti SKB.
+Sebagian peserta yang berhak mengikuti SKB memiliki sertifikat pendidik.
+
+Kesimpulan yang sah adalah...",Semua pemilik sertifikat pendidik lulus passing grade.,Sebagian peserta yang memperoleh nilai di atas passing grade memiliki sertifikat pendidik.,Semua peserta yang memiliki sertifikat pendidik pasti lulus SKD.,Peserta yang tidak memiliki sertifikat pendidik tidak lulus passing grade.,Tidak ada kesimpulan yang benar.,B,Semua A adalah B. Sebagian B adalah C. Kesimpulan: Sebagian A adalah C.
+15,Kemampuan Verbal - Silogisme,"Jika cuaca buruk, maka penerbangan ditunda.
+Jika penerbangan ditunda, maka penumpang menginap di hotel bandara.
+Hari ini cuaca sangat buruk.
+
+Kesimpulan yang sah adalah...",Penumpang menginap di hotel bandara.,Penerbangan tetap diberangkatkan dengan hati-hati.,Penumpang menolak menginap di hotel bandara.,Sebagian penumpang pulang ke rumah.,Bandara ditutup untuk seterusnya.,A,"Silogisme Hipotetis: p → q, q → r, maka p → r. Diketahui p (cuaca buruk), maka r (penumpang menginap di hotel bandara)."
+16,Kemampuan Verbal - Silogisme,"Semua atlet profesional menjaga pola makan ketat.
+Budi bukan atlet profesional.
+
+Kesimpulan yang paling tepat adalah...",Budi tidak menjaga pola makan ketat.,Budi menjaga pola makan santai.,Tidak dapat ditarik kesimpulan pasti mengenai pola makan Budi.,Semua yang menjaga pola makan ketat adalah atlet profesional.,Budi adalah mantan atlet.,C,Kesesatan Denying the Antecedent: 'Semua A adalah B' tidak berarti 'Bukan A pasti bukan B'. Non-atlet bisa saja tetap menjaga pola makan ketat. Kesimpulan tidak dapat ditentukan.
+17,Kemampuan Verbal - Silogisme,"Semua anggota klub catur pandai matematika.
+Beberapa mahasiswa teknik adalah anggota klub catur.
+
+Kesimpulan yang sah adalah...",Semua mahasiswa teknik pandai matematika.,Beberapa mahasiswa teknik pandai matematika.,Semua yang pandai matematika adalah mahasiswa teknik.,Mahasiswa yang bukan anggota klub catur tidak pandai matematika.,Klub catur hanya menerima mahasiswa teknik.,B,Semua A adalah B. Sebagian C adalah A. Kesimpulan: Sebagian C adalah B (Beberapa mahasiswa teknik pandai matematika).
+18,Kemampuan Verbal - Silogisme,"Setiap hari Senin seluruh pegawai mengenakan seragam batik.
+Hari ini salah satu pegawai tidak mengenakan seragam batik.
+
+Kesimpulan yang sah adalah...",Pegawai tersebut lupa seragamnya.,Hari ini pasti bukan hari Senin.,Pegawai tersebut mendapat izin dari atasan.,Seragam batik sedang dicuci.,Semua pegawai berganti seragam.,B,Modus Tollens: Jika Senin → Batik. Hari ini Tidak Batik. Maka Hari ini Bukan Senin.
+19,Kemampuan Verbal - Penalaran Analitis,"Lima orang nasabah (P, Q, R, S, T) mengantre di teller:
+• P dilayani sebelum Q tetapi sesudah R.
+• Q dilayani sebelum S.
+• S dilayani tepat sebelum T.
+
+Siapakah yang berada pada urutan antrean ke-4?",P,Q,R,S,T,D,"Urutan antrean: R duluan dari P, P duluan dari Q (R-P-Q). Q sebelum S (R-P-Q-S). S tepat sebelum T (R-P-Q-S-T). Urutan ke-4 adalah S."
+20,Kemampuan Verbal - Penalaran Analitis,"Dalam lomba lari, lima pelari mencatatkan waktu:
+• Rian lebih cepat dari Bayu, tetapi lebih lambat dari Danu.
+• Ardi lebih cepat dari Danu.
+• Eko lebih lambat dari Bayu.
+
+Siapakah yang menempati posisi juara kedua (tercepat kedua)?",Ardi,Danu,Rian,Bayu,Eko,B,Urutan kecepatan dari tercepat: Ardi > Danu > Rian > Bayu > Eko. Posisi kedua adalah Danu.
+21,Kemampuan Verbal - Penalaran Analitis,"Lima mapel ujian (Matematika, Fisika, Kimia, Biologi, Sejarah) dijadwalkan dari Senin sampai Jumat:
+• Sejarah diuji pada hari pertama (Senin).
+• Kimia diuji tepat sebelum Matematika.
+• Fisika diuji setelah Matematika.
+• Biologi diuji pada hari terakhir (Jumat).
+
+Mapel apa yang diuji pada hari Rabu?",Matematika,Fisika,Kimia,Biologi,Sejarah,A,"Senin: Sejarah, Jumat: Biologi. Sisa hari: Selasa, Rabu, Kamis untuk Kimia, Matematika, Fisika. Urutan: Kimia (Selasa), Matematika (Rabu), Fisika (Kamis)."
+22,Kemampuan Verbal - Penalaran Analitis,"Empat orang sahabat (A, B, C, D) duduk di meja bundar dengan 4 kursi berhadapan:
+• A duduk berhadapan dengan C.
+• B duduk di sebelah kanan A.
+
+Di manakah posisi duduk D?",Di sebelah kanan C,Di sebelah kanan B,Berhadapan dengan B,Di antara A dan B,Berhadapan dengan C,C,"Karena A berhadapan dengan C, maka dua kursi tersisa saling berhadapan untuk B dan D. Jadi D pasti duduk berhadapan dengan B."
+23,Kemampuan Verbal - Penalaran Analitis,"Tinggi badan 5 bersaudara:
+• Raka lebih tinggi dari Gilang.
+• Fajar lebih tinggi dari Raka.
+• Ilham lebih pendek dari Gilang.
+• Hendra lebih tinggi dari Fajar.
+
+Siapakah yang memiliki tinggi badan tertinggi kedua?",Hendra,Fajar,Raka,Gilang,Ilham,B,Urutan tinggi: Hendra > Fajar > Raka > Gilang > Ilham. Tertinggi kedua adalah Fajar.
+24,Kemampuan Verbal - Penalaran Analitis,"Enam buku (A, B, C, D, E, F) ditata berjejer di rak dari kiri ke kanan:
+• Buku C berada di paling kiri.
+• Buku B berada di antara D dan E.
+• Buku A berada di sebelah kanan E.
+• Buku F berada di paling kanan.
+
+Buku manakah yang berada tepat di urutan ke-2 dari kiri?",B,D,E,A,F,B,"Posisi 1: C, Posisi 6: F. Di antara C dan F ada D, B, E, A. Polanya: C - D - B - E - A - F. Urutan ke-2 adalah D."
+25,Kemampuan Verbal - Penalaran Analitis,"Syarat kelulusan beasiswa:
+1. IPK minimal 3.25
+2. TOEFL minimal 500
+3. Memiliki pengalaman organisasi
+
+Data peserta: Rian (IPK 3.40, TOEFL 520, tanpa organisasi); Sinta (IPK 3.50, TOEFL 490, aktif organisasi); Toni (IPK 3.30, TOEFL 510, ketua BEM); Dita (IPK 3.20, TOEFL 550, aktif organisasi). Siapakah yang memenuhi seluruh syarat beasiswa?",Rian,Sinta,Toni,Dita,Semua lulus,C,"Rian gagal di organisasi; Sinta gagal di TOEFL (<500); Dita gagal di IPK (<3.25). Hanya Toni yang memenuhi seluruh kriteria (IPK 3.30 >= 3.25, TOEFL 510 >= 500, Ketua BEM)."
+26,Kemampuan Numerik - Aljabar Cepat,"Hitung hasil berikut tanpa kalkulator:
+
+(78² - 22²) / 56 = ...",56,78,100,112,156,C,Gunakan trik selisih kuadrat: a² - b² = (a-b)(a+b). 78² - 22² = (78-22)(78+22) = 56 × 100. (56 × 100) / 56 = 100.
+27,Kemampuan Numerik - Aljabar Cepat,"Nilai dari 37,5% dari 640 adalah...",180,200,220,240,260,D,"Ingat pecahan istimewa: 37,5% = 3/8. Maka 3/8 × 640 = 3 × 80 = 240."
+28,Kemampuan Numerik - Aljabar Cepat,"Nilai dari:
+
+24 × 17 + 24 × 83 = ...",2.000,2.400,2.600,2.800,3.000,B,Sifat distributif: 24 × (17 + 83) = 24 × 100 = 2.400.
+29,Kemampuan Numerik - Aljabar Cepat,"Hasil dari √1,44 + √0,0064 = ...","1,28","1,208","1,82","0,28","1,448",A,"√1,44 = 1,2 dan √0,0064 = 0,08. Maka 1,2 + 0,08 = 1,28."
+30,Kemampuan Numerik - Aljabar Cepat,"Nilai dari:
+
+(65² - 35²) / 30 = ...",50,80,100,120,150,C,a² - b² = (65 - 35)(65 + 35) = 30 × 100. Maka (30 × 100) / 30 = 100.
+31,Kemampuan Numerik - Aljabar Cepat,"Jika a = 3 dan b = -2, maka nilai dari 2a² - 3ab + b² adalah...",22,32,36,40,44,D,2(3)² - 3(3)(-2) + (-2)² = 2(9) - (-18) + 4 = 18 + 18 + 4 = 40.
+32,Kemampuan Numerik - Aljabar Cepat,"Hasil dari 12,5% dari 240 adalah...",20,25,30,35,40,C,"12,5% = 1/8. Maka 1/8 × 240 = 30."
+33,Kemampuan Numerik - Aljabar Cepat,"Berapakah hasil dari 45% dibagi 0,9?","0,05","0,2","0,5",2,5,C,"45% = 0,45. 0,45 : 0,9 = 45 : 90 = 0,5."
+34,Kemampuan Numerik - Aljabar Cepat,"Hitunglah hasil dari:
+
+1/2 + 1/4 + 1/8 + 1/16 + 1/32 = ...",31/32,15/16,33/32,63/64,1,A,Samakan penyebut ke 32: (16 + 8 + 4 + 2 + 1) / 32 = 31/32.
+35,Kemampuan Numerik - Aljabar Cepat,"Nilai dari (0,5)³ + (0,2)² adalah...","0,145","0,165","0,175","0,225","0,265",B,"(0,5)³ = 0,125 dan (0,2)² = 0,04. Maka 0,125 + 0,04 = 0,165."
+36,Kemampuan Numerik - Aljabar Cepat,Hasil dari 15 × 12 - 125 : 5 adalah...,145,155,165,175,185,B,Dahulukan kali dan bagi: (15 × 12) - (125 : 5) = 180 - 25 = 155.
+37,Kemampuan Numerik - Aljabar Cepat,"Jika 3x - 5 = 16, berapakah nilai dari 6x + 2?",42,44,46,48,50,B,3x = 16 + 5 = 21 → x = 7. Maka 6x + 2 = 6(7) + 2 = 42 + 2 = 44.
+38,Kemampuan Numerik - Deret Angka,"Tentukan angka selanjutnya dari deret berikut:
+
+3,  5,  9,  17,  33,  ...",49,55,65,66,67,C,"Pola penambahan selisih berpangkat dua (+2, +4, +8, +16, +32). Maka 33 + 32 = 65."
+39,Kemampuan Numerik - Deret Angka,"Tentukan angka selanjutnya dari deret berikut:
+
+5,  8,  13,  21,  34,  ...",45,52,55,57,60,C,Deret Fibonacci: suku ke-n adalah jumlah 2 suku sebelumnya. 5+8=13; 8+13=21; 13+21=34; 21+34 = 55.
+40,Kemampuan Numerik - Deret Angka,"Tentukan dua angka selanjutnya dari deret berikut:
+
+3,  6,  4,  8,  6,  12,  10,  x,  y",20 dan 18,12 dan 14,14 dan 12,20 dan 22,18 dan 16,A,"Pola bergantian: [× 2] lalu [- 2]. 10 × 2 = 20, lalu 20 - 2 = 18."
+41,Kemampuan Numerik - Deret Angka,"Tentukan angka selanjutnya dari deret berikut:
+
+100,  95,  85,  70,  50,  ...",20,25,30,35,40,B,"Pola pengurangan bertingkat: -5, -10, -15, -20, lalu -25. Maka 50 - 25 = 25."
+42,Kemampuan Numerik - Deret Angka,"Tentukan angka selanjutnya dari deret 2 larik berikut:
+
+4,  7,  9,  14,  14,  21,  19,  ...",24,26,28,30,32,C,"Larik ganjil: 4, 9, 14, 19 (+5). Larik genap: 7, 14, 21, (+7) → 21 + 7 = 28."
+43,Kemampuan Numerik - Deret Angka,"Tentukan dua angka selanjutnya dari deret berikut:
+
+2,  3,  6,  7,  14,  15,  x,  y",30 dan 31,28 dan 29,25 dan 26,30 dan 32,32 dan 33,A,"Pola operasi: [+1] lalu [×2]. 15 × 2 = 30, lalu 30 + 1 = 31."
+44,Kemampuan Numerik - Deret Angka,"Tentukan angka selanjutnya dari deret berikut:
+
+1,  4,  9,  16,  25,  36,  ...",42,45,48,49,54,D,"Deret bilangan kuadrat: 1², 2², 3², 4², 5², 6², maka 7² = 49."
+45,Kemampuan Numerik - Deret Huruf,"Tentukan huruf selanjutnya dari deret berikut:
+
+A,  C,  E,  G,  ...",H,I,J,K,L,B,"Lompat 1 huruf (huruf ganjil): A(1), C(3), E(5), G(7), maka urutan ke-9 adalah I."
+46,Kemampuan Numerik - Deret Huruf,"Tentukan huruf selanjutnya dari deret berikut:
+
+B,  D,  G,  K,  ...",M,N,O,P,Q,D,Pola pertambahan indeks alfabet: B(2) +2 = D(4); D(4) +3 = G(7); G(7) +4 = K(11); K(11) +5 = P(16). Jawabannya P.
+47,Kemampuan Numerik - Deret Angka,"Tentukan suku berikutnya dari deret pecahan berikut:
+
+1/3,  1,  3,  9,  27,  ...",54,64,72,81,96,D,Pola perkalian 3 (×3): 1/3 × 3 = 1; 1 × 3 = 3; 3 × 3 = 9; 9 × 3 = 27; 27 × 3 = 81.
+48,Kemampuan Numerik - Perbandingan Kuantitatif,"Diketahui:
+x = 1/15 - 1/20
+y = 1/10 - 1/15
+
+Hubungan x dan y yang tepat adalah...",x > y,x < y,x = y,2x = y,Hubungan tidak dapat ditentukan,B,"x = (4 - 3)/60 = 1/60. y = (3 - 2)/30 = 1/30 = 2/60. Karena 1/60 < 2/60, maka x < y."
+49,Kemampuan Numerik - Perbandingan Kuantitatif,"Diketahui:
+x = 16,67% dari 240
+y = 1/6 dari 240
+
+Hubungan x dan y yang tepat adalah...",x > y,x < y,x = y,x = 2y,Hubungan tidak dapat ditentukan,C,"16,67% nilainya ekuivalen dengan 1/6. Karena 1/6 × 240 = 40 pada kedua sisi, maka x = y."
+50,Kemampuan Numerik - Perbandingan Kuantitatif,"Diketahui:
+x = volume kubus dengan rusuk 4 cm
+y = volume balok berukuran 8 cm × 4 cm × 2 cm
+
+Hubungan nilai x dan y adalah...",x > y,x < y,x = y,x = 2y,Hubungan tidak dapat ditentukan,C,Volume kubus x = 4³ = 64 cm³. Volume balok y = 8 × 4 × 2 = 64 cm³. Maka x = y.
+51,Kemampuan Numerik - Perbandingan Kuantitatif,"Diketahui:
+x = jumlah bilangan ganjil antara 10 dan 20
+y = jumlah bilangan genap antara 11 dan 19
+
+Hubungan x dan y yang tepat adalah...",x > y,x < y,x = y,x = 2y,Hubungan tidak dapat ditentukan,A,"x = 11 + 13 + 15 + 17 + 19 = 75. y = 12 + 14 + 16 + 18 = 60. Karena 75 > 60, maka x > y."
+52,Kemampuan Numerik - Perbandingan Kuantitatif,"Diketahui:
+x = (-2)⁴
+y = -2⁴
+
+Hubungan x dan y yang tepat adalah...",x > y,x < y,x = y,x = -y,Hubungan tidak dapat ditentukan,A,x = (-2)⁴ = +16 (pangkat genap tanda kurung negatif jadi positif). y = -(2⁴) = -16. Maka x > y.
+53,Kemampuan Numerik - Perbandingan Kuantitatif,"Diketahui:
+x = √64
+y² = 64
+
+Hubungan x dan y yang tepat adalah...",x > y,x < y,x = y,x ≥ y,Hubungan x dan y tidak dapat ditentukan,E,Nilai x = √64 = +8 (akar utama selalu positif). Sedangkan y² = 64 memiliki dua nilai: y = +8 atau y = -8. Jika y = 8 maka x = y; jika y = -8 maka x > y. Maka hubungan tidak dapat dipastikan secara tunggal.
+54,Kemampuan Numerik - Soal Cerita Proyek,"Suatu pekerjaan pembangunan jembatan dapat diselesaikan oleh 12 orang pekerja dalam waktu 18 hari. Jika pekerjaan tersebut ditargetkan selesai dalam waktu 8 hari, berapa banyak pekerja tambahan yang harus ditambahkan?",12 orang,15 orang,18 orang,20 orang,27 orang,B,Perbandingan berbalik nilai: Beban kerja = 12 × 18 = 216 hari-orang. Jumlah pekerja yang dibutuhkan = 216 / 8 = 27 orang. Pekerja tambahan = 27 - 12 = 15 orang.
+55,Kemampuan Numerik - Soal Cerita Aritmatika,Sebuah toko pakaian memberikan promo diskon ganda berturut-turut sebesar 20% kemudian didiskon lagi 10%. Berapakah total persentase diskon efektif yang sebenarnya diterima pembeli?,26%,28%,30%,32%,35%,B,"Harga sisa setelah diskon 20% = 80% = 0,8. Diskon kedua 10% dari sisa: 0,8 × (1 - 0,1) = 0,8 × 0,9 = 0,72 (72%). Maka total diskon efektif = 100% - 72% = 28%."
+56,Kemampuan Numerik - Soal Cerita Kecepatan,Mobil A berangkat dari kota X pukul 07.00 dengan kecepatan rata-rata 50 km/jam. Mobil B menyusul dari tempat yang sama pada pukul 07.30 dengan kecepatan rata-rata 70 km/jam. Pada pukul berapakah Mobil B berhasil menyusul Mobil A?,08.15,08.30,08.45,09.00,09.15,C,"Selisih waktu keberangkatan = 30 menit (0,5 jam). Jarak awal Mobil A = 50 km/jam × 0,5 jam = 25 km. Selisih kecepatan = 70 - 50 = 20 km/jam. Waktu menyusul = 25 / 20 = 1,25 jam = 1 jam 15 menit. Pukul menyusul = 07.30 + 01.15 = 08.45."
+57,Kemampuan Numerik - Soal Cerita Statistik,"Nilai rata-rata ujian matematika dari 15 siswa adalah 70. Jika nilai 5 siswa lain digabungkan ke kelompok tersebut, maka nilai rata-rata kelas meningkat menjadi 72. Berapakah nilai rata-rata dari 5 siswa yang baru bergabung tersebut?",74,76,78,80,82,C,Jumlah nilai 15 siswa = 15 × 70 = 1.050. Jumlah nilai setelah 20 siswa = 20 × 72 = 1.440. Jumlah nilai 5 siswa baru = 1.440 - 1.050 = 390. Rata-rata 5 siswa baru = 390 / 5 = 78.
+58,Kemampuan Numerik - Soal Cerita Aritmatika,"Seorang pedagang membeli sebuah barang dagangan seharga Rp 200.000. Jika pedagang tersebut ingin memperoleh persentase keuntungan sebesar 25%, berapakah harga jual barang tersebut?",Rp 225.000,Rp 240.000,Rp 250.000,Rp 260.000,Rp 275.000,C,Keuntungan = 25% × Rp 200.000 = Rp 50.000. Harga jual = Rp 200.000 + Rp 50.000 = Rp 250.000.
+59,Kemampuan Numerik - Soal Cerita Umur,"Saat ini umur Ayah adalah 3 kali umur Budi. Sepuluh tahun yang lalu, umur Ayah adalah 5 kali umur Budi. Berapakah umur Budi saat ini?",15 tahun,18 tahun,20 tahun,22 tahun,25 tahun,C,Persamaan: A = 3B. Sepuluh tahun lalu: A - 10 = 5(B - 10). Substitusi A: 3B - 10 = 5B - 50 → 5B - 3B = 50 - 10 → 2B = 40 → B = 20 tahun.
+60,Kemampuan Numerik - Soal Cerita Debit,"Sebuah kolam renang berukuran panjang 10 meter, lebar 6 meter, dan kedalaman 1,5 meter akan diisi air menggunakan pipa dengan debit aliran 50 liter per menit. Berapa jamkah waktu yang dibutuhkan hingga kolam terisi penuh dari keadaan kosong?",20 jam,25 jam,30 jam,35 jam,40 jam,C,"Volume kolam = 10 × 6 × 1,5 = 90 m³ = 90.000 liter. Waktu dalam menit = 90.000 / 50 = 1.800 menit. Waktu dalam jam = 1.800 / 60 = 30 jam."
