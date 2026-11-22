@@ -7,6 +7,7 @@ import { QuestionViewer } from '@/components/exam/QuestionViewer';
 import { QuestionPalette } from '@/components/exam/QuestionPalette';
 import { ExamSessionInitDTO, ExamReviewDTO } from '@/types/exam';
 import { ExamReviewViewer } from '@/components/exam/ExamReviewViewer';
+import { ExamStartConfirmation } from '@/components/exam/ExamStartConfirmation';
 import { get, set as idbSet } from 'idb-keyval';
 import {
   Wifi,
@@ -57,6 +58,13 @@ function ExamPlayer({ params }: ExamPageProps) {
   const [reviewData, setReviewData] = useState<ExamReviewDTO | null>(null);
   const [isLoadingReview, setIsLoadingReview] = useState(false);
   const [sessionTryoutId, setSessionTryoutId] = useState<string | null>(null);
+  const [isConfirmedStart, setIsConfirmedStart] = useState(false);
+  const [examMeta, setExamMeta] = useState<{
+    title: string;
+    durationMinutes: number;
+    totalQuestions: number;
+    examType: string;
+  } | null>(null);
   const [submitResult, setSubmitResult] = useState<{
     totalScore: number;
     subtestScores?: Record<string, number>;
@@ -116,6 +124,18 @@ function ExamPlayer({ params }: ExamPageProps) {
         const initDTO = data as ExamSessionInitDTO;
         if (isMounted) {
           setSessionTryoutId(initDTO.tryoutId);
+          const durMinutes = Math.max(
+            Math.round(
+              (new Date(initDTO.deadline).getTime() - new Date(initDTO.startedAt).getTime()) / 60000
+            ),
+            60
+          );
+          setExamMeta({
+            title: initDTO.title,
+            durationMinutes: durMinutes,
+            totalQuestions: initDTO.questions.length,
+            examType: initDTO.questions[0]?.category || 'SKD_CPNS',
+          });
         }
 
         // Check if there are local offline answers cached in IndexedDB
@@ -130,6 +150,11 @@ function ExamPlayer({ params }: ExamPageProps) {
         }
 
         if (isMounted) {
+          // If user is resuming an active exam with saved answers, bypass confirmation screen
+          if (Object.keys(mergedAnswers).length > 0) {
+            setIsConfirmedStart(true);
+          }
+
           useExamStore.getState().initExam({
             sessionId: initDTO.sessionId,
             tryoutId: initDTO.tryoutId,
@@ -430,6 +455,19 @@ function ExamPlayer({ params }: ExamPageProps) {
           </div>
         </div>
       </div>
+    );
+  }
+
+  // Pre-Exam Confirmation Screen
+  if (!isConfirmedStart && examMeta && !isSubmitted) {
+    return (
+      <ExamStartConfirmation
+        title={examMeta.title}
+        durationMinutes={examMeta.durationMinutes}
+        totalQuestions={examMeta.totalQuestions}
+        categoryOrType={examMeta.examType}
+        onConfirmStart={() => setIsConfirmedStart(true)}
+      />
     );
   }
 

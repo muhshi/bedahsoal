@@ -54,21 +54,42 @@ export const NegativeMarkingStrategy = {
   calculate(
     questions: QuestionScoringItem[],
     answers: Record<string, UserAnswerItem>,
-    config: NegativeMarkingConfig = { correctScore: 4, wrongScore: -1, emptyScore: 0 }
+    rawConfig?: any
   ): ExamScoreResult {
+    const correctScore =
+      typeof rawConfig?.correctScore === 'number'
+        ? rawConfig.correctScore
+        : typeof rawConfig?.correct === 'number'
+        ? rawConfig.correct
+        : 4;
+
+    const wrongScore =
+      typeof rawConfig?.wrongScore === 'number'
+        ? rawConfig.wrongScore
+        : typeof rawConfig?.wrong === 'number'
+        ? rawConfig.wrong
+        : -1;
+
+    const emptyScore =
+      typeof rawConfig?.emptyScore === 'number'
+        ? rawConfig.emptyScore
+        : typeof rawConfig?.empty === 'number'
+        ? rawConfig.empty
+        : 0;
+
     const subtestScores: Record<string, number> = {};
     let totalScore = 0;
 
     for (const q of questions) {
       const ans = answers[q.id];
       const selectedKey = ans?.selectedKey;
-      let scoreAwarded = config.emptyScore;
+      let scoreAwarded = emptyScore;
 
       if (selectedKey) {
-        if (q.correctKey && selectedKey === q.correctKey) {
-          scoreAwarded = config.correctScore;
+        if (q.correctKey && selectedKey.toUpperCase() === q.correctKey.toUpperCase()) {
+          scoreAwarded = correctScore;
         } else {
-          scoreAwarded = config.wrongScore;
+          scoreAwarded = wrongScore;
         }
       }
 
@@ -76,7 +97,12 @@ export const NegativeMarkingStrategy = {
       totalScore += scoreAwarded;
     }
 
-    return { totalScore, subtestScores };
+    return {
+      totalScore: isNaN(totalScore) ? 0 : totalScore,
+      subtestScores: Object.fromEntries(
+        Object.entries(subtestScores).map(([k, v]) => [k, isNaN(v) ? 0 : v])
+      ),
+    };
   },
 };
 

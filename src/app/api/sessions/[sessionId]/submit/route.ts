@@ -166,8 +166,27 @@ export async function POST(
         }
       : undefined;
 
-    const negativeConfig =
-      (session.tryout.scoringScheme as unknown as NegativeMarkingConfig) || undefined;
+    const rawScheme = session.tryout.scoringScheme as any;
+    const negativeConfig: NegativeMarkingConfig = {
+      correctScore:
+        typeof rawScheme?.correctScore === 'number'
+          ? rawScheme.correctScore
+          : typeof rawScheme?.correct === 'number'
+          ? rawScheme.correct
+          : 4,
+      wrongScore:
+        typeof rawScheme?.wrongScore === 'number'
+          ? rawScheme.wrongScore
+          : typeof rawScheme?.wrong === 'number'
+          ? rawScheme.wrong
+          : -1,
+      emptyScore:
+        typeof rawScheme?.emptyScore === 'number'
+          ? rawScheme.emptyScore
+          : typeof rawScheme?.empty === 'number'
+          ? rawScheme.empty
+          : 0,
+    };
 
     // Calculate official scores via Strategy Pattern
     const scoreResult = calculateExamScore(
@@ -179,6 +198,18 @@ export async function POST(
         negativeConfig,
       }
     );
+
+    const safeTotalScore =
+      typeof scoreResult.totalScore === 'number' && !isNaN(scoreResult.totalScore)
+        ? Math.round(scoreResult.totalScore)
+        : 0;
+
+    const safeSubtestScores: Record<string, number> = {};
+    if (scoreResult.subtestScores && typeof scoreResult.subtestScores === 'object') {
+      for (const [key, val] of Object.entries(scoreResult.subtestScores)) {
+        safeSubtestScores[key] = typeof val === 'number' && !isNaN(val) ? Math.round(val) : 0;
+      }
+    }
 
     const now = new Date();
 
@@ -193,7 +224,7 @@ export async function POST(
         const matchedOption = q.options.find((o) => o.id === ans.selectedOptionId);
 
         if (session.tryout.examType === 'MATH_OLYMPIAD') {
-          const neg = negativeConfig || { correctScore: 4, wrongScore: -1, emptyScore: 0 };
+          const neg = negativeConfig;
           const chosenKey = matchedOption?.key || (ans.numericAnswer ? ans.numericAnswer.trim() : null);
           const maxOption = q.options.length > 0
             ? q.options.reduce((p, c) => (c.score > p.score ? c : p), q.options[0])
@@ -208,6 +239,8 @@ export async function POST(
         } else {
           scoreAwarded = matchedOption ? matchedOption.score : 0;
         }
+
+        if (isNaN(scoreAwarded)) scoreAwarded = 0;
 
         await tx.examAnswer.upsert({
           where: {
@@ -240,8 +273,8 @@ export async function POST(
         where: { id: session.id },
         data: {
           status: 'COMPLETED',
-          totalScore: scoreResult.totalScore,
-          subtestScores: scoreResult.subtestScores,
+          totalScore: safeTotalScore,
+          subtestScores: safeSubtestScores,
           isPassed: scoreResult.isPassed ?? false,
           submittedAt: now,
           passingGradeSnapshot: session.tryout.passingGradeProfile
@@ -258,9 +291,9 @@ export async function POST(
     return NextResponse.json({
       success: true,
       sessionId: session.id,
-      totalScore: scoreResult.totalScore,
-      subtestScores: scoreResult.subtestScores,
-      isPassed: scoreResult.isPassed,
+      totalScore: safeTotalScore,
+      subtestScores: safeSubtestScores,
+      isPassed: scoreResult.isPassed ?? false,
       submittedAt: now.toISOString(),
     });
   } catch (error) {

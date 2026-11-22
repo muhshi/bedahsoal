@@ -162,7 +162,7 @@ export function QuestionPalette({ className = '', onSelectQuestion }: QuestionPa
       <div
         tabIndex={0}
         aria-label="Daftar Tombol Nomor Soal"
-        className="flex-1 overflow-y-auto max-h-[calc(100vh-320px)] min-h-[160px] pr-1 focus:outline-none focus:ring-1 focus:ring-blue-500/30 rounded-lg"
+        className="flex-1 overflow-y-auto max-h-[calc(100vh-320px)] min-h-[180px] p-2.5 scroll-smooth focus:outline-none rounded-xl"
       >
         {displayedQuestions.length === 0 ? (
           <p className="text-sm text-slate-400 py-6 text-center">Tidak ada soal pada subtes ini.</p>
@@ -187,7 +187,7 @@ export function QuestionPalette({ className = '', onSelectQuestion }: QuestionPa
               }
 
               const activeClasses = isActive
-                ? 'ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-slate-900 border-2 border-blue-600 font-bold scale-105 z-10'
+                ? 'ring-2 ring-blue-600 ring-offset-2 dark:ring-offset-slate-900 border-2 border-blue-600 font-extrabold bg-blue-50/80 text-blue-900 dark:bg-blue-950/60 dark:text-blue-100 shadow-sm z-10'
                 : '';
 
               const statusLabel =
@@ -206,7 +206,7 @@ export function QuestionPalette({ className = '', onSelectQuestion }: QuestionPa
                   aria-label={`Soal nomor ${q.orderNumber}: ${statusLabel}${
                     isActive ? ', sedang dibuka' : ''
                   }`}
-                  className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-lg text-sm sm:text-base flex items-center justify-center font-medium transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 ${statusClasses} ${activeClasses}`}
+                  className={`aspect-square w-full rounded-xl text-sm sm:text-base flex items-center justify-center font-semibold transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 ${statusClasses} ${activeClasses}`}
                 >
                   {q.orderNumber}
                 </button>

@@ -48,6 +48,21 @@ describe('Scoring Engine Strategies', () => {
     expect(result.subtestScores).toEqual({ Aljabar: 4, Geometri: -1, Kombinatorika: 0 });
   });
 
+  it('calculates Negative Marking even when config keys are { correct, wrong, empty } without NaN', () => {
+    const questions = [
+      { id: 'm1', category: 'Aljabar', correctKey: 'A', options: [{ key: 'A', score: 4 }, { key: 'B', score: 0 }] },
+      { id: 'm2', category: 'Geometri', correctKey: 'B', options: [{ key: 'A', score: 0 }, { key: 'B', score: 4 }] },
+    ];
+    const answers = {
+      m1: { selectedKey: 'A' },
+      m2: { selectedKey: 'X' },
+    };
+    const rawConfig = { correct: 4, wrong: -1, empty: 0 };
+    const result = NegativeMarkingStrategy.calculate(questions, answers, rawConfig as any);
+    expect(result.totalScore).toBe(3);
+    expect(isNaN(result.totalScore)).toBe(false);
+  });
+
   it('calculates Standard Sum (LPDP TBS / General Tests)', () => {
     const questions = [
       { id: 'l1', category: 'Penalaran Verbal', correctKey: 'A', options: [{ key: 'A', score: 1 }, { key: 'B', score: 0 }] },

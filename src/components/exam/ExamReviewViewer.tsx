@@ -396,7 +396,7 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
               </div>
 
               {/* Grid of Question Numbers */}
-              <div className="grid grid-cols-5 gap-2 max-h-[50vh] overflow-y-auto p-1">
+              <div className="grid grid-cols-5 gap-2 max-h-[50vh] overflow-y-auto p-2.5 scroll-smooth rounded-xl">
                 {filteredQuestions.map((q, idx) => {
                   const isCurrent = idx === currentIndex;
                   const isAnswered = Boolean(q.userAnswer?.selectedOptionId || q.userAnswer?.numericAnswer);
@@ -410,14 +410,14 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
                   }
 
                   if (isCurrent) {
-                    colorClass += ' ring-2 ring-blue-600 ring-offset-2 dark:ring-offset-slate-900';
+                    colorClass += ' ring-2 ring-blue-600 ring-offset-2 dark:ring-offset-slate-900 border-2 border-blue-600';
                   }
 
                   return (
                     <button
                       key={q.id}
                       onClick={() => setCurrentIndex(idx)}
-                      className={`h-9 rounded-lg text-xs font-mono transition-transform active:scale-95 flex items-center justify-center ${colorClass}`}
+                      className={`aspect-square w-full rounded-xl text-xs font-mono font-bold transition-transform active:scale-95 flex items-center justify-center ${colorClass}`}
                       title={`Nomor ${q.orderNumber}: ${isAnswered ? (isCorrect ? 'Benar' : 'Salah') : 'Kosong'}`}
                     >
                       {q.orderNumber}
