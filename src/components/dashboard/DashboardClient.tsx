@@ -15,6 +15,7 @@ import {
 import { UserNav } from '@/components/auth/UserNav';
 import { LeaderboardView } from '@/components/leaderboard/LeaderboardView';
 import { StampBadge } from '@/components/ui/StampBadge';
+import type { TopicDiagnostic } from '@/lib/diagnostics';
 
 interface SessionItem {
   id: string;
@@ -51,11 +52,14 @@ interface DashboardClientProps {
     highestScore: number;
   };
   sessions: SessionItem[];
+  diagnostics?: TopicDiagnostic[];
 }
 
-export function DashboardClient({ user, stats, sessions }: DashboardClientProps) {
+export function DashboardClient({ user, stats, sessions, diagnostics = [] }: DashboardClientProps) {
   const [filter, setFilter] = useState<'ALL' | 'COMPLETED' | 'IN_PROGRESS'>('ALL');
   const [leaderboardTarget, setLeaderboardTarget] = useState<{ tryoutId: string; title: string } | null>(null);
+
+  const activeSession = sessions.find((s) => s.status === 'IN_PROGRESS');
 
   const filteredSessions = sessions.filter((s) => {
     if (filter === 'ALL') return true;
@@ -99,14 +103,8 @@ export function DashboardClient({ user, stats, sessions }: DashboardClientProps)
     }
   };
 
-  // Compute weakness diagnostics from actual completed sessions
+  // Completed sessions for stats calculation
   const completedSessions = sessions.filter((s) => s.status === 'COMPLETED');
-  const weaknessList = [
-    { label: 'TIU · Deret Angka & Berhitung', score: 48, status: 'red' },
-    { label: 'TKP · Pelayanan Publik & Jejaring', score: 62, status: 'red' },
-    { label: 'TWK · Pilar Negara & Integritas', score: 74, status: 'amber' },
-    { label: 'TIU · Silogisme & Logika Posisi', score: 82, status: 'green' },
-  ];
 
   return (
     <div className="min-h-screen bg-[var(--paper,#f3efe3)] text-[var(--ink,#191713)] flex flex-col selection:bg-[#c4402a] selection:text-white">
@@ -175,6 +173,38 @@ export function DashboardClient({ user, stats, sessions }: DashboardClientProps)
             </Link>
           </div>
         </div>
+
+        {/* Active Session Quick-Resume Banner */}
+        {activeSession && (
+          <div className="border border-[#191713] bg-[#eae3d2] p-4 sm:p-5 shadow-paper flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-9 h-9 bg-[#c4402a] text-[#f3efe3] flex items-center justify-center shrink-0 border border-[#191713] font-mono font-bold text-sm">
+                !
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#c4402a] font-bold">
+                    Sesi Berjalan
+                  </span>
+                  <span className="font-mono text-[9px] text-[#7a7365]">· Terhenti</span>
+                </div>
+                <h4 className="font-serif text-base sm:text-lg font-bold text-[#191713]">
+                  {activeSession.tryout.title}
+                </h4>
+                <p className="font-mono text-[10px] text-[#4b463d]">
+                  {formatExamType(activeSession.tryout.examType)} · {activeSession.tryout.totalQuestions} Butir Soal · Dimulai {formatDate(activeSession.startedAt)}
+                </p>
+              </div>
+            </div>
+            <Link
+              href={`/exam/${activeSession.id}`}
+              className="inline-flex items-center justify-center gap-2 h-10 px-5 border border-[#191713] bg-[#c4402a] text-[#f3efe3] font-mono text-xs font-semibold tracking-wider uppercase hover:bg-[#9c2f1e] hover:border-[#9c2f1e] transition-all shadow-[2px_2px_0px_#191713] hover:translate-x-[-1px] hover:translate-y-[-1px] shrink-0"
+            >
+              <span>Lanjut Mengerjakan</span>
+              <span aria-hidden="true">&rarr;</span>
+            </Link>
+          </div>
+        )}
 
         {/* 4-Stat Grid (Ringkasan Performa) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4" aria-label="Ringkasan performa">
@@ -417,31 +447,63 @@ export function DashboardClient({ user, stats, sessions }: DashboardClientProps)
                 </p>
               </div>
 
-              <div className="space-y-4">
-                {weaknessList.map((item, idx) => (
-                  <div key={idx} className="space-y-1.5">
-                    <div className="flex items-center justify-between font-mono text-xs">
-                      <span className="text-[#191713] font-medium">{item.label}</span>
-                      <strong className={item.status === 'red' ? 'text-[#c4402a]' : item.status === 'amber' ? 'text-[#b67a18]' : 'text-[#2f5a44]'}>
-                        {item.score}%
-                      </strong>
-                    </div>
-                    {/* Progress Bar Track */}
-                    <div className="h-2 w-full bg-[#eae3d2] border border-[#d2c8b2] overflow-hidden">
-                      <div
-                        style={{ width: `${item.score}%` }}
-                        className={`h-full transition-all duration-500 ${
-                          item.status === 'red'
-                            ? 'bg-[#c4402a]'
-                            : item.status === 'amber'
-                            ? 'bg-[#b67a18]'
-                            : 'bg-[#2f5a44]'
-                        }`}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {diagnostics && diagnostics.length > 0 ? (
+                <div className="space-y-4">
+                  {diagnostics.slice(0, 6).map((item) => {
+                    const barColor =
+                      item.tier === 'critical'
+                        ? 'bg-[#c4402a]'
+                        : item.tier === 'moderate'
+                        ? 'bg-[#b67a18]'
+                        : 'bg-[#2f5a44]';
+                    const textColor =
+                      item.tier === 'critical'
+                        ? 'text-[#c4402a]'
+                        : item.tier === 'moderate'
+                        ? 'text-[#b67a18]'
+                        : 'text-[#2f5a44]';
+
+                    return (
+                      <div key={item.topicKey} className="space-y-1.5">
+                        <div className="flex items-center justify-between font-mono text-xs">
+                          <span className="text-[#191713] font-medium truncate max-w-[200px]" title={item.label}>
+                            {item.label}
+                          </span>
+                          <strong className={textColor}>
+                            {item.percentage}%
+                          </strong>
+                        </div>
+                        {/* Progress Bar Track */}
+                        <div className="h-2 w-full bg-[#eae3d2] border border-[#d2c8b2] overflow-hidden">
+                          <div
+                            style={{ width: `${item.percentage}%` }}
+                            className={`h-full transition-all duration-500 ${barColor}`}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between font-mono text-[9px] text-[#7a7365]">
+                          <span>{item.scoreAwarded}/{item.maxScore} Poin ({item.totalQuestions} Soal)</span>
+                          <span className={`uppercase font-semibold ${textColor}`}>
+                            {item.tier === 'critical' ? 'Kritis' : item.tier === 'moderate' ? 'Moderat' : 'Kuasai'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="py-6 text-center space-y-2">
+                  <p className="font-mono text-xs text-[#7a7365] leading-relaxed">
+                    Belum ada data materi. Selesaikan 1 sesi tryout untuk mengaktifkan radar diagnostik kelemahan.
+                  </p>
+                  <Link
+                    href="/#katalog"
+                    className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-[#c4402a] hover:underline uppercase"
+                  >
+                    <span>Mulai Ujian Sekarang</span>
+                    <span aria-hidden="true">&rarr;</span>
+                  </Link>
+                </div>
+              )}
 
               <div className="mt-5 pt-4 border-t border-[#d2c8b2] font-mono text-[9.5px] text-[#7a7365] leading-relaxed">
                 Rekomendasi: Prioritaskan latihan kilat pada subtes berwarna merah sebelum jadwal tes resmi.
