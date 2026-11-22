@@ -10,7 +10,9 @@ vi.mock('@/lib/db', () => ({
     },
     user: {
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
       create: vi.fn(),
+      upsert: vi.fn(),
     },
     examSession: {
       create: vi.fn(),
@@ -57,7 +59,7 @@ describe('Session Lifecycle: POST /api/sessions/start', () => {
       totalQuestions: 60,
     } as any);
 
-    vi.mocked(db.user.findFirst).mockResolvedValueOnce({
+    vi.mocked(db.user.upsert).mockResolvedValueOnce({
       id: 'user-demo-1',
       email: 'demo@bedahsoal.id',
     } as any);

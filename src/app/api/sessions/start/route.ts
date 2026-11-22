@@ -36,20 +36,18 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Resolve guest / demo user
-    let user = await db.user.findFirst({
-      where: { email: 'demo@bedahsoal.id' },
+    const user = await db.user.upsert({
+      where: { id: 'user-demo-1' },
+      update: {
+        name: userName || 'Peserta Mandiri',
+      },
+      create: {
+        id: 'user-demo-1',
+        email: 'demo@bedahsoal.id',
+        name: userName || 'Peserta Mandiri',
+        role: 'USER',
+      },
     });
-
-    if (!user) {
-      user = await db.user.create({
-        data: {
-          id: 'user-demo-1',
-          email: 'demo@bedahsoal.id',
-          name: userName || 'Peserta Mandiri',
-          role: 'USER',
-        },
-      });
-    }
 
     // 3. Create fresh ExamSession with server-authoritative timer
     const startedAt = new Date();
