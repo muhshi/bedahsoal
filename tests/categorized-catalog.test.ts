@@ -17,6 +17,7 @@ import {
   getCategoryMeta,
   filterPackagesByCategory,
   groupPackagesByCategory,
+  filterPackagesBySearch,
 } from '@/components/catalog/CategorizedCatalog';
 
 describe('Categorized Catalog Grouping & Tab Logic', () => {
@@ -202,5 +203,91 @@ describe('Categorized Catalog Grouping & Tab Logic', () => {
 
     expect(html).toContain('LEMBAR SOAL BELUM TERSEDIA');
     expect(html).toContain('Belum ada paket pada meja ujian ini');
+  });
+
+  it('renders search input and dynamic counter (Menampilkan X dari Y paket)', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(CategorizedCatalog, {
+        packages: mockPackages,
+        userPackageIds: [],
+      })
+    );
+
+    expect(html).toContain('Cari paket, topik, atau jenis ujian');
+    expect(html).toContain('Menampilkan');
+    expect(html).toContain('dari');
+    expect(html).toContain('paket');
+  });
+});
+
+describe('filterPackagesBySearch', () => {
+  const samplePackages: PackageData[] = [
+    {
+      id: 'p1',
+      title: 'Tryout Akbar SKD CPNS 2026',
+      slug: 'skd-cpns',
+      description: 'Simulasi TWK, TIU, TKP',
+      examType: 'SKD_CPNS',
+      price: 0,
+      promoPrice: null,
+      isFree: true,
+      tryouts: [{ id: 't1', title: 'SKD Sesi 1', durationMinutes: 100, totalQuestions: 110 }],
+    },
+    {
+      id: 'p2',
+      title: 'Mastery TBS LPDP',
+      slug: 'tbs-lpdp',
+      description: 'Penalaran Verbal dan Kuantitatif',
+      examType: 'LPDP_TBS',
+      price: 50000,
+      promoPrice: null,
+      isFree: false,
+      tryouts: [{ id: 't2', title: 'TBS Sesi 1', durationMinutes: 90, totalQuestions: 60 }],
+    },
+  ];
+
+  it('filters packages matching title or description', () => {
+    const result = filterPackagesBySearch(samplePackages, 'LPDP');
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('p2');
+  });
+
+  it('is case-insensitive', () => {
+    const result = filterPackagesBySearch(samplePackages, 'skd');
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('p1');
+  });
+
+  it('returns all when query is empty', () => {
+    const result = filterPackagesBySearch(samplePackages, '');
+    expect(result).toHaveLength(2);
+  });
+
+  it('matches examType or slug or tryout title', () => {
+    const resultBySlug = filterPackagesBySearch(samplePackages, 'tbs-lpdp');
+    expect(resultBySlug).toHaveLength(1);
+
+    const resultByTryout = filterPackagesBySearch(samplePackages, 'TBS Sesi');
+    expect(resultByTryout).toHaveLength(1);
+  });
+
+  it('returns empty array when search query matches nothing', () => {
+    const result = filterPackagesBySearch(samplePackages, 'nonexistentxyz');
+    expect(result).toHaveLength(0);
+  });
+
+  it('handles leading and trailing whitespace properly', () => {
+    const result = filterPackagesBySearch(samplePackages, '  lpdp   ');
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('p2');
+  });
+
+  it('safely handles packages with null description', () => {
+    const pkgWithNullDesc: PackageData = {
+      ...samplePackages[0],
+      description: null,
+    };
+    const result = filterPackagesBySearch([pkgWithNullDesc], 'skd');
+    expect(result).toHaveLength(1);
   });
 });

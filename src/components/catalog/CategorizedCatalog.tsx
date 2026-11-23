@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Clock, FileText, Lock, CheckCircle2, BookOpen, ArrowRight } from 'lucide-react';
+import { Clock, FileText, Lock, CheckCircle2, BookOpen, ArrowRight, Search, X } from 'lucide-react';
 import { StartExamButton } from '@/components/exam/StartExamButton';
 import { CheckoutModal } from '@/components/payment/CheckoutModal';
 import { StampBadge } from '@/components/ui/StampBadge';
@@ -122,6 +122,19 @@ export function getCategoryMeta(key: string): CategoryTabMeta {
   );
 }
 
+export function filterPackagesBySearch(packages: PackageData[], query: string): PackageData[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return packages;
+  return packages.filter((pkg) => {
+    const titleMatch = pkg.title.toLowerCase().includes(q);
+    const descMatch = (pkg.description || '').toLowerCase().includes(q);
+    const examTypeMatch = pkg.examType.toLowerCase().includes(q);
+    const slugMatch = pkg.slug.toLowerCase().includes(q);
+    const tryoutMatch = pkg.tryouts?.some((t) => t.title.toLowerCase().includes(q));
+    return titleMatch || descMatch || examTypeMatch || slugMatch || tryoutMatch;
+  });
+}
+
 export function filterPackagesByCategory(packages: PackageData[], activeTab: string): PackageData[] {
   if (activeTab === 'ALL') {
     return packages;
@@ -140,6 +153,7 @@ export function groupPackagesByCategory(packages: PackageData[]): Record<string,
 
 export function CategorizedCatalog({ packages, userPackageIds = [] }: CategorizedCatalogProps) {
   const [activeTab, setActiveTab] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedPackage, setSelectedPackage] = useState<PackageData | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [ownedPackageIds, setOwnedPackageIds] = useState<Set<string>>(() => {
@@ -157,8 +171,14 @@ export function CategorizedCatalog({ packages, userPackageIds = [] }: Categorize
     return ownedPackageIds.has(pkg.id) || !!pkg.isOwned;
   };
 
-  // Group packages by category
-  const groupedPackages = groupPackagesByCategory(packages);
+  // Filter packages by search query
+  const searchedPackages = filterPackagesBySearch(packages, searchQuery);
+
+  // Group searched packages by category
+  const groupedPackages = groupPackagesByCategory(searchedPackages);
+
+  // Filter packages by active category tab
+  const activeTabPackages = filterPackagesByCategory(searchedPackages, activeTab);
 
   // Determine category sections to render
   const categoryKeys = Object.keys(CATEGORIES);
@@ -167,10 +187,7 @@ export function CategorizedCatalog({ packages, userPackageIds = [] }: Categorize
       ? categoryKeys.filter((k) => (groupedPackages[k]?.length || 0) > 0)
       : [activeTab];
 
-  const totalDisplayed =
-    activeTab === 'ALL'
-      ? packages.length
-      : (groupedPackages[activeTab] || []).length;
+  const totalDisplayed = activeTabPackages.length;
 
   return (
     <div className="space-y-8" id="katalog">
@@ -190,8 +207,36 @@ export function CategorizedCatalog({ packages, userPackageIds = [] }: Categorize
             </p>
           </div>
           <div className="font-mono text-xs text-[#7a7365] uppercase tracking-wider shrink-0">
-            Menampilkan <span className="font-bold text-[#191713]">{totalDisplayed}</span> paket
+            Menampilkan <span className="font-bold text-[#191713]">{totalDisplayed}</span> dari <span className="font-bold text-[#191713]">{packages.length}</span> paket
           </div>
+        </div>
+      </div>
+
+      {/* Live Instant Search Bar */}
+      <div className="relative">
+        <div className="flex items-center border border-[#191713] bg-[#fbf8f0] shadow-paper focus-within:ring-2 focus-within:ring-[#191713]/20 transition-all">
+          <div className="pl-3.5 pr-2 text-[#7a7365] flex items-center justify-center">
+            <Search className="w-4 h-4" />
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari paket, topik, atau jenis ujian (cth: SKD, LPDP, Olimpiade)..."
+            aria-label="Cari paket ujian"
+            className="w-full bg-transparent font-sans text-xs sm:text-sm text-[#191713] placeholder-[#7a7365] py-2.5 pr-3 focus:outline-none"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              aria-label="Hapus pencarian"
+              className="mr-3 px-2 py-1 font-mono text-xs text-[#7a7365] hover:text-[#c4402a] hover:bg-[#eae3d2] border border-[#d2c8b2] cursor-pointer flex items-center gap-1 transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline text-[10px] uppercase font-bold tracking-wider">Hapus</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -205,7 +250,7 @@ export function CategorizedCatalog({ packages, userPackageIds = [] }: Categorize
           const isActive = activeTab === tab.key;
           const count =
             tab.key === 'ALL'
-              ? packages.length
+              ? searchedPackages.length
               : (groupedPackages[tab.key] || []).length;
 
           return (
@@ -236,8 +281,41 @@ export function CategorizedCatalog({ packages, userPackageIds = [] }: Categorize
         })}
       </div>
 
-      {/* Empty State */}
-      {totalDisplayed === 0 && (
+      {/* Empty Search State */}
+      {searchQuery && totalDisplayed === 0 && (
+        <div className="p-12 text-center border-2 border-dashed border-[#b9ac91] bg-[#fbf8f0] space-y-3">
+          <span className="font-mono text-xs uppercase tracking-widest text-[#c4402a]">
+            PENCARIAN TIDAK DITEMUKAN
+          </span>
+          <h3 className="font-serif text-2xl font-bold text-[#191713]">
+            Tidak ada paket untuk &ldquo;{searchQuery}&rdquo;
+          </h3>
+          <p className="font-sans text-xs sm:text-sm text-[#4b463d] max-w-md mx-auto">
+            Coba kata kunci lain atau periksa ejaan topik (cth: SKD, TIU, LPDP, SNBT, Olimpiade).
+          </p>
+          <div className="flex justify-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="inline-flex items-center gap-1.5 px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider bg-[#191713] text-[#fbf8f0] hover:bg-[#c4402a] border border-[#191713] shadow-paper cursor-pointer transition"
+            >
+              Hapus Pencarian
+            </button>
+            {activeTab !== 'ALL' && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('ALL')}
+                className="inline-flex items-center gap-1.5 px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider bg-[#eae3d2] text-[#191713] hover:bg-[#d2c8b2] border border-[#b9ac91] cursor-pointer transition"
+              >
+                Cari di Semua Paket
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Category Empty State (when no search query) */}
+      {!searchQuery && totalDisplayed === 0 && (
         <div className="p-12 text-center border-2 border-dashed border-[#b9ac91] bg-[#fbf8f0] space-y-3">
           <span className="font-mono text-xs uppercase tracking-widest text-[#7a7365]">
             LEMBAR SOAL BELUM TERSEDIA

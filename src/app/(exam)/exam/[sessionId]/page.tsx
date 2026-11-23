@@ -10,6 +10,7 @@ import { ExamReviewViewer } from '@/components/exam/ExamReviewViewer';
 import { ExamStartConfirmation } from '@/components/exam/ExamStartConfirmation';
 import { StampBadge } from '@/components/ui/StampBadge';
 import { mergeAnswersByTimestamp } from '@/lib/answer-merge';
+import { mapKeyToOptionLetter } from '@/lib/exam-hotkeys';
 import { get, set as idbSet } from 'idb-keyval';
 import {
   Wifi,
@@ -284,11 +285,11 @@ function ExamPlayer({ params }: ExamPageProps) {
       } else if (e.key.toLowerCase() === 'r') {
         e.preventDefault();
         if (currentQ) store.toggleDoubt(currentQ.id);
-      } else if (['a', 'b', 'c', 'd', 'e'].includes(e.key.toLowerCase())) {
-        if (currentQ && currentQ.questionType === 'MULTIPLE_CHOICE') {
-          const letter = e.key.toUpperCase();
+      } else {
+        const optionLetter = mapKeyToOptionLetter(e.key);
+        if (optionLetter && currentQ && currentQ.questionType === 'MULTIPLE_CHOICE') {
           const targetOption = currentQ.options.find(
-            (opt) => opt.key.toUpperCase() === letter
+            (opt) => opt.key.toUpperCase() === optionLetter
           );
           if (targetOption) {
             e.preventDefault();

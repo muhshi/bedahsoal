@@ -11,7 +11,17 @@ export interface UserNavProps {
   /** If true, only renders the auth button / user dropdown without the outer header */
   compact?: boolean;
   className?: string;
-  activeTab?: 'home' | 'catalog' | 'dashboard' | 'exam';
+  activeTab?: 'home' | 'catalog' | 'dashboard' | 'exam' | 'principles';
+}
+
+export function resolveActiveNav(pathname: string, hash: string): 'home' | 'catalog' | 'dashboard' | 'principles' {
+  if (pathname.startsWith('/dashboard')) return 'dashboard';
+  if (pathname === '/' || pathname === '') {
+    if (hash === '#katalog' || hash === 'katalog') return 'catalog';
+    if (hash === '#keunggulan' || hash === 'keunggulan') return 'principles';
+    return 'home';
+  }
+  return 'home';
 }
 
 /**
@@ -32,7 +42,70 @@ export function UserNav({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [currentTab, setCurrentTab] = useState<'home' | 'catalog' | 'dashboard' | 'exam' | 'principles'>(activeTab);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Sync state if activeTab prop changes
+  useEffect(() => {
+    if (activeTab) {
+      setCurrentTab(activeTab);
+    }
+  }, [activeTab]);
+
+  // Dynamic hash detection & intersection observer on scroll
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleLocationChange = () => {
+      const pathname = window.location.pathname;
+      const hash = window.location.hash;
+      if (pathname === '/' || pathname === '') {
+        const resolved = resolveActiveNav(pathname, hash);
+        setCurrentTab(resolved);
+      }
+    };
+
+    handleLocationChange();
+
+    window.addEventListener('hashchange', handleLocationChange);
+    window.addEventListener('popstate', handleLocationChange);
+
+    const katalogEl = document.getElementById('katalog');
+    const keunggulanEl = document.getElementById('keunggulan');
+
+    let observer: IntersectionObserver | null = null;
+    if (typeof IntersectionObserver !== 'undefined' && (katalogEl || keunggulanEl)) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              if (entry.target.id === 'katalog') {
+                setCurrentTab('catalog');
+              } else if (entry.target.id === 'keunggulan') {
+                setCurrentTab('principles');
+              }
+            }
+          }
+        },
+        {
+          root: null,
+          rootMargin: '-20% 0px -60% 0px',
+          threshold: 0.1,
+        }
+      );
+
+      if (katalogEl) observer.observe(katalogEl);
+      if (keunggulanEl) observer.observe(keunggulanEl);
+    }
+
+    return () => {
+      window.removeEventListener('hashchange', handleLocationChange);
+      window.removeEventListener('popstate', handleLocationChange);
+      if (observer) {
+        observer.disconnect();
+      }
+    };
+  }, []);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -191,8 +264,9 @@ export function UserNav({
         <nav className="hidden md:flex items-center gap-1 font-mono text-[10.5px] font-medium tracking-[0.1em] uppercase text-[#4b463d]">
           <Link
             href="/"
+            onClick={() => setCurrentTab('home')}
             className={`px-3 py-2 border-b-2 transition-colors ${
-              activeTab === 'home'
+              currentTab === 'home'
                 ? 'border-b-[#c4402a] text-[#191713] font-semibold'
                 : 'border-b-transparent hover:text-[#191713]'
             }`}
@@ -201,8 +275,9 @@ export function UserNav({
           </Link>
           <Link
             href="/#katalog"
+            onClick={() => setCurrentTab('catalog')}
             className={`px-3 py-2 border-b-2 transition-colors ${
-              activeTab === 'catalog'
+              currentTab === 'catalog'
                 ? 'border-b-[#c4402a] text-[#191713] font-semibold'
                 : 'border-b-transparent hover:text-[#191713]'
             }`}
@@ -211,8 +286,9 @@ export function UserNav({
           </Link>
           <Link
             href="/dashboard"
+            onClick={() => setCurrentTab('dashboard')}
             className={`px-3 py-2 border-b-2 transition-colors ${
-              activeTab === 'dashboard'
+              currentTab === 'dashboard'
                 ? 'border-b-[#c4402a] text-[#191713] font-semibold'
                 : 'border-b-transparent hover:text-[#191713]'
             }`}
@@ -221,7 +297,12 @@ export function UserNav({
           </Link>
           <Link
             href="/#keunggulan"
-            className="px-3 py-2 border-b-2 border-b-transparent hover:text-[#191713] transition-colors"
+            onClick={() => setCurrentTab('principles')}
+            className={`px-3 py-2 border-b-2 transition-colors ${
+              currentTab === 'principles'
+                ? 'border-b-[#c4402a] text-[#191713] font-semibold'
+                : 'border-b-transparent hover:text-[#191713]'
+            }`}
           >
             Prinsip Ujian
           </Link>
@@ -233,7 +314,7 @@ export function UserNav({
             <Link
               href="/dashboard"
               className={`inline-flex items-center justify-center gap-1.5 h-9 px-3 sm:px-3.5 border border-[#191713] font-mono text-[10.5px] font-semibold tracking-[0.1em] uppercase transition-all shadow-[2px_2px_0px_#d2c8b2] hover:translate-x-[-1px] hover:translate-y-[-1px] ${
-                activeTab === 'dashboard'
+                currentTab === 'dashboard'
                   ? 'bg-[#c4402a] text-[#f3efe3] border-[#c4402a]'
                   : 'bg-[#fbf8f0] text-[#191713] hover:bg-[#eae3d2]'
               }`}
@@ -270,24 +351,51 @@ export function UserNav({
         <div className="md:hidden border-t border-[#d2c8b2] bg-[#f3efe3] px-4 py-3 space-y-1 font-mono text-xs uppercase tracking-wider">
           <Link
             href="/"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block py-2.5 px-3 border-b border-[#d2c8b2]/60 text-[#191713] hover:text-[#c4402a]"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              setCurrentTab('home');
+            }}
+            className={`block py-2.5 px-3 border-b border-[#d2c8b2]/60 ${
+              currentTab === 'home' ? 'text-[#c4402a] font-bold' : 'text-[#191713] hover:text-[#c4402a]'
+            }`}
           >
             Beranda
           </Link>
           <Link
             href="/#katalog"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block py-2.5 px-3 border-b border-[#d2c8b2]/60 text-[#4b463d] hover:text-[#191713]"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              setCurrentTab('catalog');
+            }}
+            className={`block py-2.5 px-3 border-b border-[#d2c8b2]/60 ${
+              currentTab === 'catalog' ? 'text-[#c4402a] font-bold' : 'text-[#4b463d] hover:text-[#191713]'
+            }`}
           >
             Katalog Paket
           </Link>
           <Link
             href="/dashboard"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="block py-2.5 px-3 border-b border-[#d2c8b2]/60 text-[#4b463d] hover:text-[#191713]"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              setCurrentTab('dashboard');
+            }}
+            className={`block py-2.5 px-3 border-b border-[#d2c8b2]/60 ${
+              currentTab === 'dashboard' ? 'text-[#c4402a] font-bold' : 'text-[#4b463d] hover:text-[#191713]'
+            }`}
           >
             Rapor &amp; Riwayat
+          </Link>
+          <Link
+            href="/#keunggulan"
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              setCurrentTab('principles');
+            }}
+            className={`block py-2.5 px-3 border-b border-[#d2c8b2]/60 ${
+              currentTab === 'principles' ? 'text-[#c4402a] font-bold' : 'text-[#4b463d] hover:text-[#191713]'
+            }`}
+          >
+            Prinsip Ujian
           </Link>
           <div className="px-3 py-2.5 text-[#c4402a] font-bold">
             <StartExamButton

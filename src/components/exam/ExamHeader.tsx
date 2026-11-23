@@ -160,12 +160,19 @@ export function ExamHeader({
 
           {/* Right: Server-authoritative timer & submit */}
           <div className="flex items-center gap-2.5 sm:gap-4">
+            {isWarning && remainingMs > 0 && (
+              <span className="hidden sm:inline-flex items-center gap-1 border border-red-stamp bg-red-stamp px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-wider text-paper animate-pulse shadow-[1px_1px_0px_#191713]">
+                <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+                Sisa &lt; 5 Menit
+              </span>
+            )}
+
             <div
               aria-label={`Sisa waktu: ${formattedTime}`}
               role="timer"
               className={`flex items-center gap-2 border px-3 py-1.5 font-mono text-sm font-bold sm:text-base ${
                 isWarning
-                  ? 'border-red-stamp bg-red-stamp/10 text-red-stamp'
+                  ? 'border-red-stamp bg-red-stamp/10 text-red-stamp ring-2 ring-red-stamp/50 animate-pulse'
                   : 'border-ink bg-white text-ink'
               }`}
             >

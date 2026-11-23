@@ -24,12 +24,45 @@ interface ExamReviewViewerProps {
 
 type FilterType = 'ALL' | 'WRONG' | 'CORRECT' | 'UNANSWERED';
 
+export function getRemedialQuestions(questions: QuestionReviewDTO[]): QuestionReviewDTO[] {
+  return questions.filter((q) => {
+    if (!q.userAnswer) return true;
+    const isAnswered = Boolean(q.userAnswer.selectedOptionId || q.userAnswer.numericAnswer);
+    if (!isAnswered) return true;
+    if (!q.userAnswer.isCorrect) return true;
+    if (q.userAnswer.isDoubt) return true;
+    return false;
+  });
+}
+
+export function isDrillAnswerCorrect(
+  question: QuestionReviewDTO,
+  optionId: string
+): boolean {
+  const chosenOpt = question.options.find((o) => o.id === optionId);
+  if (!chosenOpt) return false;
+  if (chosenOpt.isCorrect === true) return true;
+  if (question.correctOptionKey && chosenOpt.key === question.correctOptionKey) return true;
+  const maxScore = Math.max(...question.options.map((o) => o.score), 0);
+  return maxScore > 0 && chosenOpt.score === maxScore;
+}
+
 export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [filter, setFilter] = useState<FilterType>('ALL');
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+  const [isDrillMode, setIsDrillMode] = useState(false);
+  const [drillAnswers, setDrillAnswers] = useState<Record<string, string>>({});
+  const [drillSolved, setDrillSolved] = useState<Set<string>>(new Set());
+
+  const remedialQuestions = useMemo(() => {
+    return getRemedialQuestions(review.questions);
+  }, [review.questions]);
 
   const filteredQuestions = useMemo(() => {
+    if (isDrillMode) {
+      return remedialQuestions;
+    }
     return review.questions.filter((q) => {
       if (filter === 'ALL') return true;
       const isAnswered = Boolean(q.userAnswer?.selectedOptionId || q.userAnswer?.numericAnswer);
@@ -38,7 +71,19 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
       if (filter === 'WRONG') return isAnswered && !q.userAnswer?.isCorrect;
       return true;
     });
-  }, [review.questions, filter]);
+  }, [review.questions, filter, isDrillMode, remedialQuestions]);
+
+  const handleSelectDrillOption = (question: QuestionReviewDTO, optionId: string) => {
+    setDrillAnswers((prev) => ({ ...prev, [question.id]: optionId }));
+    const isCorrect = isDrillAnswerCorrect(question, optionId);
+    if (isCorrect) {
+      setDrillSolved((prev) => {
+        const next = new Set(prev);
+        next.add(question.id);
+        return next;
+      });
+    }
+  };
 
   // Ensure currentIndex stays within bounds of filtered list
   const activeQuestion: QuestionReviewDTO | undefined =
@@ -72,6 +117,28 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
           </div>
 
           <div className="flex items-center gap-2.5">
+            {remedialQuestions.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDrillMode((prev) => !prev);
+                  setCurrentIndex(0);
+                }}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 border border-[#191713] font-mono text-xs font-semibold tracking-wider uppercase transition shadow-[2px_2px_0px_#d2c8b2] cursor-pointer ${
+                  isDrillMode
+                    ? 'bg-[#c4402a] text-[#f3efe3]'
+                    : 'bg-[#fbf8f0] text-[#191713] hover:bg-[#eae3d2]'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>
+                  {isDrillMode
+                    ? 'Keluar Drill'
+                    : `Drill Soal Salah (${remedialQuestions.length})`}
+                </span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setIsLeaderboardOpen(true)}
@@ -168,70 +235,137 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
               ))}
             </div>
           )}
+
+          {/* Remedial Drill Prompt Ledger */}
+          {remedialQuestions.length > 0 && (
+            <div className="mt-6 pt-6 border-t border-[#d2c8b2] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <div className="font-mono text-xs font-bold uppercase tracking-wider text-[#191713] flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#c4402a]" />
+                  <span>Mode Drill Soal Salah ({remedialQuestions.length} Butir)</span>
+                </div>
+                <p className="font-sans text-xs text-[#4b463d] mt-1 max-w-xl leading-relaxed">
+                  Latih kembali butir soal yang keliru, kosong, atau ditandai ragu-ragu untuk menguji daya ingat dan ketelitian tanpa melihat kunci terlebih dahulu.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                {drillSolved.size === remedialQuestions.length ? (
+                  <StampBadge label="100% TUNTAS REMEDIAL" variant="green" rotate={-2} />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsDrillMode(true);
+                      setCurrentIndex(0);
+                    }}
+                    className={`inline-flex items-center gap-2 px-4 py-2 border border-[#191713] font-mono text-xs font-bold uppercase tracking-wider transition shadow-paper cursor-pointer ${
+                      isDrillMode
+                        ? 'bg-[#2f5a44] text-[#f3efe3]'
+                        : 'bg-[#c4402a] text-[#f3efe3] hover:bg-[#a83420]'
+                    }`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>
+                      {isDrillMode
+                        ? `Sedang Drill (${drillSolved.size}/${remedialQuestions.length} Tuntas)`
+                        : `Drill Soal Salah (${remedialQuestions.length} Butir)`}
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 3. Main Split View: Question Area (8 cols) & Palet (4 cols) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-8 space-y-6">
-            {/* Filter Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 font-mono text-xs uppercase tracking-wider">
-              <button
-                type="button"
-                onClick={() => {
-                  setFilter('ALL');
-                  setCurrentIndex(0);
-                }}
-                className={`px-3 py-1.5 border transition cursor-pointer font-semibold ${
-                  filter === 'ALL'
-                    ? 'border-[#191713] bg-[#191713] text-[#f3efe3]'
-                    : 'border-[#b9ac91] bg-[#fbf8f0] text-[#4b463d] hover:bg-[#eae3d2]'
-                }`}
-              >
-                Semua ({review.totalQuestions})
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setFilter('WRONG');
-                  setCurrentIndex(0);
-                }}
-                className={`px-3 py-1.5 border transition cursor-pointer font-semibold ${
-                  filter === 'WRONG'
-                    ? 'border-[#c4402a] bg-[#c4402a] text-[#f3efe3]'
-                    : 'border-[#b9ac91] bg-[#fbf8f0] text-[#c4402a] hover:bg-[#c4402a]/10'
-                }`}
-              >
-                Salah ({review.totalWrong})
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setFilter('CORRECT');
-                  setCurrentIndex(0);
-                }}
-                className={`px-3 py-1.5 border transition cursor-pointer font-semibold ${
-                  filter === 'CORRECT'
-                    ? 'border-[#2f5a44] bg-[#2f5a44] text-[#f3efe3]'
-                    : 'border-[#b9ac91] bg-[#fbf8f0] text-[#2f5a44] hover:bg-[#2f5a44]/10'
-                }`}
-              >
-                Benar ({review.totalCorrect})
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setFilter('UNANSWERED');
-                  setCurrentIndex(0);
-                }}
-                className={`px-3 py-1.5 border transition cursor-pointer font-semibold ${
-                  filter === 'UNANSWERED'
-                    ? 'border-[#4b463d] bg-[#4b463d] text-[#f3efe3]'
-                    : 'border-[#b9ac91] bg-[#fbf8f0] text-[#7a7365] hover:bg-[#eae3d2]'
-                }`}
-              >
-                Kosong ({review.totalUnanswered})
-              </button>
-            </div>
+            {/* Filter Tabs / Drill Header */}
+            {isDrillMode ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 border border-[#191713] bg-[#eae3d2] p-3.5 shadow-[2px_2px_0px_#b9ac91]">
+                <div className="flex items-center gap-2.5">
+                  <Sparkles className="w-4 h-4 text-[#c4402a]" />
+                  <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#191713]">
+                    Mode Drill Soal Salah · {drillSolved.size} dari {remedialQuestions.length} Tuntas
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {drillSolved.size === remedialQuestions.length && remedialQuestions.length > 0 && (
+                    <StampBadge label="100% TUNTAS REMEDIAL" variant="green" rotate={0} />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsDrillMode(false);
+                      setCurrentIndex(0);
+                    }}
+                    className="font-mono text-xs font-semibold uppercase tracking-wider text-[#c4402a] hover:underline cursor-pointer"
+                  >
+                    Keluar Mode Drill &times;
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 font-mono text-xs uppercase tracking-wider">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilter('ALL');
+                    setCurrentIndex(0);
+                  }}
+                  className={`px-3 py-1.5 border transition cursor-pointer font-semibold ${
+                    filter === 'ALL'
+                      ? 'border-[#191713] bg-[#191713] text-[#f3efe3]'
+                      : 'border-[#b9ac91] bg-[#fbf8f0] text-[#4b463d] hover:bg-[#eae3d2]'
+                  }`}
+                >
+                  Semua ({review.totalQuestions})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilter('WRONG');
+                    setCurrentIndex(0);
+                  }}
+                  className={`px-3 py-1.5 border transition cursor-pointer font-semibold ${
+                    filter === 'WRONG'
+                      ? 'border-[#c4402a] bg-[#c4402a] text-[#f3efe3]'
+                      : 'border-[#b9ac91] bg-[#fbf8f0] text-[#c4402a] hover:bg-[#c4402a]/10'
+                  }`}
+                >
+                  Salah ({review.totalWrong})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilter('CORRECT');
+                    setCurrentIndex(0);
+                  }}
+                  className={`px-3 py-1.5 border transition cursor-pointer font-semibold ${
+                    filter === 'CORRECT'
+                      ? 'border-[#2f5a44] bg-[#2f5a44] text-[#f3efe3]'
+                      : 'border-[#b9ac91] bg-[#fbf8f0] text-[#2f5a44] hover:bg-[#2f5a44]/10'
+                  }`}
+                >
+                  Benar ({review.totalCorrect})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilter('UNANSWERED');
+                    setCurrentIndex(0);
+                  }}
+                  className={`px-3 py-1.5 border transition cursor-pointer font-semibold ${
+                    filter === 'UNANSWERED'
+                      ? 'border-[#4b463d] bg-[#4b463d] text-[#f3efe3]'
+                      : 'border-[#b9ac91] bg-[#fbf8f0] text-[#7a7365] hover:bg-[#eae3d2]'
+                  }`}
+                >
+                  Kosong ({review.totalUnanswered})
+                </button>
+              </div>
+            )}
 
             {/* Active Question Box */}
             {activeQuestion ? (
@@ -255,8 +389,16 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
                   </div>
 
                   <div>
-                    {!activeQuestion.userAnswer?.selectedOptionId &&
-                    !activeQuestion.userAnswer?.numericAnswer ? (
+                    {isDrillMode ? (
+                      drillSolved.has(activeQuestion.id) ? (
+                        <StampBadge label="REMEDIAL TUNTAS" variant="green" rotate={0} />
+                      ) : drillAnswers[activeQuestion.id] ? (
+                        <StampBadge label="BELUM TEPAT" variant="red" rotate={0} />
+                      ) : (
+                        <StampBadge label="UJI KEMBALI" variant="neutral" rotate={0} />
+                      )
+                    ) : !activeQuestion.userAnswer?.selectedOptionId &&
+                      !activeQuestion.userAnswer?.numericAnswer ? (
                       <StampBadge label="KOSONG (0 POIN)" variant="neutral" rotate={0} />
                     ) : activeQuestion.userAnswer.isCorrect ? (
                       <StampBadge
@@ -282,11 +424,68 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
                 {/* Options List */}
                 <div className="space-y-3 pt-2">
                   <div className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#7a7365] font-semibold">
-                    Pilihan Jawaban
+                    {isDrillMode ? 'Pilih Opsi untuk Menguji Pemahaman' : 'Pilihan Jawaban'}
                   </div>
 
                   <div className="space-y-2.5">
                     {activeQuestion.options.map((opt) => {
+                      if (isDrillMode) {
+                        const isChosenInDrill = drillAnswers[activeQuestion.id] === opt.id;
+                        const isSolved = drillSolved.has(activeQuestion.id);
+                        const isOptCorrect = isDrillAnswerCorrect(activeQuestion, opt.id);
+
+                        let borderClass = 'border-[#d2c8b2] bg-[#fbf8f0] hover:border-[#191713] hover:bg-[#eae3d2]';
+                        let badgeTag = null;
+
+                        if (isChosenInDrill) {
+                          if (isOptCorrect) {
+                            borderClass = 'border-[#2f5a44] bg-[#2f5a44]/15 shadow-[2px_2px_0px_#2f5a44]';
+                            badgeTag = (
+                              <span className="font-mono text-[10px] font-bold text-[#2f5a44] uppercase tracking-wider flex items-center gap-1 border border-[#2f5a44] px-2 py-0.5 bg-[#2f5a44]/20">
+                                <Check className="w-3 h-3" />
+                                Jawaban Tepat!
+                              </span>
+                            );
+                          } else {
+                            borderClass = 'border-[#c4402a] bg-[#c4402a]/15 shadow-[2px_2px_0px_#c4402a]';
+                            badgeTag = (
+                              <span className="font-mono text-[10px] font-bold text-[#c4402a] uppercase tracking-wider flex items-center gap-1 border border-[#c4402a] px-2 py-0.5 bg-[#c4402a]/20">
+                                <X className="w-3 h-3" />
+                                Belum Tepat, Coba Lagi!
+                              </span>
+                            );
+                          }
+                        } else if (isSolved && isOptCorrect) {
+                          borderClass = 'border-[#2f5a44] bg-[#2f5a44]/10';
+                          badgeTag = (
+                            <span className="font-mono text-[10px] font-bold text-[#2f5a44] uppercase tracking-wider flex items-center gap-1 border border-[#2f5a44] px-2 py-0.5 bg-[#2f5a44]/20">
+                              <Check className="w-3 h-3" />
+                              Kunci Jawaban ({opt.score} Poin)
+                            </span>
+                          );
+                        }
+
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => handleSelectDrillOption(activeQuestion, opt.id)}
+                            className={`w-full p-3.5 sm:p-4 border transition-all flex items-start justify-between gap-3 text-left cursor-pointer ${borderClass}`}
+                          >
+                            <div className="flex items-start gap-3 flex-1">
+                              <span className="w-7 h-7 border border-[#191713] bg-[#f3efe3] font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                                {opt.key}
+                              </span>
+                              <div className="text-sm pt-0.5 leading-relaxed text-[#191713]">
+                                <MathRenderer content={opt.text} />
+                              </div>
+                            </div>
+                            {badgeTag && <div className="shrink-0">{badgeTag}</div>}
+                          </button>
+                        );
+                      }
+
+                      // Normal Review Mode
                       const isSelected = activeQuestion.userAnswer?.selectedOptionId === opt.id;
                       const isCorrectAnswer = opt.isCorrect;
 
@@ -342,24 +541,58 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
                   </div>
                 </div>
 
+                {/* Drill Mode Success Banner */}
+                {isDrillMode && drillSolved.has(activeQuestion.id) && (
+                  <div className="p-3.5 border border-[#2f5a44] bg-[#2f5a44]/10 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 font-mono text-xs font-bold text-[#2f5a44]">
+                      <Check className="w-4 h-4" />
+                      <span>Butir ini tuntas dijawab dengan benar!</span>
+                    </div>
+                    {currentIndex < filteredQuestions.length - 1 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCurrentIndex((prev) => Math.min(prev + 1, filteredQuestions.length - 1))
+                        }
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-[#2f5a44] bg-[#2f5a44] text-[#f3efe3] font-mono text-xs font-semibold uppercase tracking-wider hover:bg-[#234333] transition cursor-pointer"
+                      >
+                        <span>Lanjut Soal Berikutnya</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 {/* Step-by-Step KaTeX Explanation Box */}
                 <div className="mt-6 pt-6 border-t border-[#d2c8b2]">
-                  <div className="border border-[#191713] bg-[#eae3d2] p-5 sm:p-6 shadow-[2px_2px_0px_#b9ac91] space-y-3">
-                    <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider font-bold text-[#191713]">
-                      <Sparkles className="w-4 h-4 text-[#c4402a]" />
-                      <span>Bedah Logika &amp; Solusi Cepat</span>
+                  {isDrillMode && !drillAnswers[activeQuestion.id] && !drillSolved.has(activeQuestion.id) ? (
+                    <div className="border border-[#b9ac91] bg-[#f3efe3] p-5 sm:p-6 text-center space-y-2">
+                      <Sparkles className="w-5 h-5 text-[#c4402a] mx-auto" />
+                      <h4 className="font-mono text-xs uppercase tracking-wider font-bold text-[#191713]">
+                        Pembahasan Terkunci dalam Mode Drill
+                      </h4>
+                      <p className="font-sans text-xs text-[#7a7365] max-w-md mx-auto">
+                        Pilih opsi jawaban untuk menguji analisis Anda terlebih dahulu. Pembahasan lengkap akan terbuka setelah Anda mencoba menjawab.
+                      </p>
                     </div>
+                  ) : (
+                    <div className="border border-[#191713] bg-[#eae3d2] p-5 sm:p-6 shadow-[2px_2px_0px_#b9ac91] space-y-3">
+                      <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider font-bold text-[#191713]">
+                        <Sparkles className="w-4 h-4 text-[#c4402a]" />
+                        <span>Bedah Logika &amp; Solusi Cepat</span>
+                      </div>
 
-                    <div className="text-sm leading-relaxed text-[#191713] font-sans">
-                      {activeQuestion.explanation ? (
-                        <MathRenderer content={activeQuestion.explanation} />
-                      ) : (
-                        <p className="italic text-[#7a7365] font-mono text-xs">
-                          Pembahasan untuk butir ini sedang dikalibrasi oleh tim akademisi.
-                        </p>
-                      )}
+                      <div className="text-sm leading-relaxed text-[#191713] font-sans">
+                        {activeQuestion.explanation ? (
+                          <MathRenderer content={activeQuestion.explanation} />
+                        ) : (
+                          <p className="italic text-[#7a7365] font-mono text-xs">
+                            Pembahasan untuk butir ini sedang dikalibrasi oleh tim akademisi.
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Bottom Pagination */}
@@ -395,10 +628,12 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
               <div className="p-12 text-center border border-[#191713] bg-[#fbf8f0] shadow-paper">
                 <BookOpen className="w-8 h-8 text-[#7a7365] mx-auto mb-2" />
                 <h3 className="font-serif text-lg font-bold text-[#191713]">
-                  Tidak ada butir pada filter ini.
+                  {isDrillMode ? 'Semua butir remedial telah diselesaikan!' : 'Tidak ada butir pada filter ini.'}
                 </h3>
                 <p className="font-mono text-xs text-[#7a7365] mt-1">
-                  Pilih tab filter lain untuk melihat evaluasi butir soal.
+                  {isDrillMode
+                    ? 'Selamat, pemahaman Anda telah tuntas pada seluruh materi yang sebelumnya keliru.'
+                    : 'Pilih tab filter lain untuk melihat evaluasi butir soal.'}
                 </p>
               </div>
             )}
@@ -409,10 +644,12 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
             <div className="border border-[#191713] bg-[#fbf8f0] p-5 shadow-paper sticky top-24">
               <div className="flex items-center justify-between border-b border-[#d2c8b2] pb-3 mb-4">
                 <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-[#191713]">
-                  Palet Nomor Soal
+                  {isDrillMode ? 'Palet Drill Remedial' : 'Palet Nomor Soal'}
                 </h3>
                 <span className="font-mono text-xs text-[#7a7365]">
-                  {filteredQuestions.length} Butir
+                  {isDrillMode
+                    ? `${drillSolved.size}/${remedialQuestions.length} Tuntas`
+                    : `${filteredQuestions.length} Butir`}
                 </span>
               </div>
 
@@ -420,14 +657,30 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
               <div className="grid grid-cols-5 gap-2 max-h-[50vh] overflow-y-auto p-1 scroll-smooth">
                 {filteredQuestions.map((q, idx) => {
                   const isCurrent = idx === currentIndex;
-                  const isAnswered = Boolean(q.userAnswer?.selectedOptionId || q.userAnswer?.numericAnswer);
-                  const isCorrect = isAnswered && q.userAnswer?.isCorrect;
-
                   let colorClass = 'border-[#b9ac91] bg-[#f3efe3] text-[#4b463d]';
-                  if (isAnswered) {
-                    colorClass = isCorrect
-                      ? 'border-[#2f5a44] bg-[#2f5a44] text-[#f3efe3] font-bold'
-                      : 'border-[#c4402a] bg-[#c4402a] text-[#f3efe3] font-bold';
+                  let titleText = `Nomor ${q.orderNumber}`;
+
+                  if (isDrillMode) {
+                    const isSolved = drillSolved.has(q.id);
+                    const hasAttempted = Boolean(drillAnswers[q.id]);
+                    if (isSolved) {
+                      colorClass = 'border-[#2f5a44] bg-[#2f5a44] text-[#f3efe3] font-bold';
+                      titleText += ': Tuntas Remedial';
+                    } else if (hasAttempted) {
+                      colorClass = 'border-[#c4402a] bg-[#c4402a] text-[#f3efe3] font-bold';
+                      titleText += ': Belum Tepat';
+                    } else {
+                      colorClass = 'border-[#b9ac91] bg-[#fbf8f0] text-[#191713]';
+                      titleText += ': Belum Diuji';
+                    }
+                  } else {
+                    const isAnswered = Boolean(q.userAnswer?.selectedOptionId || q.userAnswer?.numericAnswer);
+                    const isCorrect = isAnswered && q.userAnswer?.isCorrect;
+                    if (isAnswered) {
+                      colorClass = isCorrect
+                        ? 'border-[#2f5a44] bg-[#2f5a44] text-[#f3efe3] font-bold'
+                        : 'border-[#c4402a] bg-[#c4402a] text-[#f3efe3] font-bold';
+                    }
                   }
 
                   if (isCurrent) {
@@ -439,7 +692,7 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
                       key={q.id}
                       onClick={() => setCurrentIndex(idx)}
                       className={`aspect-square w-full border font-mono text-xs font-bold transition-all active:scale-95 flex items-center justify-center cursor-pointer ${colorClass}`}
-                      title={`Nomor ${q.orderNumber}: ${isAnswered ? (isCorrect ? 'Benar' : 'Salah') : 'Kosong'}`}
+                      title={titleText}
                     >
                       {q.orderNumber}
                     </button>
@@ -449,18 +702,37 @@ export function ExamReviewViewer({ review, onRetakeExam }: ExamReviewViewerProps
 
               {/* Legend */}
               <div className="mt-4 pt-4 border-t border-[#d2c8b2] space-y-2 font-mono text-[10.5px] text-[#4b463d]">
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 border border-[#2f5a44] bg-[#2f5a44] shrink-0" />
-                  <span>Jawaban Benar</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 border border-[#c4402a] bg-[#c4402a] shrink-0" />
-                  <span>Jawaban Salah</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 border border-[#b9ac91] bg-[#f3efe3] shrink-0" />
-                  <span>Tidak Dijawab</span>
-                </div>
+                {isDrillMode ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3.5 h-3.5 border border-[#2f5a44] bg-[#2f5a44] shrink-0" />
+                      <span>Remedial Tuntas</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3.5 h-3.5 border border-[#c4402a] bg-[#c4402a] shrink-0" />
+                      <span>Dicoba (Belum Tepat)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3.5 h-3.5 border border-[#b9ac91] bg-[#fbf8f0] shrink-0" />
+                      <span>Belum Dicoba</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3.5 h-3.5 border border-[#2f5a44] bg-[#2f5a44] shrink-0" />
+                      <span>Jawaban Benar</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3.5 h-3.5 border border-[#c4402a] bg-[#c4402a] shrink-0" />
+                      <span>Jawaban Salah</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3.5 h-3.5 border border-[#b9ac91] bg-[#f3efe3] shrink-0" />
+                      <span>Tidak Dijawab</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </aside>

@@ -95,6 +95,7 @@ export interface QuestionReviewDTO {
   options: ReviewOptionDTO[];
   explanation?: string | null;
   explanationImageUrl?: string | null;
+  correctOptionKey?: string | null;
   userAnswer?: {
     selectedOptionId?: string | null;
     numericAnswer?: string | null;

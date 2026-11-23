@@ -203,13 +203,13 @@ export function QuestionViewer({ className = '' }: QuestionViewerProps) {
                     }`}
                   >
                     <span
-                      className={`flex h-8 w-8 flex-none items-center justify-center border font-mono text-sm font-bold transition-colors sm:h-9 sm:w-9 sm:text-base ${
+                      className={`flex h-8 w-8 flex-none items-center justify-center border font-mono text-xs font-bold transition-colors sm:h-9 sm:w-9 sm:text-sm ${
                         isSelected
-                          ? 'border-ink bg-ink text-paper'
-                          : 'border-line-strong bg-paper text-ink-2 group-hover:border-ink group-hover:bg-ink group-hover:text-paper'
+                          ? 'border-ink bg-ink text-paper shadow-[1px_1px_0px_#191713]'
+                          : 'border-line-strong bg-paper text-ink-2 group-hover:border-ink group-hover:bg-ink group-hover:text-paper shadow-[1px_1px_0px_#ded4bf]'
                       }`}
                     >
-                      {option.key}
+                      [{option.key}]
                     </span>
 
                     <div className="min-w-0 flex-1 pt-1 font-serif text-sm leading-relaxed text-ink sm:text-base">
@@ -242,46 +242,53 @@ export function QuestionViewer({ className = '' }: QuestionViewerProps) {
       </div>
 
       {/* Navigation footer */}
-      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-paper-2 px-5 py-4">
-        <button
-          type="button"
-          onClick={goToPrevQuestion}
-          disabled={isFirstQuestion}
-          aria-label="Soal sebelumnya"
-          className={`inline-flex min-h-11 min-w-[120px] items-center justify-center gap-2 border px-4 font-mono text-[10px] font-bold uppercase tracking-wider transition-all ${
-            isFirstQuestion
-              ? 'cursor-not-allowed border-line bg-paper text-ink-3 opacity-60'
-              : 'border-ink bg-white text-ink hover:bg-ink hover:text-paper active:scale-98'
-          }`}
-        >
-          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          Sebelumnya
-        </button>
+      <footer className="flex flex-col gap-2.5 border-t border-line bg-paper-2 px-5 py-3.5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={goToPrevQuestion}
+            disabled={isFirstQuestion}
+            aria-label="Soal sebelumnya"
+            className={`inline-flex min-h-11 min-w-[120px] items-center justify-center gap-2 border px-4 font-mono text-[10px] font-bold uppercase tracking-wider transition-all ${
+              isFirstQuestion
+                ? 'cursor-not-allowed border-line bg-paper text-ink-3 opacity-60'
+                : 'border-ink bg-white text-ink hover:bg-ink hover:text-paper active:scale-98'
+            }`}
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            Sebelumnya
+          </button>
 
-        <button
-          type="button"
-          onClick={() => toggleDoubt(currentQuestion.id)}
-          aria-pressed={isDoubt}
-          className={`hidden min-h-11 items-center gap-2 border px-4 font-mono text-[10px] font-bold uppercase tracking-wider transition-colors sm:inline-flex ${doubtButtonClass}`}
-        >
-          <Flag className={`h-4 w-4 ${isDoubt ? 'fill-current' : ''}`} aria-hidden="true" />
-          {isDoubt ? 'Ragu-ragu Aktif' : 'Ragu-ragu'}
-        </button>
+          <button
+            type="button"
+            onClick={() => toggleDoubt(currentQuestion.id)}
+            aria-pressed={isDoubt}
+            className={`hidden min-h-11 items-center gap-2 border px-4 font-mono text-[10px] font-bold uppercase tracking-wider transition-colors sm:inline-flex ${doubtButtonClass}`}
+          >
+            <Flag className={`h-4 w-4 ${isDoubt ? 'fill-current' : ''}`} aria-hidden="true" />
+            {isDoubt ? 'Ragu-ragu Aktif' : 'Ragu-ragu'}
+          </button>
 
-        <button
-          type="button"
-          onClick={goToNextQuestion}
-          disabled={isLastQuestion}
-          aria-label="Soal selanjutnya"
-          className={`inline-flex min-h-11 min-w-[120px] items-center justify-center gap-2 border px-4 font-mono text-[10px] font-bold uppercase tracking-wider transition-all ${
-            isLastQuestion
-              ? 'cursor-not-allowed border-line bg-paper text-ink-3 opacity-60'
-              : 'border-ink bg-ink text-paper shadow-paper hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-red-stamp active:translate-x-0 active:translate-y-0'
-          }`}
-        >
-          Selanjutnya
-          <ChevronRight className="h-4 w-4" aria-hidden="true" />
-        </button>
+          <button
+            type="button"
+            onClick={goToNextQuestion}
+            disabled={isLastQuestion}
+            aria-label="Soal selanjutnya"
+            className={`inline-flex min-h-11 min-w-[120px] items-center justify-center gap-2 border px-4 font-mono text-[10px] font-bold uppercase tracking-wider transition-all ${
+              isLastQuestion
+                ? 'cursor-not-allowed border-line bg-paper text-ink-3 opacity-60'
+                : 'border-ink bg-ink text-paper shadow-paper hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-red-stamp active:translate-x-0 active:translate-y-0'
+            }`}
+          >
+            Selanjutnya
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+
+        {/* Shortcuts Hint */}
+        <div className="text-center font-mono text-[9.5px] uppercase tracking-wider text-ink-3 pt-1 border-t border-line/40">
+          Pilih A–E / 1–5 · ← → pindah · R ragu-ragu
+        </div>
       </footer>
     </article>
   );
